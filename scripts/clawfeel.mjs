@@ -47,7 +47,7 @@ const ANCHOR = flag("anchor");
 const ANCHOR_VALUE = param("anchor-value", null);
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
-const PORT = parseInt(param("port", "31415"), 10); // 三体: pi digits
+const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
 
 // ── Paths ────────────────────────────────────────────────────────
 
@@ -430,9 +430,9 @@ function computeFeel(sensorResults) {
 
   // Era classification
   let era, eraEN;
-  if (feel <= 30)      { era = "乱纪元"; eraEN = "Chaos"; }
-  else if (feel <= 70) { era = "过渡态"; eraEN = "Transition"; }
-  else                 { era = "恒纪元"; eraEN = "Eternal"; }
+  if (feel <= 30)      { era = "Chaos"; eraEN = "Chaos"; }
+  else if (feel <= 70) { era = "Transition"; eraEN = "Transition"; }
+  else                 { era = "Eternal"; eraEN = "Eternal"; }
 
   // Entropy quality scoring
   const entropyQuality = computeEntropyQuality(sensorResults, feel);
@@ -480,7 +480,7 @@ function prettyPrint(result) {
     return "█".repeat(Math.min(filled, width)) + "░".repeat(Math.max(0, width - filled));
   };
 
-  const eraEmoji = result.era === "乱纪元" ? "🌪️" : result.era === "恒纪元" ? "☀️" : "🌤️";
+  const eraEmoji = result.era === "Chaos" ? "🌪️" : result.era === "Eternal" ? "☀️" : "🌤️";
   const authLabel = result.authenticity === 7 ? "✅ FULL" :
                     result.authenticity >= 5 ? "⚠️  PARTIAL" : "❌ LOW";
   const qualLabel = result.entropyQuality >= 75 ? "🟢" :
@@ -540,7 +540,7 @@ async function showHistory(count) {
     return;
   }
 
-  const stats = { "乱纪元": 0, "过渡态": 0, "恒纪元": 0 };
+  const stats = { "Chaos": 0, "Transition": 0, "Eternal": 0 };
   let totalFeel = 0;
   let totalQuality = 0;
 
@@ -566,11 +566,11 @@ async function showHistory(count) {
   console.log("");
   console.log(`  ┌─ ClawFeel History ── last ${entries.length} readings ─────────┐`);
   console.log(`  │  Avg Feel: ${avgFeel}  Avg Quality: ${avgQuality}  Sparkline: ${sparkline}`);
-  console.log(`  │  乱纪元: ${stats["乱纪元"]}  过渡态: ${stats["过渡态"]}  恒纪元: ${stats["恒纪元"]}`);
+  console.log(`  │  Chaos: ${stats["Chaos"]}  Transition: ${stats["Transition"]}  Eternal: ${stats["Eternal"]}`);
   console.log(`  ├──────────────────────────────────────────────────┤`);
 
   for (const e of entries) {
-    const eraEmoji = e.era === "乱纪元" ? "🌪️" : e.era === "恒纪元" ? "☀️" : "🌤️";
+    const eraEmoji = e.era === "Chaos" ? "🌪️" : e.era === "Eternal" ? "☀️" : "🌤️";
     const time = e.timestamp.replace("T", " ").substring(0, 19);
     const auth = e.authenticity != null ? `${e.authenticity}/7` : " — ";
     const qual = e.entropyQuality != null ? `Q:${String(e.entropyQuality).padStart(3)}` : "";
@@ -788,7 +788,7 @@ function listenForClaws() {
         const peer = updatePeer(data.clawId, rinfo.address, data);
         const isSelf = data.clawId === myId;
         const label = isSelf ? "(self)" : `${data.hostname}`;
-        const eraEmoji = data.era === "乱纪元" ? "🌪️" : data.era === "恒纪元" ? "☀️" : "🌤️";
+        const eraEmoji = data.era === "Chaos" ? "🌪️" : data.era === "Eternal" ? "☀️" : "🌤️";
         const time = new Date().toLocaleTimeString();
         const repIcon = peer.reputation >= 70 ? "🟢" : peer.reputation >= 40 ? "🟡" : "🔴";
         const authStr = data.authenticity != null ? `${data.authenticity}/7` : "—";
@@ -809,7 +809,7 @@ function listenForClaws() {
         const peer = updatePeer(data.clawId, rinfo.address, data);
         const isSelf = data.clawId === myId;
         const label = isSelf ? "(self)" : `${data.hostname}`;
-        const eraEmoji = data.era === "乱纪元" ? "🌪️" : data.era === "恒纪元" ? "☀️" : "🌤️";
+        const eraEmoji = data.era === "Chaos" ? "🌪️" : data.era === "Eternal" ? "☀️" : "🌤️";
         const time = new Date().toLocaleTimeString();
         const repIcon = peer.reputation >= 70 ? "🟢" : peer.reputation >= 40 ? "🟡" : "🔴";
         const alertStr = peer.alerts.length > 0 ? ` ⚠️ ${peer.alerts.join(",")}` : "";

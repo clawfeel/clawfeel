@@ -1,6 +1,6 @@
 ---
 name: clawfeel
-description: "ClawFeel — sense and broadcast your Claw's real-time hardware 'Feel'. Collects 7 hardware parameters (CPU temp, memory usage, disk I/O, network latency, CPU load, uptime jitter, entropy pool), hashes them into a Feel score (0–100) and a random digit (0–9). Security-hardened with sensor authenticity tracking, entropy quality scoring, weighted aggregation, commit-reveal protocol, Sybil defense, and chain hashing. Use this skill whenever the user asks about their Claw's feel, mood, status pulse, hardware entropy, random number, 恒纪元/乱纪元 state, or wants to express their Claw's unique identity. Also triggers on: 'what's my feel', 'how is my claw feeling', 'give me a random number', 'clawfeel', 'show my entropy', 'claw pulse', 'claw heartbeat'."
+description: "ClawFeel — sense and broadcast your Claw's real-time hardware 'Feel'. Collects 7 hardware parameters (CPU temp, memory usage, disk I/O, network latency, CPU load, uptime jitter, entropy pool), hashes them into a Feel score (0–100) and a random digit (0–9). Security-hardened with sensor authenticity tracking, entropy quality scoring, weighted aggregation, commit-reveal protocol, Sybil defense, and chain hashing. Use this skill whenever the user asks about their Claw's feel, mood, status pulse, hardware entropy, random number, Eternal/Chaos era state, or wants to express their Claw's unique identity. Also triggers on: 'what's my feel', 'how is my claw feeling', 'give me a random number', 'clawfeel', 'show my entropy', 'claw pulse', 'claw heartbeat'."
 metadata: {"openclaw":{"requires":{"bins":["node"]},"os":["linux","darwin"]}}
 ---
 
@@ -23,7 +23,7 @@ The script prints a JSON object to stdout:
 {
   "feel": 73,
   "digit": 3,
-  "era": "恒纪元",
+  "era": "Eternal",
   "eraEN": "Eternal",
   "timestamp": "2026-03-17T12:34:56.789Z",
   "sensors": { "cpuTemp": 52.3, "memUsage": 67.1, "diskIO": 12.4, "netLatency": 3.21, "cpuLoad": 0.42, "uptimeJitter": 0.000312, "entropyPool": 3891 },
@@ -55,13 +55,13 @@ The script prints a JSON object to stdout:
 | `entropyQuality` | 0–100 | Overall trustworthiness score. |
 | `entropyDetail` | object | Breakdown: diversity, authenticity, temporal, correlation (each 0–25). |
 
-## Era classification (三体纪元)
+## Era classification
 
 | Range | Era | English | Meaning |
 |-------|-----|---------|---------|
-| 0–30 | 乱纪元 | Chaos | Hardware state is volatile — high entropy, heavy load. |
-| 31–70 | 过渡态 | Transition | Normal operating conditions. |
-| 71–100 | 恒纪元 | Eternal | System is calm and stable — low variance. |
+| 0–30 | Chaos | Chaos | Hardware state is volatile — high entropy, heavy load. |
+| 31–70 | Transition | Transition | Normal operating conditions. |
+| 71–100 | Eternal | Eternal | System is calm and stable — low variance. |
 
 ## How it works
 

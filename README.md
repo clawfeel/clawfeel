@@ -16,7 +16,7 @@ ClawFeel reads 7 real-time hardware parameters from your device, normalizes them
 |--------|-------|-------------|
 | **Feel** | 0–100 | Your Claw's current state — a hardware-derived score |
 | **Digit** | 0–9 | Last digit of Feel — a quick random number |
-| **Era** | 乱纪元 / 过渡态 / 恒纪元 | Three-Body era classification |
+| **Era** | Chaos / Transition / Eternal | Three-Body era classification |
 
 ### The seven senses
 
@@ -30,15 +30,15 @@ ClawFeel reads 7 real-time hardware parameters from your device, normalizes them
 | 6 | Uptime Jitter | `process.hrtime.bigint()` scheduling noise |
 | 7 | Entropy Pool | `/proc/sys/kernel/random/entropy_avail` or crypto timing |
 
-### Era classification (三体纪元)
+### Era classification
 
 Inspired by Liu Cixin's *Three-Body Problem*:
 
 | Feel | Era | Meaning |
 |------|-----|---------|
-| 0–30 | 🌪️ 乱纪元 (Chaos) | Hardware state is volatile |
-| 31–70 | 🌤️ 过渡态 (Transition) | Normal operation |
-| 71–100 | ☀️ 恒纪元 (Eternal) | System is calm and stable |
+| 0–30 | 🌪️ Chaos | Hardware state is volatile |
+| 31–70 | 🌤️ Transition | Normal operation |
+| 71–100 | ☀️ Eternal | System is calm and stable |
 
 ---
 
@@ -76,7 +76,7 @@ node scripts/clawfeel.mjs
 {
   "feel": 73,
   "digit": 3,
-  "era": "恒纪元",
+  "era": "Eternal",
   "eraEN": "Eternal",
   "timestamp": "2026-03-17T12:34:56.789Z",
   "sensors": { ... },
@@ -90,7 +90,7 @@ node scripts/clawfeel.mjs --pretty
 ```
 ```
   ╔══════════════════════════════════════════╗
-  ║  ClawFeel  ☀️  恒纪元 (Eternal)
+  ║  ClawFeel  ☀️  Eternal
   ╠══════════════════════════════════════════╣
   ║  Feel:    73  ███████████████░░░░░  ║
   ║  Digit:    3                              ║
@@ -130,10 +130,10 @@ node scripts/clawfeel.mjs --history --count 50
 ```
   ┌─ ClawFeel History ── last 5 readings ─────────┐
   │  Avg Feel: 58    Sparkline: ▅▃▇▅▁
-  │  乱纪元: 1  过渡态: 2  恒纪元: 2
+  │  Chaos: 1  Transition: 2  Eternal: 2
   ├──────────────────────────────────────────────┤
-  │  🌤️  42 │ 过渡态 │ 2026-03-17 12:34:56 │ a7f3b9c1e2d4f6a8
-  │  🌪️  18 │ 乱纪元 │ 2026-03-17 12:35:06 │ 3c9a1bf4d7e20856
+  │  🌤️  42 │ Transition │ 2026-03-17 12:34:56 │ a7f3b9c1e2d4f6a8
+  │  🌪️  18 │ Chaos │ 2026-03-17 12:35:06 │ 3c9a1bf4d7e20856
   │  ...
   └──────────────────────────────────────────────┘
 ```
@@ -161,8 +161,8 @@ node scripts/clawfeel.mjs --listen
   │  Waiting for broadcasts... (Ctrl+C to stop)  │
   └─────────────────────────────────────────────┘
 
-  ☀️ [14:30:05] lobby-pi (3c9a1bf4d7e2) Feel:  82 │ 恒纪元 │ from 192.168.1.42:31415
-  🌤️ [14:30:07] (self) (a7f3b9c1e2d4) Feel:  55 │ 过渡态 │ from 192.168.1.10:31415
+  ☀️ [14:30:05] lobby-pi (3c9a1bf4d7e2) Feel:  82 │ Eternal │ from 192.168.1.42:31415
+  🌤️ [14:30:07] (self) (a7f3b9c1e2d4) Feel:  55 │ Transition │ from 192.168.1.10:31415
 ```
 
 ### Via OpenClaw chat

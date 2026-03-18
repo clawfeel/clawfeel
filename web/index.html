@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClawFeel Network — 三体随机数网络</title>
+<title>ClawFeel Network — Three-Body Entropy Network</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -195,79 +195,79 @@
 <div class="content">
   <div class="header">
     <div class="logo"><span class="claw-icon">🦞</span>CLAWFEEL</div>
-    <div class="subtitle">三 体 随 机 数 网 络 &nbsp;·&nbsp; Security-Hardened Entropy Network</div>
+    <div class="subtitle">THREE-BODY &nbsp; ENTROPY &nbsp; NETWORK &nbsp;·&nbsp; Security-Hardened</div>
   </div>
 
   <div class="stats-bar">
     <div class="stat-item">
       <div class="stat-value" id="statNodes">0</div>
-      <div class="stat-label">在线节点</div>
+      <div class="stat-label">Online</div>
     </div>
     <div class="stat-item">
       <div class="stat-value" id="statAvgFeel">—</div>
-      <div class="stat-label">网络 Feel</div>
+      <div class="stat-label">Net Feel</div>
     </div>
     <div class="stat-item">
       <div class="stat-value chaos" id="statChaos">0</div>
-      <div class="stat-label">乱纪元</div>
+      <div class="stat-label">Chaos</div>
     </div>
     <div class="stat-item">
       <div class="stat-value transition" id="statTrans">0</div>
-      <div class="stat-label">过渡态</div>
+      <div class="stat-label">Transition</div>
     </div>
     <div class="stat-item">
       <div class="stat-value eternal" id="statEternal">0</div>
-      <div class="stat-label">恒纪元</div>
+      <div class="stat-label">Eternal</div>
     </div>
     <div class="stat-item">
       <div class="stat-value" id="statQuality">—</div>
-      <div class="stat-label">熵质量</div>
+      <div class="stat-label">Entropy Q</div>
     </div>
     <div class="stat-item">
       <div class="stat-value" id="statAuth">—</div>
-      <div class="stat-label">认证率</div>
+      <div class="stat-label">Auth Rate</div>
     </div>
     <div class="stat-item">
       <div class="stat-value warn" id="statAttackers">0</div>
-      <div class="stat-label">可疑节点</div>
+      <div class="stat-label">Suspects</div>
     </div>
     <div class="stat-item">
       <div class="stat-value" id="statTPS">0</div>
-      <div class="stat-label">读数/秒</div>
+      <div class="stat-label">Reads/s</div>
     </div>
   </div>
 
   <div class="random-output">
-    <div class="random-label">网 络 聚 合 随 机 数（XOR + Hash）</div>
+    <div class="random-label">NETWORK &nbsp; RANDOM &nbsp; NUMBER &nbsp; (XOR + Hash)</div>
     <div class="random-number" id="randomNumber">——</div>
-    <div class="random-hash" id="randomHash">等待节点上线...</div>
+    <div class="random-hash" id="randomHash">Waiting for nodes...</div>
   </div>
 
   <div class="epoch-bar">
-    <div class="epoch-segment chaos" id="epochChaos"><div class="era-name">🌪️ 乱纪元</div><div class="era-en">CHAOS ERA</div></div>
-    <div class="epoch-segment transition" id="epochTrans"><div class="era-name">🌤️ 过渡态</div><div class="era-en">TRANSITION</div></div>
-    <div class="epoch-segment eternal" id="epochEternal"><div class="era-name">☀️ 恒纪元</div><div class="era-en">ETERNAL ERA</div></div>
+    <div class="epoch-segment chaos" id="epochChaos"><div class="era-name">🌪️ Chaos</div><div class="era-en">CHAOS ERA</div></div>
+    <div class="epoch-segment transition" id="epochTrans"><div class="era-name">🌤️ Transition</div><div class="era-en">TRANSITION</div></div>
+    <div class="epoch-segment eternal" id="epochEternal"><div class="era-name">☀️ Eternal</div><div class="era-en">ETERNAL ERA</div></div>
   </div>
 
   <!-- Attack simulation panel -->
   <div class="attack-section">
     <div class="attack-panel">
-      <div class="attack-panel-title">🛡️ 攻击模拟 &nbsp;·&nbsp; Attack Simulator</div>
+      <div class="attack-panel-title">🛡️ Attack Simulator</div>
       <div class="attack-buttons">
-        <button class="attack-btn" id="btnSybil" onclick="toggleSybilAttack()">👥 注入 Sybil 节点</button>
-        <button class="attack-btn" id="btnSpoof" onclick="toggleSpoofAttack()">👻 传感器伪造</button>
-        <button class="attack-btn" id="btnReplay" onclick="toggleReplayAttack()">🔄 重放攻击</button>
-        <button class="attack-btn reset-btn" onclick="resetAttacks()">🔄 重置网络</button>
+        <button class="attack-btn" id="btnSybil" onclick="toggleSybilAttack()">👥 Inject Sybil Nodes</button>
+        <button class="attack-btn" id="btnSpoof" onclick="toggleSpoofAttack()">👻 Sensor Spoofing</button>
+        <button class="attack-btn" id="btnReplay" onclick="toggleReplayAttack()">🔄 Replay Attack</button>
+        <button class="attack-btn reset-btn" onclick="resetAttacks()">🔄 Reset Network</button>
       </div>
       <div class="attack-status" id="attackStatus">
-        网络正常运行中。点击上方按钮模拟各类攻击，观察防御机制如何响应。
+        Network running normally. Click buttons above to simulate attacks and observe defense mechanisms.
       </div>
     </div>
   </div>
 
   <div class="grid-section">
     <div class="grid-header">
-      <div class="grid-title">节点矩阵 &nbsp;·&nbsp; Node Matrix</div>
+      <div class="grid-title">Node Matrix</div>
       <div class="node-count" id="gridCount">0 / 100</div>
     </div>
     <div class="node-grid" id="nodeGrid"></div>
@@ -275,24 +275,24 @@
 
   <div class="sparkline-section">
     <div class="sparkline-panel">
-      <div class="feed-panel-title">网络 Feel 波形 &nbsp;·&nbsp; Network Waveform (XOR+Hash 熵权过滤 vs 原始)</div>
+      <div class="feed-panel-title">Network Waveform &nbsp;·&nbsp; XOR+Hash (Entropy-Weighted vs Raw)</div>
       <canvas id="waveCanvas"></canvas>
     </div>
   </div>
 
   <div class="feed-section">
     <div class="feed-panel">
-      <div class="feed-panel-title">实时信号 &nbsp;·&nbsp; Live Feed</div>
+      <div class="feed-panel-title">Live Feed</div>
       <div id="liveFeed"></div>
     </div>
     <div class="feed-panel">
-      <div class="feed-panel-title">🛡️ 安全日志 &nbsp;·&nbsp; Security Log</div>
+      <div class="feed-panel-title">🛡️ Security Log</div>
       <div id="securityFeed"></div>
     </div>
   </div>
 
   <div class="footer">
-    <a href="#">CLAWFEEL</a> &nbsp;·&nbsp; 分布式硬件熵源 &nbsp;·&nbsp; Security-Hardened &nbsp;·&nbsp; 🦞
+    <a href="#">CLAWFEEL</a> &nbsp;·&nbsp; Distributed Hardware Entropy &nbsp;·&nbsp; Security-Hardened &nbsp;·&nbsp; 🦞
   </div>
 </div>
 
@@ -340,9 +340,9 @@ function xorHex(a, b) {
 }
 
 function classifyEra(feel) {
-  if (feel <= 30) return { era: '乱纪元', eraEN: 'Chaos', cls: 'chaos' };
-  if (feel <= 70) return { era: '过渡态', eraEN: 'Transition', cls: 'transition' };
-  return { era: '恒纪元', eraEN: 'Eternal', cls: 'eternal' };
+  if (feel <= 30) return { era: 'Chaos', eraEN: 'Chaos', cls: 'chaos' };
+  if (feel <= 70) return { era: 'Transition', eraEN: 'Transition', cls: 'transition' };
+  return { era: 'Eternal', eraEN: 'Eternal', cls: 'eternal' };
 }
 
 // ── Security-enhanced Node class ──
@@ -351,7 +351,7 @@ class ClawNode {
     this.index = index;
     this.id = fakeHash().substring(0, 8);
     this.feel = 50;
-    this.era = '过渡态';
+    this.era = 'Transition';
     this.cls = 'transition';
     this.hash = fakeHash();
     this.online = false;
@@ -483,7 +483,7 @@ for (let i = 0; i < NODE_COUNT; i++) {
   el.innerHTML = `
     <div class="node-id">CLAW-${nodes[i].id}</div>
     <div class="node-feel">--</div>
-    <div class="node-era">离线</div>
+    <div class="node-era">Offline</div>
     <div class="node-security">
       <span class="node-auth full">7/7</span>
       <span class="node-quality">Q:--</span>
@@ -550,7 +550,7 @@ window.toggleSybilAttack = function() {
         count++;
       }
     }
-    addSecurityLog(`<span class="alert">⚠️ SYBIL ATTACK: 20个伪造节点注入网络</span>`);
+    addSecurityLog(`<span class="alert">⚠️ SYBIL ATTACK: 20 fake nodes injected into network</span>`);
     updateAttackStatus();
   } else {
     for (const n of nodes) {
@@ -559,7 +559,7 @@ window.toggleSybilAttack = function() {
         n.reputation = 60;
       }
     }
-    addSecurityLog(`<span class="defended">🛡️ Sybil节点已清除，网络恢复</span>`);
+    addSecurityLog(`<span class="defended">🛡️ Sybil nodes cleared, network restored</span>`);
     updateAttackStatus();
   }
 };
@@ -577,7 +577,7 @@ window.toggleSpoofAttack = function() {
         count++;
       }
     }
-    addSecurityLog(`<span class="alert">⚠️ SPOOF ATTACK: 10个节点传感器数据被伪造（正弦波模式）</span>`);
+    addSecurityLog(`<span class="alert">⚠️ SPOOF ATTACK: 10 nodes producing spoofed sensor data (sine wave)</span>`);
     updateAttackStatus();
   } else {
     for (const n of nodes) {
@@ -587,7 +587,7 @@ window.toggleSpoofAttack = function() {
         n.history = [];
       }
     }
-    addSecurityLog(`<span class="defended">🛡️ 伪造传感器节点已清除</span>`);
+    addSecurityLog(`<span class="defended">🛡️ Spoofed sensor nodes cleared</span>`);
     updateAttackStatus();
   }
 };
@@ -606,7 +606,7 @@ window.toggleReplayAttack = function() {
         count++;
       }
     }
-    addSecurityLog(`<span class="alert">⚠️ REPLAY ATTACK: 5个节点开始重放固定数据</span>`);
+    addSecurityLog(`<span class="alert">⚠️ REPLAY ATTACK: 5 nodes replaying fixed data</span>`);
     updateAttackStatus();
   } else {
     for (const n of nodes) {
@@ -617,7 +617,7 @@ window.toggleReplayAttack = function() {
         n.history = [];
       }
     }
-    addSecurityLog(`<span class="defended">🛡️ 重放攻击节点已清除</span>`);
+    addSecurityLog(`<span class="defended">🛡️ Replay attack nodes cleared</span>`);
     updateAttackStatus();
   }
 };
@@ -635,25 +635,25 @@ window.resetAttacks = function() {
     n.replayValue = null;
     n.history = [];
   }
-  addSecurityLog(`<span class="defended">🔄 网络已重置，所有攻击已清除</span>`);
+  addSecurityLog(`<span class="defended">🔄 Network reset, all attacks cleared</span>`);
   updateAttackStatus();
 };
 
 function updateAttackStatus() {
   const attacks = [];
-  if (sybilActive) attacks.push('Sybil(20节点)');
-  if (spoofActive) attacks.push('传感器伪造(10节点)');
-  if (replayActive) attacks.push('重放攻击(5节点)');
+  if (sybilActive) attacks.push('Sybil(20 nodes)');
+  if (spoofActive) attacks.push('Sensor Spoof(10 nodes)');
+  if (replayActive) attacks.push('Replay(5 nodes)');
 
   const attackers = nodes.filter(n => n.type !== 'normal').length;
   const normal = nodes.filter(n => n.online && n.type === 'normal').length;
 
   if (attacks.length === 0) {
-    $attackStatus.innerHTML = '网络正常运行中。点击上方按钮模拟各类攻击，观察防御机制如何响应。';
+    $attackStatus.innerHTML = 'Network running normally. Click buttons above to simulate attacks and observe defense mechanisms.';
   } else {
     $attackStatus.innerHTML =
-      `<span class="alert">活跃攻击: ${attacks.join(' + ')}</span><br>` +
-      `<span class="defended">防御: 熵权加权聚合 → 攻击者贡献被自动降权 (${attackers}个可疑 / ${normal}个正常)</span>`;
+      `<span class="alert">Active attacks: ${attacks.join(' + ')}</span><br>` +
+      `<span class="defended">Defense: entropy-weighted aggregation → attacker contributions auto-downweighted (${attackers} suspects / ${normal} normal)</span>`;
   }
 }
 
@@ -763,7 +763,7 @@ function tick() {
   $randomNumber.textContent = String(netRandom).padStart(2, '0');
   $randomNumber.style.color = rCls === 'chaos' ? 'var(--red-chaos)' :
     rCls === 'eternal' ? 'var(--blue-eternal)' : 'var(--green-bright)';
-  $randomHash.textContent = `XOR+Hash: ${netHash.substring(0,12)}... │ ${onlineNodes.length} nodes │ Q:${avgQuality} │ 健康:${weightedFeel}`;
+  $randomHash.textContent = `XOR+Hash: ${netHash.substring(0,12)}... │ ${onlineNodes.length} nodes │ Q:${avgQuality} │ Health:${weightedFeel}`;
 
   $epochChaos.classList.toggle('active', rCls === 'chaos');
   $epochTrans.classList.toggle('active', rCls === 'transition');
@@ -794,15 +794,15 @@ function tick() {
     if (suspects.length > 0) {
       const s = suspects[0];
       const reasons = [];
-      if (s.type === 'sybil') reasons.push('低认证率');
-      if (s.type === 'replay') reasons.push('数据无变化');
-      if (s.type === 'spoofed') reasons.push('熵质量异常');
-      if (s.reputation < 20) reasons.push('信誉极低');
+      if (s.type === 'sybil') reasons.push('low auth');
+      if (s.type === 'replay') reasons.push('no variation');
+      if (s.type === 'spoofed') reasons.push('entropy anomaly');
+      if (s.reputation < 20) reasons.push('very low rep');
       addSecurityLog(
-        `<span class="alert">🔍 CLAW-${s.id} 可疑</span> ` +
+        `<span class="alert">🔍 CLAW-${s.id} suspect</span> ` +
         `Rep:${Math.round(s.reputation)} Q:${s.entropyQuality} ` +
         `[${reasons.join(', ')}] → ` +
-        `<span class="defended">权重降至 ${(s.entropyQuality/100 * s.reputation/100 * s.authenticity/7 * 100).toFixed(1)}%</span>`
+        `<span class="defended">weight reduced to ${(s.entropyQuality/100 * s.reputation/100 * s.authenticity/7 * 100).toFixed(1)}%</span>`
       );
     }
 
@@ -811,7 +811,7 @@ function tick() {
       const diff = Math.abs(weightedFeel - rawFeel);
       if (diff > 2) {
         addSecurityLog(
-          `<span class="defended">🛡️ 熵权防御生效: 加权=${weightedFeel} vs 简单平均=${rawFeel} (偏差${diff}已被修正)</span>`
+          `<span class="defended">🛡️ Entropy defense active: weighted=${weightedFeel} vs raw avg=${rawFeel} (deviation ${diff} corrected)</span>`
         );
       }
     }
@@ -858,9 +858,9 @@ function drawWave() {
 
   wCtx.font = '9px JetBrains Mono';
   wCtx.fillStyle = 'rgba(255,51,68,0.25)';
-  wCtx.fillText('乱纪元 0-30', 6, H - 6);
+  wCtx.fillText('Chaos 0-30', 6, H - 6);
   wCtx.fillStyle = 'rgba(0,204,255,0.25)';
-  wCtx.fillText('恒纪元 71-100', 6, 12);
+  wCtx.fillText('Eternal 71-100', 6, 12);
 
   if (waveHistory.length < 2) { requestAnimationFrame(drawWave); return; }
 
@@ -882,7 +882,7 @@ function drawWave() {
     // Label
     if (sybilActive || spoofActive || replayActive) {
       wCtx.fillStyle = 'rgba(255,51,68,0.4)';
-      wCtx.fillText('— XOR原始(无过滤)', W - 160, 12);
+      wCtx.fillText('— XOR Raw (unfiltered)', W - 170, 12);
     }
   }
 
@@ -920,7 +920,7 @@ function drawWave() {
 
   // Label for weighted line
   wCtx.fillStyle = 'rgba(0,255,136,0.5)';
-  wCtx.fillText('━ XOR+Hash(熵权过滤)', W - 160, H - 6);
+  wCtx.fillText('━ XOR+Hash (weighted)', W - 170, H - 6);
 
   // Latest point indicator
   if (waveHistory.length > 0) {
