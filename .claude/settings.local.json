@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PATH=\"$HOME/.local/node/bin:$PATH\")",
+      "Bash(npm --version)",
+      "Bash(node /Users/vis/Coding/ClawFeel/scripts/clawfeel.mjs)",
+      "Bash(node /Users/vis/Coding/ClawFeel/scripts/clawfeel.mjs --pretty)",
+      "Bash(node /Users/vis/Coding/ClawFeel/scripts/clawfeel.mjs --save)",
+      "Bash(node /Users/vis/Coding/ClawFeel/scripts/clawfeel.mjs --history)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}
