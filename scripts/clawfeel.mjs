@@ -69,15 +69,9 @@ const IS_MAC = PLATFORM === "darwin";
 //  Generates a random alias on first run, stored in ~/.clawfeel/identity.json.
 //  Real hostname is NEVER sent to the network.
 
-const CLAW_PREFIXES = [
-  "Claw", "Lobster", "Reef", "Tide", "Wave", "Shell", "Coral", "Drift",
-  "Pulse", "Node", "Flux", "Glow", "Spark", "Echo", "Bolt", "Neon",
-];
-
 function generateAlias() {
-  const prefix = CLAW_PREFIXES[randomBytes(1)[0] % CLAW_PREFIXES.length];
   const suffix = randomBytes(2).toString("hex");
-  return `${prefix}-${suffix}`;
+  return `Claw-${suffix}`;
 }
 
 let nodeAlias = null;
