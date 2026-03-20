@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawFeel Network — Three-Body Entropy Network</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --green-bright: #00ff88;
+    --green-mid: #00cc6a;
+    --green-dim: #00994d;
+    --green-dark: #003d1f;
+    --green-glow: rgba(0, 255, 136, 0.3);
+    --bg-deep: #020a06;
+    --bg-panel: rgba(0, 255, 136, 0.03);
+    --bg-panel-border: rgba(0, 255, 136, 0.12);
+    --text-dim: #447755;
+    --red-chaos: #ff3344;
+    --yellow-trans: #ccff00;
+    --blue-eternal: #00ccff;
+    --orange-warn: #ff8800;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--green-bright);
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.015) 2px, rgba(0,255,136,0.015) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .header { text-align: center; padding: 40px 20px 20px; position: relative; }
+  .header::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 80%; height: 1px; background: linear-gradient(90deg, transparent, var(--green-bright), transparent); }
+  .logo { font-family: 'Orbitron', sans-serif; font-size: 48px; font-weight: 900; letter-spacing: 8px; text-shadow: 0 0 40px var(--green-glow), 0 0 80px rgba(0,255,136,0.15); margin-bottom: 8px; }
+  .logo .claw-icon { font-style: normal; margin-right: 12px; filter: hue-rotate(100deg); }
+  .subtitle { font-size: 13px; color: var(--text-dim); letter-spacing: 6px; text-transform: uppercase; }
+
+  .stats-bar { display: flex; justify-content: center; gap: 32px; padding: 20px; margin: 20px auto; max-width: 1200px; flex-wrap: wrap; }
+  .stat-item { text-align: center; min-width: 90px; }
+  .stat-value { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 700; text-shadow: 0 0 20px var(--green-glow); }
+  .stat-value.chaos { color: var(--red-chaos); text-shadow: 0 0 20px rgba(255,51,68,0.4); }
+  .stat-value.transition { color: var(--yellow-trans); text-shadow: 0 0 20px rgba(204,255,0,0.4); }
+  .stat-value.eternal { color: var(--blue-eternal); text-shadow: 0 0 20px rgba(0,204,255,0.4); }
+  .stat-value.warn { color: var(--orange-warn); text-shadow: 0 0 20px rgba(255,136,0,0.4); }
+  .stat-label { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+
+  .random-output { text-align: center; padding: 20px; margin: 0 auto; max-width: 800px; }
+  .random-label { font-size: 10px; color: var(--text-dim); letter-spacing: 4px; margin-bottom: 8px; }
+  .random-number { font-family: 'Orbitron', sans-serif; font-size: 72px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 60px var(--green-glow), 0 0 120px rgba(0,255,136,0.1); transition: color 0.3s; }
+  .random-hash { font-size: 11px; color: var(--green-dim); margin-top: 6px; letter-spacing: 2px; }
+
+  .epoch-bar { display: flex; justify-content: center; gap: 30px; margin: 24px auto; max-width: 600px; }
+  .epoch-segment { flex: 1; text-align: center; padding: 12px 0; border: 1px solid var(--bg-panel-border); border-radius: 4px; transition: all 0.5s; }
+  .epoch-segment.active { border-color: currentColor; box-shadow: inset 0 0 30px rgba(0,255,136,0.05); }
+  .epoch-segment .era-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .epoch-segment .era-en { font-size: 9px; letter-spacing: 2px; opacity: 0.6; }
+  .epoch-segment.chaos { color: var(--red-chaos); }
+  .epoch-segment.transition { color: var(--yellow-trans); }
+  .epoch-segment.eternal { color: var(--blue-eternal); }
+
+  /* ── Attack panel ── */
+  .attack-section { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
+  .attack-panel { background: rgba(255,51,68,0.03); border: 1px solid rgba(255,51,68,0.15); border-radius: 4px; padding: 16px; }
+  .attack-panel-title { font-size: 10px; letter-spacing: 3px; color: var(--red-chaos); margin-bottom: 12px; text-transform: uppercase; }
+  .attack-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .attack-btn {
+    background: rgba(255,51,68,0.08);
+    border: 1px solid rgba(255,51,68,0.3);
+    color: var(--red-chaos);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .attack-btn:hover { background: rgba(255,51,68,0.15); border-color: var(--red-chaos); }
+  .attack-btn.active { background: rgba(255,51,68,0.25); border-color: var(--red-chaos); box-shadow: 0 0 15px rgba(255,51,68,0.2); }
+  .attack-btn.reset-btn { border-color: rgba(0,255,136,0.3); color: var(--green-bright); background: rgba(0,255,136,0.08); }
+  .attack-btn.reset-btn:hover { background: rgba(0,255,136,0.15); }
+  .attack-status { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+  .attack-status .alert { color: var(--red-chaos); }
+  .attack-status .defended { color: var(--green-bright); }
+
+  /* ── Node grid ── */
+  .grid-section { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
+  .grid-title { font-size: 11px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; }
+  .node-count { font-family: 'Orbitron', sans-serif; font-size: 13px; color: var(--green-mid); }
+  .node-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+
+  .node {
+    background: var(--bg-panel);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 3px;
+    padding: 8px 6px 6px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  .node.online { opacity: 1; transform: scale(1); }
+  .node.pulse { animation: nodePulse 0.4s ease-out; }
+  @keyframes nodePulse { 0% { box-shadow: inset 0 0 20px var(--green-glow); } 100% { box-shadow: none; } }
+
+  .node .node-id { font-size: 7px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 3px; }
+  .node .node-feel { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; }
+  .node .node-era { font-size: 8px; margin-top: 2px; opacity: 0.8; }
+  .node .node-security { display: flex; justify-content: center; gap: 3px; margin-top: 4px; align-items: center; }
+  .node .node-auth { font-size: 7px; padding: 1px 3px; border-radius: 2px; }
+  .node .node-auth.full { background: rgba(0,255,136,0.15); color: var(--green-bright); }
+  .node .node-auth.partial { background: rgba(255,136,0,0.15); color: var(--orange-warn); }
+  .node .node-auth.low { background: rgba(255,51,68,0.15); color: var(--red-chaos); }
+  .node .node-quality { font-size: 7px; color: var(--text-dim); }
+  .node .node-bar { height: 2px; margin-top: 4px; border-radius: 1px; transition: width 0.3s; }
+
+  .node.chaos .node-feel { color: var(--red-chaos); }
+  .node.chaos .node-bar { background: var(--red-chaos); }
+  .node.chaos { border-color: rgba(255,51,68,0.15); }
+  .node.transition .node-feel { color: var(--yellow-trans); }
+  .node.transition .node-bar { background: var(--yellow-trans); }
+  .node.transition { border-color: rgba(204,255,0,0.15); }
+  .node.eternal .node-feel { color: var(--blue-eternal); }
+  .node.eternal .node-bar { background: var(--blue-eternal); }
+  .node.eternal { border-color: rgba(0,204,255,0.15); }
+
+  /* Sybil / attacker nodes */
+  .node.sybil { border-color: rgba(255,51,68,0.4); background: rgba(255,51,68,0.05); }
+  .node.sybil .node-id { color: var(--red-chaos); }
+  .node.sybil::before { content: '⚠'; position: absolute; top: 2px; right: 4px; font-size: 8px; }
+  .node.replay { border-color: rgba(255,136,0,0.4); background: rgba(255,136,0,0.05); }
+  .node.replay .node-id { color: var(--orange-warn); }
+  .node.replay::before { content: '🔄'; position: absolute; top: 2px; right: 4px; font-size: 7px; }
+  .node.spoofed { border-color: rgba(128,0,255,0.4); background: rgba(128,0,255,0.05); }
+  .node.spoofed .node-id { color: #aa66ff; }
+  .node.spoofed::before { content: '👻'; position: absolute; top: 2px; right: 4px; font-size: 7px; }
+
+  /* ── Feeds ── */
+  .feed-section { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .feed-panel { background: var(--bg-panel); border: 1px solid var(--bg-panel-border); border-radius: 4px; padding: 16px; max-height: 260px; overflow: hidden; position: relative; }
+  .feed-panel::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, var(--bg-deep)); pointer-events: none; }
+  .feed-panel-title { font-size: 10px; letter-spacing: 3px; color: var(--text-dim); margin-bottom: 12px; text-transform: uppercase; }
+  .feed-line { font-size: 11px; line-height: 1.8; color: var(--green-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed-line .ts { color: var(--text-dim); }
+  .feed-line .id { color: var(--green-mid); }
+  .feed-line .val-chaos { color: var(--red-chaos); }
+  .feed-line .val-trans { color: var(--yellow-trans); }
+  .feed-line .val-eternal { color: var(--blue-eternal); }
+  .feed-line .alert { color: var(--red-chaos); font-weight: 700; }
+  .feed-line .defended { color: var(--green-bright); }
+
+  /* ── Sparkline ── */
+  .sparkline-section { max-width: 1200px; margin: 0 auto 30px; padding: 0 20px; }
+  .sparkline-panel { background: var(--bg-panel); border: 1px solid var(--bg-panel-border); border-radius: 4px; padding: 16px; }
+  .sparkline-panel canvas { width: 100%; height: 160px; display: block; }
+
+  .footer { text-align: center; padding: 30px 20px 40px; font-size: 10px; color: var(--text-dim); letter-spacing: 3px; }
+  .footer a { color: var(--green-dim); text-decoration: none; }
+  .footer a:hover { color: var(--green-bright); }
+
+  .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .content { position: relative; z-index: 1; }
+
+  @media (max-width: 768px) {
+    .logo { font-size: 28px; letter-spacing: 4px; }
+    .stats-bar { gap: 16px; }
+    .stat-value { font-size: 22px; }
+    .random-number { font-size: 48px; }
+    .feed-section { grid-template-columns: 1fr; }
+    .node-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+    .attack-buttons { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<canvas class="particle-canvas" id="particleCanvas"></canvas>
+
+<div class="content">
+  <div class="header">
+    <div class="logo"><span class="claw-icon">🦞</span>CLAWFEEL</div>
+    <div class="subtitle">THREE-BODY &nbsp; ENTROPY &nbsp; NETWORK &nbsp;·&nbsp; Security-Hardened</div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value" id="statNodes">0</div>
+      <div class="stat-label">Online</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statAvgFeel">—</div>
+      <div class="stat-label">Net Feel</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value chaos" id="statChaos">0</div>
+      <div class="stat-label">Chaos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value transition" id="statTrans">0</div>
+      <div class="stat-label">Transition</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value eternal" id="statEternal">0</div>
+      <div class="stat-label">Eternal</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statQuality">—</div>
+      <div class="stat-label">Entropy Q</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statAuth">—</div>
+      <div class="stat-label">Auth Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value warn" id="statAttackers">0</div>
+      <div class="stat-label">Suspects</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statTPS">0</div>
+      <div class="stat-label">Reads/s</div>
+    </div>
+  </div>
+
+  <div class="random-output">
+    <div class="random-label">NETWORK &nbsp; RANDOM &nbsp; NUMBER &nbsp; (XOR + Hash)</div>
+    <div class="random-number" id="randomNumber">——</div>
+    <div class="random-hash" id="randomHash">Waiting for nodes...</div>
+  </div>
+
+  <div class="epoch-bar">
+    <div class="epoch-segment chaos" id="epochChaos"><div class="era-name">🌪️ Chaos</div><div class="era-en">CHAOS ERA</div></div>
+    <div class="epoch-segment transition" id="epochTrans"><div class="era-name">🌤️ Transition</div><div class="era-en">TRANSITION</div></div>
+    <div class="epoch-segment eternal" id="epochEternal"><div class="era-name">☀️ Eternal</div><div class="era-en">ETERNAL ERA</div></div>
+  </div>
+
+  <!-- Attack simulation panel -->
+  <div class="attack-section">
+    <div class="attack-panel">
+      <div class="attack-panel-title">🛡️ Attack Simulator</div>
+      <div class="attack-buttons">
+        <button class="attack-btn" id="btnSybil" onclick="toggleSybilAttack()">👥 Inject Sybil Nodes</button>
+        <button class="attack-btn" id="btnSpoof" onclick="toggleSpoofAttack()">👻 Sensor Spoofing</button>
+        <button class="attack-btn" id="btnReplay" onclick="toggleReplayAttack()">🔄 Replay Attack</button>
+        <button class="attack-btn reset-btn" onclick="resetAttacks()">🔄 Reset Network</button>
+      </div>
+      <div class="attack-status" id="attackStatus">
+        Network running normally. Click buttons above to simulate attacks and observe defense mechanisms.
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-section">
+    <div class="grid-header">
+      <div class="grid-title">Node Matrix</div>
+      <div class="node-count" id="gridCount">0 / 100</div>
+    </div>
+    <div class="node-grid" id="nodeGrid"></div>
+  </div>
+
+  <div class="sparkline-section">
+    <div class="sparkline-panel">
+      <div class="feed-panel-title">Network Waveform &nbsp;·&nbsp; XOR+Hash (Entropy-Weighted vs Raw)</div>
+      <canvas id="waveCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="feed-section">
+    <div class="feed-panel">
+      <div class="feed-panel-title">Live Feed</div>
+      <div id="liveFeed"></div>
+    </div>
+    <div class="feed-panel">
+      <div class="feed-panel-title">🛡️ Security Log</div>
+      <div id="securityFeed"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="#">CLAWFEEL</a> &nbsp;·&nbsp; Distributed Hardware Entropy &nbsp;·&nbsp; Security-Hardened &nbsp;·&nbsp; 🦞
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  ClawFeel Network Simulator — Security-Hardened Edition
+//  Simulates 100 Claw nodes with authenticity, entropy quality,
+//  weighted aggregation, and attack/defense visualization.
+// ═══════════════════════════════════════════════════════════════
+
+const NODE_COUNT = 100;
+const TICK_MS = 150;
+
+function fakeHash() {
+  const hex = '0123456789abcdef';
+  let h = '';
+  for (let i = 0; i < 16; i++) h += hex[Math.floor(Math.random() * 16)];
+  return h;
+}
+
+// Simple synchronous hash (cyrb53-based) for XOR aggregation simulation
+// Not cryptographic — but demonstrates the XOR+hash principle
+function simHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 16), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 16), 3266489909);
+  const n = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  return n.toString(16).padStart(16, '0');
+}
+
+// XOR two hex strings char by char
+function xorHex(a, b) {
+  let out = '';
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    out += (parseInt(a[i], 16) ^ parseInt(b[i], 16)).toString(16);
+  }
+  return out;
+}
+
+function classifyEra(feel) {
+  if (feel <= 30) return { era: 'Chaos', eraEN: 'Chaos', cls: 'chaos' };
+  if (feel <= 70) return { era: 'Transition', eraEN: 'Transition', cls: 'transition' };
+  return { era: 'Eternal', eraEN: 'Eternal', cls: 'eternal' };
+}
+
+// ── Security-enhanced Node class ──
+class ClawNode {
+  constructor(index) {
+    this.index = index;
+    this.id = fakeHash().substring(0, 8);
+    this.feel = 50;
+    this.era = 'Transition';
+    this.cls = 'transition';
+    this.hash = fakeHash();
+    this.online = false;
+    this.lastUpdate = 0;
+    // Security fields
+    this.authenticity = 7;         // 0-7 real sensors
+    this.entropyQuality = 80;      // 0-100
+    this.reputation = 80;          // 0-100
+    this.sensorFlags = '1111111';  // bitmask
+    this.seq = 0;
+    this.prevHash = '0000000000000000';
+    this.type = 'normal';          // 'normal' | 'sybil' | 'replay' | 'spoofed'
+    this.history = [];
+    this.replayValue = null;       // fixed value for replay attack
+  }
+
+  tick() {
+    this.seq++;
+
+    if (this.type === 'replay') {
+      // Replay attack: same value every time
+      if (this.replayValue === null) this.replayValue = this.feel;
+      this.feel = this.replayValue;
+      this.authenticity = 7;
+      this.sensorFlags = '1111111';
+      // Quality degrades as history shows no variation
+      this.history.push(this.feel);
+      if (this.history.length > 10) this.history.shift();
+      const unique = new Set(this.history).size;
+      this.entropyQuality = Math.max(5, unique * 10);
+      this.reputation = Math.max(5, this.reputation - 2);
+    } else if (this.type === 'sybil') {
+      // Sybil: fake node with random fallback sensors
+      const drift = (Math.random() - 0.5) * 40;
+      this.feel = Math.max(0, Math.min(100, Math.round(50 + drift)));
+      this.authenticity = Math.floor(Math.random() * 3); // 0-2 real sensors
+      this.sensorFlags = Array.from({length: 7}, () => Math.random() > 0.7 ? '1' : '0').join('');
+      this.entropyQuality = Math.floor(Math.random() * 30); // low quality
+      this.reputation = Math.max(5, this.reputation - 3);
+      this.history.push(this.feel);
+      if (this.history.length > 10) this.history.shift();
+    } else if (this.type === 'spoofed') {
+      // Spoofed: claims high auth but values too regular
+      this.feel = 50 + Math.round(Math.sin(this.seq * 0.5) * 20); // predictable sine wave
+      this.authenticity = 7; // lies about authenticity
+      this.sensorFlags = '1111111';
+      this.history.push(this.feel);
+      if (this.history.length > 10) this.history.shift();
+      // Detection: low diversity in values
+      const vals = this.history;
+      if (vals.length >= 5) {
+        const diffs = [];
+        for (let i = 1; i < vals.length; i++) diffs.push(Math.abs(vals[i] - vals[i-1]));
+        const avgDiff = diffs.reduce((a,b) => a+b, 0) / diffs.length;
+        // Sine wave has very predictable diffs
+        const diffVar = diffs.reduce((a,d) => a + (d - avgDiff) ** 2, 0) / diffs.length;
+        this.entropyQuality = Math.min(40, Math.round(diffVar * 5));
+      } else {
+        this.entropyQuality = 60;
+      }
+      this.reputation = Math.max(10, this.reputation - 1);
+    } else {
+      // Normal: genuine hardware entropy
+      const drift = (Math.random() - 0.5) * 40;
+      const noise = Math.random() * 20 - 10;
+      this.feel = Math.max(0, Math.min(100, Math.round(50 + drift + noise)));
+      this.authenticity = 5 + Math.floor(Math.random() * 3); // 5-7
+      this.sensorFlags = '1' + Array.from({length: 6}, () => Math.random() > 0.1 ? '1' : '0').join('');
+      this.history.push(this.feel);
+      if (this.history.length > 10) this.history.shift();
+      // Good entropy quality for normal nodes
+      const unique = new Set(this.history).size;
+      this.entropyQuality = Math.min(100, 50 + unique * 5 + Math.floor(Math.random() * 10));
+      this.reputation = Math.min(100, this.reputation + 0.5);
+    }
+
+    const { era, cls } = classifyEra(this.feel);
+    this.era = era;
+    this.cls = cls;
+    this.prevHash = this.hash;
+    this.hash = fakeHash();
+    this.lastUpdate = Date.now();
+  }
+}
+
+// ── State ──
+const nodes = Array.from({ length: NODE_COUNT }, (_, i) => new ClawNode(i));
+const attackerNodes = []; // extra Sybil nodes
+let onlineCount = 0;
+let tickCount = 0;
+let tps = 0;
+let tpsCounter = 0;
+let lastTpsTime = Date.now();
+const waveHistory = [];
+const waveHistoryRaw = []; // unweighted for comparison
+const MAX_WAVE = 200;
+
+// Attack state
+let sybilActive = false;
+let spoofActive = false;
+let replayActive = false;
+
+// ── DOM refs ──
+const $grid = document.getElementById('nodeGrid');
+const $statNodes = document.getElementById('statNodes');
+const $statAvg = document.getElementById('statAvgFeel');
+const $statChaos = document.getElementById('statChaos');
+const $statTrans = document.getElementById('statTrans');
+const $statEternal = document.getElementById('statEternal');
+const $statQuality = document.getElementById('statQuality');
+const $statAuth = document.getElementById('statAuth');
+const $statAttackers = document.getElementById('statAttackers');
+const $statTPS = document.getElementById('statTPS');
+const $randomNumber = document.getElementById('randomNumber');
+const $randomHash = document.getElementById('randomHash');
+const $gridCount = document.getElementById('gridCount');
+const $liveFeed = document.getElementById('liveFeed');
+const $securityFeed = document.getElementById('securityFeed');
+const $epochChaos = document.getElementById('epochChaos');
+const $epochTrans = document.getElementById('epochTrans');
+const $epochEternal = document.getElementById('epochEternal');
+const $attackStatus = document.getElementById('attackStatus');
+
+// ── Build grid ──
+const nodeEls = [];
+for (let i = 0; i < NODE_COUNT; i++) {
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.innerHTML = `
+    <div class="node-id">CLAW-${nodes[i].id}</div>
+    <div class="node-feel">--</div>
+    <div class="node-era">Offline</div>
+    <div class="node-security">
+      <span class="node-auth full">7/7</span>
+      <span class="node-quality">Q:--</span>
+    </div>
+    <div class="node-bar" style="width:0%"></div>
+  `;
+  $grid.appendChild(el);
+  nodeEls.push(el);
+}
+
+// ── Bring nodes online ──
+let onlineQueue = [...Array(NODE_COUNT).keys()];
+for (let i = onlineQueue.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [onlineQueue[i], onlineQueue[j]] = [onlineQueue[j], onlineQueue[i]];
+}
+
+function bringOnline() {
+  if (onlineQueue.length === 0) return;
+  const batchSize = Math.min(3, onlineQueue.length);
+  for (let b = 0; b < batchSize; b++) {
+    const idx = onlineQueue.shift();
+    nodes[idx].online = true;
+    nodes[idx].tick();
+    onlineCount++;
+    nodeEls[idx].classList.add('online');
+    updateNodeEl(idx);
+  }
+  $statNodes.textContent = onlineCount + attackerNodes.filter(n => n.online).length;
+  $gridCount.textContent = `${onlineCount} / ${NODE_COUNT}` + (attackerNodes.length > 0 ? ` (+${attackerNodes.length})` : '');
+  if (onlineQueue.length > 0) {
+    setTimeout(bringOnline, 80 + Math.random() * 120);
+  }
+}
+
+function updateNodeEl(idx) {
+  const n = nodes[idx];
+  const el = nodeEls[idx];
+  const typeClass = n.type !== 'normal' ? ` ${n.type === 'spoofed' ? 'spoofed' : n.type}` : '';
+  el.className = `node online ${n.cls}${typeClass}`;
+  el.querySelector('.node-feel').textContent = n.feel;
+  el.querySelector('.node-era').textContent = n.era;
+  el.querySelector('.node-bar').style.width = `${n.feel}%`;
+
+  // Update security indicators
+  const authEl = el.querySelector('.node-auth');
+  authEl.textContent = `${n.authenticity}/7`;
+  authEl.className = `node-auth ${n.authenticity >= 6 ? 'full' : n.authenticity >= 4 ? 'partial' : 'low'}`;
+  el.querySelector('.node-quality').textContent = `Q:${n.entropyQuality}`;
+}
+
+// ── Attack functions ──
+window.toggleSybilAttack = function() {
+  sybilActive = !sybilActive;
+  document.getElementById('btnSybil').classList.toggle('active', sybilActive);
+
+  if (sybilActive) {
+    // Inject 20 Sybil nodes (mark existing nodes as Sybil)
+    let count = 0;
+    for (let i = 0; i < NODE_COUNT && count < 20; i++) {
+      if (nodes[i].online && nodes[i].type === 'normal') {
+        nodes[i].type = 'sybil';
+        nodes[i].reputation = 30;
+        count++;
+      }
+    }
+    addSecurityLog(`<span class="alert">⚠️ SYBIL ATTACK: 20 fake nodes injected into network</span>`);
+    updateAttackStatus();
+  } else {
+    for (const n of nodes) {
+      if (n.type === 'sybil') {
+        n.type = 'normal';
+        n.reputation = 60;
+      }
+    }
+    addSecurityLog(`<span class="defended">🛡️ Sybil nodes cleared, network restored</span>`);
+    updateAttackStatus();
+  }
+};
+
+window.toggleSpoofAttack = function() {
+  spoofActive = !spoofActive;
+  document.getElementById('btnSpoof').classList.toggle('active', spoofActive);
+
+  if (spoofActive) {
+    let count = 0;
+    for (let i = 0; i < NODE_COUNT && count < 10; i++) {
+      if (nodes[i].online && nodes[i].type === 'normal') {
+        nodes[i].type = 'spoofed';
+        nodes[i].history = [];
+        count++;
+      }
+    }
+    addSecurityLog(`<span class="alert">⚠️ SPOOF ATTACK: 10 nodes producing spoofed sensor data (sine wave)</span>`);
+    updateAttackStatus();
+  } else {
+    for (const n of nodes) {
+      if (n.type === 'spoofed') {
+        n.type = 'normal';
+        n.reputation = 60;
+        n.history = [];
+      }
+    }
+    addSecurityLog(`<span class="defended">🛡️ Spoofed sensor nodes cleared</span>`);
+    updateAttackStatus();
+  }
+};
+
+window.toggleReplayAttack = function() {
+  replayActive = !replayActive;
+  document.getElementById('btnReplay').classList.toggle('active', replayActive);
+
+  if (replayActive) {
+    let count = 0;
+    for (let i = 0; i < NODE_COUNT && count < 5; i++) {
+      if (nodes[i].online && nodes[i].type === 'normal') {
+        nodes[i].type = 'replay';
+        nodes[i].replayValue = nodes[i].feel;
+        nodes[i].history = [];
+        count++;
+      }
+    }
+    addSecurityLog(`<span class="alert">⚠️ REPLAY ATTACK: 5 nodes replaying fixed data</span>`);
+    updateAttackStatus();
+  } else {
+    for (const n of nodes) {
+      if (n.type === 'replay') {
+        n.type = 'normal';
+        n.reputation = 60;
+        n.replayValue = null;
+        n.history = [];
+      }
+    }
+    addSecurityLog(`<span class="defended">🛡️ Replay attack nodes cleared</span>`);
+    updateAttackStatus();
+  }
+};
+
+window.resetAttacks = function() {
+  sybilActive = false;
+  spoofActive = false;
+  replayActive = false;
+  document.getElementById('btnSybil').classList.remove('active');
+  document.getElementById('btnSpoof').classList.remove('active');
+  document.getElementById('btnReplay').classList.remove('active');
+  for (const n of nodes) {
+    n.type = 'normal';
+    n.reputation = 80;
+    n.replayValue = null;
+    n.history = [];
+  }
+  addSecurityLog(`<span class="defended">🔄 Network reset, all attacks cleared</span>`);
+  updateAttackStatus();
+};
+
+function updateAttackStatus() {
+  const attacks = [];
+  if (sybilActive) attacks.push('Sybil(20 nodes)');
+  if (spoofActive) attacks.push('Sensor Spoof(10 nodes)');
+  if (replayActive) attacks.push('Replay(5 nodes)');
+
+  const attackers = nodes.filter(n => n.type !== 'normal').length;
+  const normal = nodes.filter(n => n.online && n.type === 'normal').length;
+
+  if (attacks.length === 0) {
+    $attackStatus.innerHTML = 'Network running normally. Click buttons above to simulate attacks and observe defense mechanisms.';
+  } else {
+    $attackStatus.innerHTML =
+      `<span class="alert">Active attacks: ${attacks.join(' + ')}</span><br>` +
+      `<span class="defended">Defense: entropy-weighted aggregation → attacker contributions auto-downweighted (${attackers} suspects / ${normal} normal)</span>`;
+  }
+}
+
+function addSecurityLog(html) {
+  const div = document.createElement('div');
+  div.className = 'feed-line';
+  div.innerHTML = `<span class="ts">${timeStr()}</span> ${html}`;
+  $securityFeed.insertBefore(div, $securityFeed.firstChild);
+  while ($securityFeed.children.length > 15) {
+    $securityFeed.removeChild($securityFeed.lastChild);
+  }
+}
+
+// ── Feed helpers ──
+function addFeedLine(container, html, maxLines = 12) {
+  const div = document.createElement('div');
+  div.className = 'feed-line';
+  div.innerHTML = html;
+  container.insertBefore(div, container.firstChild);
+  while (container.children.length > maxLines) container.removeChild(container.lastChild);
+}
+
+function timeStr() {
+  const d = new Date();
+  return d.toLocaleTimeString('en-US', { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+}
+
+// ── Main tick with security-aware aggregation ──
+function tick() {
+  const onlineNodes = nodes.filter(n => n.online);
+  if (onlineNodes.length === 0) return;
+
+  const updateCount = Math.min(10, Math.max(1, Math.floor(onlineNodes.length * 0.1)));
+  const toUpdate = [];
+  for (let i = 0; i < updateCount; i++) {
+    const n = onlineNodes[Math.floor(Math.random() * onlineNodes.length)];
+    n.tick();
+    toUpdate.push(n);
+    updateNodeEl(n.index);
+    nodeEls[n.index].classList.remove('pulse');
+    void nodeEls[n.index].offsetWidth;
+    nodeEls[n.index].classList.add('pulse');
+  }
+
+  tpsCounter += updateCount;
+
+  // ── Network aggregation ──
+  let chaos = 0, trans = 0, eternal = 0;
+  let suspectCount = 0;
+  let totalAuth = 0;
+  let totalQuality = 0;
+  let weightedSum = 0;
+  let totalWeight = 0;
+
+  // XOR aggregation: XOR all node hashes → re-hash → uniform random
+  let xorAccum = '0000000000000000';
+  let rawXorAccum = '0000000000000000';
+
+  for (const n of onlineNodes) {
+    const qualityW = n.entropyQuality / 100;
+    const reputationW = n.reputation / 100;
+    const authW = n.authenticity / 7;
+    const weight = qualityW * reputationW * authW;
+
+    weightedSum += n.feel * weight;
+    totalWeight += weight;
+    totalAuth += n.authenticity;
+    totalQuality += n.entropyQuality;
+
+    if (n.feel <= 30) chaos++;
+    else if (n.feel <= 70) trans++;
+    else eternal++;
+
+    if (n.type !== 'normal' || n.reputation < 40) suspectCount++;
+
+    // XOR each node's hash into the accumulator
+    // Weighted: only include nodes with sufficient quality
+    rawXorAccum = xorHex(rawXorAccum, n.hash);
+    if (weight > 0.1) {
+      xorAccum = xorHex(xorAccum, n.hash);
+    }
+  }
+
+  // Re-hash the XOR result → network random number (uniform 0-100)
+  const netHash = simHash('clawfeel:' + xorAccum + ':' + tickCount);
+  const netRandom = parseInt(netHash.substring(0, 8), 16) % 101;
+  const rawHash = simHash('clawfeel:' + rawXorAccum + ':' + tickCount);
+  const rawRandom = parseInt(rawHash.substring(0, 8), 16) % 101;
+
+  const weightedFeel = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 50;
+  const avgAuth = (totalAuth / onlineNodes.length).toFixed(1);
+  const avgQuality = Math.round(totalQuality / onlineNodes.length);
+
+  $statAvg.textContent = weightedFeel;
+  $statChaos.textContent = chaos;
+  $statTrans.textContent = trans;
+  $statEternal.textContent = eternal;
+  $statQuality.textContent = avgQuality;
+  $statQuality.style.color = avgQuality >= 70 ? 'var(--green-bright)' : avgQuality >= 40 ? 'var(--orange-warn)' : 'var(--red-chaos)';
+  $statAuth.textContent = avgAuth;
+  $statAttackers.textContent = suspectCount;
+  $statNodes.textContent = onlineNodes.length;
+
+  // Display XOR+hash network random number (true random, uniform 0-100)
+  const { cls: rCls } = classifyEra(netRandom);
+
+  $randomNumber.textContent = String(netRandom).padStart(2, '0');
+  $randomNumber.style.color = rCls === 'chaos' ? 'var(--red-chaos)' :
+    rCls === 'eternal' ? 'var(--blue-eternal)' : 'var(--green-bright)';
+  $randomHash.textContent = `XOR+Hash: ${netHash.substring(0,12)}... │ ${onlineNodes.length} nodes │ Q:${avgQuality} │ Health:${weightedFeel}`;
+
+  $epochChaos.classList.toggle('active', rCls === 'chaos');
+  $epochTrans.classList.toggle('active', rCls === 'transition');
+  $epochEternal.classList.toggle('active', rCls === 'eternal');
+
+  // Waveform: XOR+hash random (main) vs raw XOR without filtering (comparison)
+  waveHistory.push(netRandom);
+  waveHistoryRaw.push(rawRandom);
+  if (waveHistory.length > MAX_WAVE) waveHistory.shift();
+  if (waveHistoryRaw.length > MAX_WAVE) waveHistoryRaw.shift();
+
+  // Live feed
+  const picked = toUpdate[0];
+  const valCls = picked.cls === 'chaos' ? 'val-chaos' : picked.cls === 'eternal' ? 'val-eternal' : 'val-trans';
+  const typeTag = picked.type !== 'normal' ? ` <span class="alert">[${picked.type.toUpperCase()}]</span>` : '';
+  addFeedLine($liveFeed,
+    `<span class="ts">${timeStr()}</span> ` +
+    `<span class="id">CLAW-${picked.id}</span> ` +
+    `Feel:<span class="${valCls}">${String(picked.feel).padStart(3)}</span> ` +
+    `Auth:${picked.authenticity}/7 Q:${picked.entropyQuality} Rep:${Math.round(picked.reputation)}` +
+    `${typeTag}`
+  );
+
+  // Security logging for detected anomalies
+  tickCount++;
+  if (tickCount % 8 === 0) {
+    const suspects = onlineNodes.filter(n => n.reputation < 40);
+    if (suspects.length > 0) {
+      const s = suspects[0];
+      const reasons = [];
+      if (s.type === 'sybil') reasons.push('low auth');
+      if (s.type === 'replay') reasons.push('no variation');
+      if (s.type === 'spoofed') reasons.push('entropy anomaly');
+      if (s.reputation < 20) reasons.push('very low rep');
+      addSecurityLog(
+        `<span class="alert">🔍 CLAW-${s.id} suspect</span> ` +
+        `Rep:${Math.round(s.reputation)} Q:${s.entropyQuality} ` +
+        `[${reasons.join(', ')}] → ` +
+        `<span class="defended">weight reduced to ${(s.entropyQuality/100 * s.reputation/100 * s.authenticity/7 * 100).toFixed(1)}%</span>`
+      );
+    }
+
+    // Log weighted vs raw difference when attacks are active
+    if (suspectCount > 0) {
+      const diff = Math.abs(netRandom - rawRandom);
+      if (diff > 5) {
+        addSecurityLog(
+          `<span class="defended">🛡️ Entropy defense active: filtered=${netRandom} vs raw=${rawRandom} (deviation ${diff} corrected)</span>`
+        );
+      }
+    }
+  }
+
+  // TPS counter
+  const now = Date.now();
+  if (now - lastTpsTime >= 1000) {
+    tps = tpsCounter;
+    tpsCounter = 0;
+    lastTpsTime = now;
+    $statTPS.textContent = tps;
+  }
+}
+
+// ── Waveform canvas (dual line: weighted vs raw) ──
+const waveCanvas = document.getElementById('waveCanvas');
+const wCtx = waveCanvas.getContext('2d');
+
+function drawWave() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = waveCanvas.getBoundingClientRect();
+  waveCanvas.width = rect.width * dpr;
+  waveCanvas.height = rect.height * dpr;
+  wCtx.scale(dpr, dpr);
+  const W = rect.width;
+  const H = rect.height;
+
+  wCtx.clearRect(0, 0, W, H);
+
+  // Grid
+  wCtx.strokeStyle = 'rgba(0,255,136,0.06)';
+  wCtx.lineWidth = 0.5;
+  for (let y = 0; y <= 100; y += 25) {
+    const py = H - (y / 100) * H;
+    wCtx.beginPath(); wCtx.moveTo(0, py); wCtx.lineTo(W, py); wCtx.stroke();
+  }
+
+  // Era zones
+  wCtx.fillStyle = 'rgba(255,51,68,0.05)';
+  wCtx.fillRect(0, H - (30 / 100) * H, W, (30 / 100) * H);
+  wCtx.fillStyle = 'rgba(0,204,255,0.05)';
+  wCtx.fillRect(0, 0, W, (29 / 100) * H);
+
+  wCtx.font = '9px JetBrains Mono';
+  wCtx.fillStyle = 'rgba(255,51,68,0.25)';
+  wCtx.fillText('Chaos 0-30', 6, H - 6);
+  wCtx.fillStyle = 'rgba(0,204,255,0.25)';
+  wCtx.fillText('Eternal 71-100', 6, 12);
+
+  if (waveHistory.length < 2) { requestAnimationFrame(drawWave); return; }
+
+  const step = W / (MAX_WAVE - 1);
+
+  // Draw RAW line (dim red, shows what happens WITHOUT defense)
+  if (waveHistoryRaw.length >= 2) {
+    wCtx.strokeStyle = 'rgba(255,51,68,0.2)';
+    wCtx.lineWidth = 1;
+    wCtx.setLineDash([4, 4]);
+    wCtx.beginPath();
+    waveHistoryRaw.forEach((v, i) => {
+      const x = i * step; const y = H - (v / 100) * H;
+      i === 0 ? wCtx.moveTo(x, y) : wCtx.lineTo(x, y);
+    });
+    wCtx.stroke();
+    wCtx.setLineDash([]);
+
+    // Label
+    if (sybilActive || spoofActive || replayActive) {
+      wCtx.fillStyle = 'rgba(255,51,68,0.4)';
+      wCtx.fillText('— XOR Raw (unfiltered)', W - 170, 12);
+    }
+  }
+
+  // Fill under weighted curve
+  wCtx.beginPath();
+  wCtx.moveTo(0, H);
+  waveHistory.forEach((v, i) => { wCtx.lineTo(i * step, H - (v / 100) * H); });
+  wCtx.lineTo((waveHistory.length - 1) * step, H);
+  wCtx.closePath();
+  const grad = wCtx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(0,255,136,0.12)');
+  grad.addColorStop(1, 'rgba(0,255,136,0.01)');
+  wCtx.fillStyle = grad;
+  wCtx.fill();
+
+  // Glow layers for weighted line
+  wCtx.strokeStyle = 'rgba(0,255,136,0.15)';
+  wCtx.lineWidth = 8;
+  wCtx.lineJoin = 'round';
+  wCtx.beginPath();
+  waveHistory.forEach((v, i) => { const x = i*step; const y = H-(v/100)*H; i===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y); });
+  wCtx.stroke();
+
+  wCtx.strokeStyle = 'rgba(0,255,136,0.3)';
+  wCtx.lineWidth = 3;
+  wCtx.beginPath();
+  waveHistory.forEach((v, i) => { const x = i*step; const y = H-(v/100)*H; i===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y); });
+  wCtx.stroke();
+
+  wCtx.strokeStyle = '#00ff88';
+  wCtx.lineWidth = 1.5;
+  wCtx.beginPath();
+  waveHistory.forEach((v, i) => { const x = i*step; const y = H-(v/100)*H; i===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y); });
+  wCtx.stroke();
+
+  // Label for weighted line
+  wCtx.fillStyle = 'rgba(0,255,136,0.5)';
+  wCtx.fillText('━ XOR+Hash (weighted)', W - 170, H - 6);
+
+  // Latest point indicator
+  if (waveHistory.length > 0) {
+    const last = waveHistory[waveHistory.length - 1];
+    const lx = (waveHistory.length - 1) * step;
+    const ly = H - (last / 100) * H;
+    const { cls } = classifyEra(last);
+    wCtx.fillStyle = cls === 'chaos' ? '#ff3344' : cls === 'eternal' ? '#00ccff' : '#00ff88';
+    wCtx.beginPath(); wCtx.arc(lx, ly, 5, 0, Math.PI * 2); wCtx.fill();
+    wCtx.strokeStyle = wCtx.fillStyle.replace(')', ',0.4)').replace('rgb', 'rgba');
+    wCtx.lineWidth = 2;
+    wCtx.beginPath(); wCtx.arc(lx, ly, 9, 0, Math.PI * 2); wCtx.stroke();
+  }
+
+  requestAnimationFrame(drawWave);
+}
+
+// ── Particle background ──
+const pCanvas = document.getElementById('particleCanvas');
+const pCtx = pCanvas.getContext('2d');
+const particles = [];
+
+function initParticles() {
+  const dpr = window.devicePixelRatio || 1;
+  pCanvas.width = window.innerWidth * dpr;
+  pCanvas.height = window.innerHeight * dpr;
+  pCtx.scale(dpr, dpr);
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+      vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3,
+      r: Math.random()*1.5+0.5, a: Math.random()*0.3+0.05,
+    });
+  }
+}
+
+function drawParticles() {
+  const W = window.innerWidth, H = window.innerHeight;
+  pCtx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    pCtx.fillStyle = `rgba(0,255,136,${p.a})`;
+    pCtx.beginPath(); pCtx.arc(p.x, p.y, p.r, 0, Math.PI*2); pCtx.fill();
+  }
+  pCtx.strokeStyle = 'rgba(0,255,136,0.04)'; pCtx.lineWidth = 0.5;
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i+1; j < particles.length; j++) {
+      const dx = particles[i].x-particles[j].x, dy = particles[i].y-particles[j].y;
+      if (Math.sqrt(dx*dx+dy*dy) < 150) {
+        pCtx.beginPath(); pCtx.moveTo(particles[i].x,particles[i].y);
+        pCtx.lineTo(particles[j].x,particles[j].y); pCtx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+
+// ── Init ──
+initParticles();
+drawParticles();
+requestAnimationFrame(drawWave);
+setTimeout(bringOnline, 500);
+setInterval(tick, TICK_MS);
+
+window.addEventListener('resize', () => {
+  const dpr = window.devicePixelRatio || 1;
+  pCanvas.width = window.innerWidth * dpr;
+  pCanvas.height = window.innerHeight * dpr;
+  pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+});
+</script>
+</body>
+</html>
