@@ -1,0 +1,40 @@
+{
+  "name": "clawfeel",
+  "version": "2.0.0",
+  "description": "Your Claw's Heartbeat — hardware-entropy random number generator with security hardening",
+  "type": "module",
+  "bin": {
+    "clawfeel": "./scripts/clawfeel.mjs"
+  },
+  "scripts": {
+    "start": "node scripts/clawfeel.mjs",
+    "feel": "node scripts/clawfeel.mjs --pretty",
+    "digit": "node scripts/clawfeel.mjs --digit-only",
+    "monitor": "node scripts/clawfeel.mjs --pretty --interval 5 --count 12",
+    "broadcast": "node scripts/clawfeel.mjs --broadcast --interval 10 --count 999",
+    "listen": "node scripts/clawfeel.mjs --listen"
+  },
+  "keywords": [
+    "entropy",
+    "random",
+    "hardware",
+    "sha256",
+    "decentralized",
+    "openclaw",
+    "three-body",
+    "security"
+  ],
+  "author": "ClawFeel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clawfeel/clawfeel.git"
+  },
+  "homepage": "https://clawfeel.ai",
+  "bugs": {
+    "url": "https://github.com/clawfeel/clawfeel/issues"
+  }
+}

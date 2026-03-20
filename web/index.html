@@ -678,7 +678,7 @@ function addFeedLine(container, html, maxLines = 12) {
 
 function timeStr() {
   const d = new Date();
-  return d.toLocaleTimeString('zh-CN', { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+  return d.toLocaleTimeString('en-US', { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
 }
 
 // ── Main tick with security-aware aggregation ──
@@ -808,10 +808,10 @@ function tick() {
 
     // Log weighted vs raw difference when attacks are active
     if (suspectCount > 0) {
-      const diff = Math.abs(weightedFeel - rawFeel);
-      if (diff > 2) {
+      const diff = Math.abs(netRandom - rawRandom);
+      if (diff > 5) {
         addSecurityLog(
-          `<span class="defended">🛡️ Entropy defense active: weighted=${weightedFeel} vs raw avg=${rawFeel} (deviation ${diff} corrected)</span>`
+          `<span class="defended">🛡️ Entropy defense active: filtered=${netRandom} vs raw=${rawRandom} (deviation ${diff} corrected)</span>`
         );
       }
     }
