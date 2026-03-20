@@ -391,7 +391,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       service: "ClawFeel Relay",
-      version: "3.1.0",
+      version: "0.3.1",
       dhtPort: DHT_PORT,
       peers: peerList,
       peerCount: peerList.length,
@@ -407,7 +407,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       service: "ClawFeel Relay",
-      version: "3.1.0",
+      version: "0.3.1",
       status: "online",
       nodes: onlineCount,
       sseClients: sseClients.size,
@@ -424,7 +424,7 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, async () => {
   console.log("");
-  console.log("  ┌─ ClawFeel Relay v3.1 ──────────────────────┐");
+  console.log("  ┌─ ClawFeel Relay v0.3.1 ──────────────────────┐");
   console.log(`  │  HTTP on http://localhost:${PORT}               │`);
   console.log(`  │  DHT  on TCP :${DHT_PORT}                       │`);
   console.log("  │                                             │");

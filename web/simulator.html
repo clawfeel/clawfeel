@@ -186,11 +186,14 @@
     justify-content: space-between;
     align-items: center;
   }
-  .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; color: var(--green-bright); text-decoration: none; }
+  .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; color: var(--green-bright); text-decoration: none; display: flex; align-items: center; }
   .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); }
-  .nav-links { display: flex; gap: 20px; }
-  .nav-links a { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; text-decoration: none; }
+  .nav-icon { height: 22px; margin-right: 8px; }
+  .nav-links { display: flex; gap: 16px; align-items: center; }
+  .nav-links a { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; text-decoration: none; line-height: 1; }
   .nav-links a:hover { color: var(--green-bright); }
+  .nav-install-btn { background: var(--green-bright); color: #020a06; padding: 6px 14px; border-radius: 4px; font-weight: 700; letter-spacing: 1px; }
+  .nav-install-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.3); }
 
   /* ── Mode toggle ── */
   .mode-toggle {
@@ -269,13 +272,13 @@
 <canvas class="particle-canvas" id="particleCanvas"></canvas>
 
 <nav class="nav">
-  <a href="/" class="nav-logo"><img src="logo.svg" alt="" style="height:22px;vertical-align:middle;margin-right:8px;">CLAWFEEL</a>
+  <a href="/" class="nav-logo"><img src="logo.svg" alt="" class="nav-icon">CLAWFEEL</a>
   <div class="nav-links">
     <a href="/">Home</a>
     <a href="whitepaper.html">Whitepaper</a>
     <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
     <a href="https://x.com/clawfeel">X</a>
-    <a href="/#install" style="background:var(--green-bright);color:#020a06;padding:5px 12px;border-radius:3px;font-weight:700;">Install</a>
+    <a href="/#install" class="nav-install-btn">Install</a>
   </div>
 </nav>
 

@@ -525,16 +525,18 @@
     color: var(--green-bright);
     display: flex;
     align-items: center;
-    gap: 8px;
+    text-decoration: none;
   }
   .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); text-decoration: none; }
-  .nav-links { display: flex; gap: 20px; }
+  .nav-icon { height: 22px; margin-right: 8px; }
+  .nav-links { display: flex; gap: 16px; align-items: center; }
   .nav-links a {
     font-size: 11px;
     color: var(--text-dim);
     letter-spacing: 2px;
     text-transform: uppercase;
     text-decoration: none;
+    line-height: 1;
   }
   .nav-links a:hover { color: var(--green-bright); text-decoration: none; }
   .nav-install-btn {
@@ -571,16 +573,13 @@
 <canvas class="particle-canvas" id="particleCanvas"></canvas>
 
 <nav class="nav">
-  <a href="/" class="nav-logo">
-    <img src="logo.svg" alt="ClawFeel" style="height:24px;vertical-align:middle;margin-right:8px;">
-    CLAWFEEL
-  </a>
+  <a href="/" class="nav-logo"><img src="logo.svg" alt="" class="nav-icon">CLAWFEEL</a>
   <div class="nav-links">
     <a href="simulator.html">Simulator</a>
     <a href="whitepaper.html">Whitepaper</a>
     <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
     <a href="https://x.com/clawfeel">X</a>
-    <a href="#install" class="nav-install-btn" onclick="installSkill(event)">Install Skill</a>
+    <a href="#install" class="nav-install-btn" onclick="installSkill(event)">Install</a>
   </div>
 </nav>
 
