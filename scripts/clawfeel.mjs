@@ -54,6 +54,7 @@ const BOOTSTRAP = param("bootstrap", null);
 const DAG_STATUS = flag("dag-status");
 const STOP = flag("stop");
 const STATUS = flag("status");
+const RESTART = flag("restart");
 const STORE_FILE = param("store", null);
 const GET_FILE = param("get", null);
 const OUTPUT_FILE = param("output", null);
@@ -1200,6 +1201,15 @@ async function main() {
     return;
   }
 
+  if (RESTART) {
+    await stopDaemon();
+    const result = await startDaemon();
+    console.log(result.started
+      ? `🔄 ClawFeel daemon restarted (PID ${result.pid})`
+      : `ℹ️  ${result.error || "Restart failed"}`);
+    return;
+  }
+
   if (STATUS) {
     const status = await getDaemonStatus();
     if (status.running) {
@@ -1208,7 +1218,14 @@ async function main() {
       console.log(`   ClawId: ${status.clawId || "unknown"}`);
       console.log(`   Relay: ${status.relay || "none"}`);
     } else {
-      console.log("🔴 ClawFeel daemon not running");
+      // Auto-recovery: daemon is dead, restart it
+      console.log("🔴 ClawFeel daemon not running — auto-restarting...");
+      const result = await startDaemon();
+      if (result.started) {
+        console.log(`🟢 Daemon recovered (PID ${result.pid})`);
+      } else {
+        console.log(`⚠️  Auto-restart failed: ${result.error || "unknown"}`);
+      }
     }
     return;
   }
