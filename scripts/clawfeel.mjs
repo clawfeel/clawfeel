@@ -47,6 +47,11 @@ const ANCHOR = flag("anchor");
 const ANCHOR_VALUE = param("anchor-value", null);
 const RELAY = param("relay", null);
 const ALIAS = param("alias", null);
+const P2P = flag("p2p");
+const NO_RELAY = flag("no-relay");
+const DHT_PORT = parseInt(param("dht-port", "31416"), 10);
+const BOOTSTRAP = param("bootstrap", null);
+const DAG_STATUS = flag("dag-status");
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
 const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
@@ -1041,17 +1046,61 @@ async function main() {
   // Load sequence state for chain integrity
   await loadSeqState();
 
-  // Auto-daemon mode: if relay is active and user didn't specify count/interval,
-  // keep reporting every 30s to stay online
-  const hasRelay = !!(RELAY || nodeRelay);
+  // ── P2P mode: start DHT + DAG + Gossip ──
+  let gossipManager = null;
+  if (P2P) {
+    const { KademliaNode } = await import("./dht.mjs");
+    const { DAGStore } = await import("./dag.mjs");
+    const { GossipManager } = await import("./gossip.mjs");
+
+    const bootstrapList = BOOTSTRAP
+      ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"]
+      : ["clawfeel-relay.fly.dev:31416"];
+
+    const dht = new KademliaNode({
+      clawId: getClawId(),
+      host: "0.0.0.0",
+      port: DHT_PORT,
+      bootstrapNodes: bootstrapList,
+      dataDir: DATA_DIR,
+    });
+
+    const dag = new DAGStore({ dataDir: DATA_DIR });
+    await dag.load();
+
+    gossipManager = new GossipManager({
+      dht, dag, clawId: getClawId(), fanout: 6,
+    });
+
+    await dht.start();
+
+    if (PRETTY) {
+      console.log(`  🌐 P2P mode: DHT on port ${dht.port}, ${dht.stats.peers} peers`);
+      console.log(`  📊 DAG: ${dag.txMap.size} transactions, ${dag.tips.size} tips`);
+      console.log("");
+    }
+
+    // Initial sync
+    await gossipManager.fullSync();
+
+    if (DAG_STATUS) {
+      const stats = gossipManager.getStats();
+      console.log(JSON.stringify(stats, null, 2));
+      return;
+    }
+  }
+
+  // Auto-daemon mode: if relay or P2P is active and user didn't specify count/interval
+  const hasRelay = !NO_RELAY && !!(RELAY || nodeRelay);
   const userSetCount = args.includes("--count");
   const userSetInterval = args.includes("--interval");
-  const daemonMode = hasRelay && !userSetCount && !userSetInterval && !DIGIT_ONLY;
+  const daemonMode = (hasRelay || P2P) && !userSetCount && !userSetInterval && !DIGIT_ONLY;
   const loopCount = daemonMode ? Infinity : COUNT;
-  const loopInterval = daemonMode ? 30 : INTERVAL;
+  const loopInterval = daemonMode ? (P2P ? 10 : 30) : INTERVAL;
 
   if (daemonMode && PRETTY) {
-    console.log("  🔄 Daemon mode: reporting every 30s (Ctrl+C to stop)");
+    const mode = P2P ? "P2P + Relay" : "Relay";
+    console.log(`  🔄 Daemon mode (${mode}): reporting every ${loopInterval}s (Ctrl+C to stop)`);
     console.log("");
   }
 
@@ -1075,12 +1124,26 @@ async function main() {
       broadcastFeel(result);
     }
 
-    if (RELAY || nodeRelay) {
+    if (hasRelay) {
       await reportToRelay(result);
+    }
+
+    // P2P: create DAG transaction and gossip
+    if (gossipManager) {
+      const tx = gossipManager.onNewLocalReading(result);
+      if (tx && PRETTY) {
+        const stats = gossipManager.getStats();
+        console.log(`  🔗 DAG: tx ${tx.hash.substring(0, 12)}... → ${tx.parents.length} parents │ ${stats.dagStats.tipCount} tips │ ${stats.dhtPeers} peers`);
+      }
     }
 
     // Save sequence state after each reading
     await saveSeqState();
+
+    // Periodic DAG prune
+    if (gossipManager && i > 0 && i % 100 === 0) {
+      gossipManager.dag.prune();
+    }
 
     if (loopInterval > 0 && i < loopCount - 1) {
       await new Promise((resolve) => setTimeout(resolve, loopInterval * 1000));
