@@ -45,6 +45,7 @@ const BROADCAST = flag("broadcast");
 const LISTEN = flag("listen");
 const ANCHOR = flag("anchor");
 const ANCHOR_VALUE = param("anchor-value", null);
+const RELAY = param("relay", null);
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
 const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
@@ -841,6 +842,33 @@ function listenForClaws() {
   });
 }
 
+// ── Relay report (HTTP POST) ─────────────────────────────────────
+
+async function reportToRelay(result) {
+  if (!RELAY) return;
+  const url = RELAY.replace(/\/$/, "") + "/api/report";
+  const clawId = getClawId();
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Claw-Id": clawId,
+      },
+      body: JSON.stringify({ ...result, clawId, hostname: os.hostname() }),
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await res.json();
+    if (PRETTY) {
+      console.log(`  📡 Relay: ${data.ok ? "✅" : "❌"} ${data.peers || 0} peers online`);
+    }
+  } catch (err) {
+    if (PRETTY) {
+      console.log(`  📡 Relay: ⚠️ ${err.message}`);
+    }
+  }
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 
 async function main() {
@@ -875,6 +903,10 @@ async function main() {
 
     if (BROADCAST) {
       broadcastFeel(result);
+    }
+
+    if (RELAY) {
+      await reportToRelay(result);
     }
 
     // Save sequence state after each reading

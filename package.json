@@ -12,7 +12,9 @@
     "digit": "node scripts/clawfeel.mjs --digit-only",
     "monitor": "node scripts/clawfeel.mjs --pretty --interval 5 --count 12",
     "broadcast": "node scripts/clawfeel.mjs --broadcast --interval 10 --count 999",
-    "listen": "node scripts/clawfeel.mjs --listen"
+    "listen": "node scripts/clawfeel.mjs --listen",
+    "relay": "node scripts/relay.mjs",
+    "join": "node scripts/clawfeel.mjs --relay http://localhost:3415 --pretty --interval 5 --count 999"
   },
   "keywords": [
     "entropy",

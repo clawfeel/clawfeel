@@ -1,0 +1,410 @@
+#!/usr/bin/env node
+
+// ═══════════════════════════════════════════════════════════════════
+//  ClawFeel Relay Server — Layer 2.5
+//  HTTP relay with Server-Sent Events (SSE) for real-time updates.
+//  Bridges real Claw nodes to the web dashboard.
+//
+//  Zero dependencies — pure Node.js (>=22).
+//
+//  Usage:
+//    node relay.mjs                    # start on port 3415
+//    node relay.mjs --port 8080        # custom port
+//
+//  API:
+//    POST /api/report    — Claw nodes report their Feel
+//    GET  /api/network   — Current network state (JSON)
+//    GET  /api/stream    — Server-Sent Events (real-time)
+//    GET  /              — Health check / status
+// ═══════════════════════════════════════════════════════════════════
+
+import { createServer } from "node:http";
+import { createHash } from "node:crypto";
+import { argv } from "node:process";
+
+// ── Args ──
+const args = argv.slice(2);
+const portIdx = args.indexOf("--port");
+const PORT = portIdx !== -1 && args[portIdx + 1] ? parseInt(args[portIdx + 1], 10) : 3415;
+
+// ── State ──
+const nodes = new Map();       // clawId → nodeState
+const sseClients = new Set();  // active SSE response objects
+const ipClawCount = new Map(); // ip → Set<clawId> (Sybil tracking)
+
+const NODE_TIMEOUT_MS = 60_000;   // offline after 60s silence
+const RATE_LIMIT_MS = 800;        // min interval between reports per node
+const SSE_INTERVAL_MS = 2_000;    // push updates every 2s
+const MAX_HISTORY = 20;           // readings history per node
+
+// ── Hash utilities (same as simulator) ──
+function simHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 16), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 16), 3266489909);
+  const n = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  return n.toString(16).padStart(16, "0");
+}
+
+function xorHex(a, b) {
+  let out = "";
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    out += (parseInt(a[i], 16) ^ parseInt(b[i], 16)).toString(16);
+  }
+  return out;
+}
+
+function getSubnet(ip) {
+  const parts = ip.split(".");
+  return parts.length === 4 ? `${parts[0]}.${parts[1]}.${parts[2]}.0/24` : ip;
+}
+
+// ── Node management ──
+function updateNode(clawId, ip, data) {
+  const now = Date.now();
+
+  if (!nodes.has(clawId)) {
+    nodes.set(clawId, {
+      clawId,
+      ip,
+      hostname: data.hostname || "unknown",
+      firstSeen: now,
+      lastSeen: now,
+      lastReport: 0,
+      reputation: 50,
+      alerts: [],
+      history: [],
+      // Latest Feel data
+      feel: data.feel,
+      era: data.era || "Transition",
+      hash: data.hash || "0000000000000000",
+      seq: data.seq || 0,
+      prevHash: data.prevHash || "0000000000000000",
+      authenticity: data.authenticity ?? 7,
+      sensorFlags: data.sensorFlags || "1111111",
+      entropyQuality: data.entropyQuality ?? 80,
+      entropyDetail: data.entropyDetail || null,
+      sensors: data.sensors || {},
+      timestamp: data.timestamp || new Date().toISOString(),
+    });
+  }
+
+  const node = nodes.get(clawId);
+
+  // ── Rate limiting ──
+  if (now - node.lastReport < RATE_LIMIT_MS) {
+    return { ok: false, reason: "rate_limited" };
+  }
+  node.lastReport = now;
+  node.lastSeen = now;
+
+  // ── Update Feel data ──
+  node.feel = data.feel;
+  node.era = data.era || "Transition";
+  node.hash = data.hash || node.hash;
+  node.prevHash = data.prevHash || node.prevHash;
+  node.authenticity = data.authenticity ?? node.authenticity;
+  node.sensorFlags = data.sensorFlags || node.sensorFlags;
+  node.entropyQuality = data.entropyQuality ?? node.entropyQuality;
+  node.entropyDetail = data.entropyDetail || node.entropyDetail;
+  node.sensors = data.sensors || node.sensors;
+  node.timestamp = data.timestamp || new Date().toISOString();
+  node.hostname = data.hostname || node.hostname;
+  node.ip = ip;
+
+  // ── Sybil detection ──
+  if (!ipClawCount.has(ip)) ipClawCount.set(ip, new Set());
+  ipClawCount.get(ip).add(clawId);
+  if (ipClawCount.get(ip).size > 5) {
+    node.reputation = Math.max(0, node.reputation - 10);
+    if (!node.alerts.includes("SYBIL_SUSPECT")) {
+      node.alerts.push("SYBIL_SUSPECT");
+    }
+  }
+
+  // ── Sequence check ──
+  if (data.seq != null) {
+    if (data.seq <= node.seq && node.seq > 0) {
+      node.reputation = Math.max(0, node.reputation - 15);
+      if (!node.alerts.includes("SEQ_REPLAY")) {
+        node.alerts.push("SEQ_REPLAY");
+      }
+    }
+    node.seq = data.seq;
+  }
+
+  // ── Replay detection ──
+  node.history.push(data.feel);
+  if (node.history.length > MAX_HISTORY) node.history.shift();
+  if (node.history.length >= 5) {
+    const last5 = node.history.slice(-5);
+    if (new Set(last5).size === 1) {
+      node.reputation = Math.max(0, node.reputation - 20);
+      if (!node.alerts.includes("REPLAY_SUSPECT")) {
+        node.alerts.push("REPLAY_SUSPECT");
+      }
+    }
+  }
+
+  // ── Quality check ──
+  if (data.authenticity != null && data.authenticity < 4) {
+    node.reputation = Math.max(0, node.reputation - 3);
+  }
+  if (data.entropyQuality != null && data.entropyQuality < 30) {
+    node.reputation = Math.max(0, node.reputation - 3);
+  }
+
+  // ── Reputation recovery ──
+  if (node.alerts.length === 0 && node.reputation < 100) {
+    node.reputation = Math.min(100, node.reputation + 1);
+  }
+
+  return { ok: true };
+}
+
+// ── Compute network state ──
+let tickCount = 0;
+
+function computeNetworkState() {
+  const now = Date.now();
+  tickCount++;
+
+  // Clean expired nodes
+  for (const [id, node] of nodes) {
+    if (now - node.lastSeen > NODE_TIMEOUT_MS) {
+      nodes.delete(id);
+    }
+  }
+
+  const onlineNodes = [...nodes.values()];
+  if (onlineNodes.length === 0) {
+    return {
+      timestamp: new Date().toISOString(),
+      tick: tickCount,
+      stats: {
+        onlineNodes: 0, avgFeel: 0, chaos: 0, transition: 0, eternal: 0,
+        avgQuality: 0, avgAuth: 0, suspectCount: 0, tps: 0,
+      },
+      networkRandom: { number: null, era: null, hash: null },
+      nodes: [],
+    };
+  }
+
+  let chaos = 0, trans = 0, eternal = 0;
+  let totalAuth = 0, totalQuality = 0, suspectCount = 0;
+  let weightedSum = 0, totalWeight = 0;
+  let xorAccum = "0000000000000000";
+  let rawXorAccum = "0000000000000000";
+
+  for (const n of onlineNodes) {
+    const qualityW = (n.entropyQuality || 0) / 100;
+    const reputationW = (n.reputation || 0) / 100;
+    const authW = (n.authenticity || 0) / 7;
+    const weight = qualityW * reputationW * authW;
+
+    weightedSum += n.feel * weight;
+    totalWeight += weight;
+    totalAuth += n.authenticity || 0;
+    totalQuality += n.entropyQuality || 0;
+
+    if (n.feel <= 30) chaos++;
+    else if (n.feel <= 70) trans++;
+    else eternal++;
+
+    if (n.reputation < 40) suspectCount++;
+
+    rawXorAccum = xorHex(rawXorAccum, n.hash || "0000000000000000");
+    if (weight > 0.1) {
+      xorAccum = xorHex(xorAccum, n.hash || "0000000000000000");
+    }
+  }
+
+  const netHash = simHash("clawfeel:" + xorAccum + ":" + tickCount);
+  const netRandom = parseInt(netHash.substring(0, 8), 16) % 101;
+  const netEra = netRandom <= 30 ? "Chaos" : netRandom <= 70 ? "Transition" : "Eternal";
+
+  return {
+    timestamp: new Date().toISOString(),
+    tick: tickCount,
+    stats: {
+      onlineNodes: onlineNodes.length,
+      avgFeel: totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0,
+      chaos, transition: trans, eternal,
+      avgQuality: Math.round(totalQuality / onlineNodes.length),
+      avgAuth: (totalAuth / onlineNodes.length).toFixed(1),
+      suspectCount,
+    },
+    networkRandom: {
+      number: netRandom,
+      era: netEra,
+      hash: netHash.substring(0, 12),
+    },
+    nodes: onlineNodes.map(n => ({
+      clawId: n.clawId,
+      hostname: n.hostname,
+      feel: n.feel,
+      era: n.era,
+      hash: n.hash,
+      authenticity: n.authenticity,
+      entropyQuality: n.entropyQuality,
+      reputation: Math.round(n.reputation),
+      seq: n.seq,
+      sensorFlags: n.sensorFlags,
+      alerts: n.alerts,
+      lastSeen: n.lastSeen,
+    })),
+  };
+}
+
+// ── SSE broadcast ──
+function broadcastSSE() {
+  if (sseClients.size === 0) return;
+  const state = computeNetworkState();
+  const data = `data: ${JSON.stringify(state)}\n\n`;
+  for (const res of sseClients) {
+    try {
+      res.write(data);
+    } catch {
+      sseClients.delete(res);
+    }
+  }
+}
+
+setInterval(broadcastSSE, SSE_INTERVAL_MS);
+
+// ── CORS headers ──
+function setCORS(res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Claw-Id");
+}
+
+// ── Read request body ──
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", c => chunks.push(c));
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString()));
+      } catch {
+        reject(new Error("Invalid JSON"));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+// ── Get client IP ──
+function getClientIP(req) {
+  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim()
+    || req.headers["x-real-ip"]
+    || req.socket.remoteAddress
+    || "unknown";
+}
+
+// ── HTTP Server ──
+const server = createServer(async (req, res) => {
+  setCORS(res);
+
+  // Handle preflight
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const path = url.pathname;
+
+  // ── POST /api/report ──
+  if (req.method === "POST" && path === "/api/report") {
+    try {
+      const body = await readBody(req);
+      const clawId = req.headers["x-claw-id"] || body.clawId || body.hash?.substring(0, 12);
+      if (!clawId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false, error: "Missing clawId" }));
+        return;
+      }
+      const ip = getClientIP(req);
+      const result = updateNode(clawId, ip, body);
+      res.writeHead(result.ok ? 200 : 429, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...result, peers: nodes.size }));
+    } catch (err) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: err.message }));
+    }
+    return;
+  }
+
+  // ── GET /api/network ──
+  if (req.method === "GET" && path === "/api/network") {
+    const state = computeNetworkState();
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(state));
+    return;
+  }
+
+  // ── GET /api/stream (SSE) ──
+  if (req.method === "GET" && path === "/api/stream") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    res.write(": connected\n\n");
+
+    // Send initial state
+    const state = computeNetworkState();
+    res.write(`data: ${JSON.stringify(state)}\n\n`);
+
+    sseClients.add(res);
+    req.on("close", () => sseClients.delete(res));
+    return;
+  }
+
+  // ── GET / ── Health check / status
+  if (req.method === "GET" && (path === "/" || path === "/status")) {
+    const onlineCount = [...nodes.values()].filter(
+      n => Date.now() - n.lastSeen < NODE_TIMEOUT_MS
+    ).length;
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      service: "ClawFeel Relay",
+      version: "2.5.0",
+      status: "online",
+      nodes: onlineCount,
+      sseClients: sseClients.size,
+      uptime: Math.round(process.uptime()),
+    }));
+    return;
+  }
+
+  // 404
+  res.writeHead(404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ error: "Not found" }));
+});
+
+server.listen(PORT, () => {
+  console.log("");
+  console.log("  ┌─ ClawFeel Relay v2.5 ──────────────────────┐");
+  console.log(`  │  Listening on http://localhost:${PORT}          │`);
+  console.log("  │                                             │");
+  console.log("  │  Endpoints:                                 │");
+  console.log("  │    POST /api/report  — node reports Feel    │");
+  console.log("  │    GET  /api/network — network state JSON   │");
+  console.log("  │    GET  /api/stream  — SSE real-time feed   │");
+  console.log("  │                                             │");
+  console.log("  │  Waiting for Claws... 🦞                    │");
+  console.log("  └─────────────────────────────────────────────┘");
+  console.log("");
+});
