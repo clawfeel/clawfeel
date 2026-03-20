@@ -175,12 +175,16 @@ async function loadIdentity() {
 
   // ── 3. Generate new identity ──
   nodeAlias = generateAlias();
+  const defaultRelay = "https://clawfeel-relay.fly.dev";
   const config = {
     alias: nodeAlias,
     clawId,
-    relay: "https://clawfeel-relay.fly.dev",
+    relay: defaultRelay,
     createdAt: new Date().toISOString(),
   };
+
+  // Set relay so this first run also reports
+  if (!RELAY) nodeRelay = defaultRelay;
 
   // Save identity.json
   await mkdir(DATA_DIR, { recursive: true });
