@@ -1013,6 +1013,7 @@ async function reportToRelay(result) {
     const data = await res.json();
     if (PRETTY) {
       console.log(`  📡 Relay: ${data.ok ? "✅" : "❌"} ${data.peers || 0} peers online`);
+      console.log(`  🌐 Live:  https://clawfeel.ai/simulator.html?me=${clawId}`);
     }
   } catch (err) {
     if (PRETTY) {

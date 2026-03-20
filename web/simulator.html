@@ -1084,6 +1084,12 @@ function drawParticles() {
 
 const RELAY_URL = 'https://clawfeel-relay.fly.dev';
 let currentMode = 'simulated';
+
+// ── "You" identification via ?me=clawId or localStorage ──
+const urlParams = new URLSearchParams(window.location.search);
+const meParam = urlParams.get('me');
+if (meParam) localStorage.setItem('clawfeel_me', meParam);
+const myClawId = localStorage.getItem('clawfeel_me') || null;
 let sseSource = null;
 let simInterval = null;
 
@@ -1232,12 +1238,16 @@ function renderLiveState(state) {
     const cls = n.feel <= 30 ? 'chaos' : n.feel <= 70 ? 'transition' : 'eternal';
     const authCls = n.authenticity >= 6 ? 'full' : n.authenticity >= 4 ? 'partial' : 'low';
 
+    const isMe = myClawId && n.clawId === myClawId;
+    const displayName = isMe ? '⭐ You' : (n.alias || 'Claw-' + n.clawId.substring(0,4));
+
     if (!liveNodeEls.has(n.clawId)) {
       // Create new node element
       const el = document.createElement('div');
       el.className = `node online ${cls}`;
+      if (isMe) el.style.boxShadow = '0 0 12px rgba(0,255,136,0.3)';
       el.innerHTML = `
-        <div class="node-id">${n.alias || 'Claw-' + n.clawId.substring(0,4)}</div>
+        <div class="node-id" style="${isMe ? 'color:var(--green-bright);font-weight:700;' : ''}">${displayName}</div>
         <div class="node-feel">${n.feel}</div>
         <div class="node-era">${n.era}</div>
         <div class="node-security">
@@ -1255,6 +1265,9 @@ function renderLiveState(state) {
       // Update existing node
       const el = liveNodeEls.get(n.clawId);
       el.className = `node online ${cls}`;
+      if (isMe) el.style.boxShadow = '0 0 12px rgba(0,255,136,0.3)';
+      el.querySelector('.node-id').textContent = displayName;
+      if (isMe) { el.querySelector('.node-id').style.color = 'var(--green-bright)'; el.querySelector('.node-id').style.fontWeight = '700'; }
       el.querySelector('.node-feel').textContent = n.feel;
       el.querySelector('.node-era').textContent = n.era;
       el.querySelector('.node-bar').style.width = `${n.feel}%`;
@@ -1272,10 +1285,12 @@ function renderLiveState(state) {
   // Live feed
   if (liveNodes.length > 0) {
     const picked = liveNodes[Math.floor(Math.random() * liveNodes.length)];
+    const pickedIsMe = myClawId && picked.clawId === myClawId;
+    const pickedName = pickedIsMe ? '⭐ You' : (picked.alias || picked.clawId);
     const valCls = picked.feel <= 30 ? 'val-chaos' : picked.feel > 70 ? 'val-eternal' : 'val-trans';
     addFeedLine($liveFeed,
       `<span class="ts">${timeStr()}</span> ` +
-      `<span class="id">${picked.alias || picked.clawId}</span> ` +
+      `<span class="id" ${pickedIsMe ? 'style="color:var(--green-bright)"' : ''}>${pickedName}</span> ` +
       `Feel:<span class="${valCls}">${String(picked.feel).padStart(3)}</span> ` +
       `Auth:${picked.authenticity}/7 Q:${picked.entropyQuality} Rep:${picked.reputation}`
     );
