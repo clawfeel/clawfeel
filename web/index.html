@@ -416,32 +416,91 @@
 
   /* ── Footer ── */
   .footer {
-    text-align: center;
-    padding: 60px 24px;
+    padding: 60px 24px 40px;
     border-top: 1px solid var(--bg-panel-border);
   }
-  .footer-logo {
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+  .footer-brand .footer-logo {
     font-family: 'Orbitron', sans-serif;
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+  .footer-brand .footer-desc {
+    font-size: 11px;
+    color: var(--text-body);
+    line-height: 1.8;
     margin-bottom: 16px;
   }
-  .footer-links {
+  .footer-socials {
     display: flex;
-    justify-content: center;
-    gap: 24px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    gap: 12px;
   }
-  .footer-links a {
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
+  .footer-socials a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .footer-socials a:hover {
+    border-color: var(--green-bright);
+    box-shadow: 0 0 15px rgba(0,255,136,0.15);
+    transform: translateY(-2px);
+  }
+  .footer-socials a svg { width: 16px; height: 16px; fill: var(--text-dim); transition: fill 0.3s; }
+  .footer-socials a:hover svg { fill: var(--green-bright); }
+  .footer-col-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--green-bright);
+    margin-bottom: 16px;
     text-transform: uppercase;
   }
-  .footer-links a:hover { color: var(--green-bright); }
+  .footer-col a {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+  .footer-col a:hover { color: var(--green-bright); padding-left: 4px; }
+  .footer-col .contact-item {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  .footer-col .contact-item a { display: inline; margin-bottom: 0; }
+  .footer-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0,255,136,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
   .footer-copy { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+  .footer-legal { display: flex; gap: 20px; }
+  .footer-legal a { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+  .footer-legal a:hover { color: var(--green-bright); }
 
   /* ── Particle canvas ── */
   .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
@@ -457,6 +516,8 @@
     .era-display { flex-direction: column; align-items: center; }
     .mini-nodes { grid-template-columns: repeat(5, 1fr); }
     .section-title { font-size: 22px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .footer-bottom { flex-direction: column; text-align: center; }
   }
 </style>
 </head>
@@ -704,15 +765,57 @@
   </section>
 
   <!-- ═══ Footer ═══ -->
-  <div class="footer">
-    <div class="footer-logo">🦞 CLAWFEEL</div>
-    <div class="footer-links">
-      <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
-      <a href="simulator.html">Simulator</a>
-      <a href="https://www.npmjs.com/package/clawfeel">npm</a>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">🦞 CLAWFEEL</div>
+        <div class="footer-desc">
+          Hardware entropy for a decentralized world.<br>
+          Proof of Existence, not Proof of Work.
+        </div>
+        <div class="footer-socials">
+          <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          </a>
+          <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" title="npm">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Product</div>
+        <a href="simulator.html">Live Simulator</a>
+        <a href="https://github.com/clawfeel/clawfeel">Source Code</a>
+        <a href="https://www.npmjs.com/package/clawfeel">npm Package</a>
+        <a href="whitepaper.html">Whitepaper</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Community</div>
+        <a href="https://x.com/clawfeel" target="_blank" rel="noopener">X (Twitter)</a>
+        <a href="https://github.com/clawfeel/clawfeel/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener">Discussions</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <div class="contact-item">
+          <a href="mailto:contact@clawfeel.com">contact@clawfeel.com</a>
+        </div>
+        <div class="contact-item" style="margin-top:16px;font-size:10px;color:var(--text-dim);">
+          Built for the Claw Crew
+        </div>
+      </div>
     </div>
-    <div class="footer-copy">Hardware entropy for a decentralized world &middot; MIT License &middot; Built for the Claw Crew 🦞</div>
-  </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 ClawFeel &middot; MIT License</div>
+      <div class="footer-legal">
+        <a href="https://github.com/clawfeel/clawfeel/blob/main/LICENSE">License</a>
+        <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
+      </div>
+    </div>
+  </footer>
 
 </div>
 
