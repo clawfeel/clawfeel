@@ -103,6 +103,8 @@ function generateAlias() {
 
 let nodeAlias = null;
 let nodeRelay = null; // relay URL from feel.md
+let nodeSignKey = null;  // Ed25519 private key hex
+let nodeSignPub = null;  // Ed25519 public key hex
 
 // Search paths for feel.md
 const FEEL_MD_PATHS = [
@@ -218,6 +220,41 @@ async function loadIdentity() {
       break; // only create in first available location
     } catch { /* try next */ }
   }
+}
+
+// ── Ed25519 signing key management ──────────────────────────────
+
+async function loadSigningKeys() {
+  const keyFile = path.join(DATA_DIR, "life.key");
+  try {
+    const stored = JSON.parse(await readFile(keyFile, "utf8"));
+    if (stored.signKey && stored.signPub) {
+      nodeSignKey = stored.signKey;
+      nodeSignPub = stored.signPub;
+      return;
+    }
+  } catch { /* no key file */ }
+
+  // Auto-generate Ed25519 keypair on first run
+  const { generateKeyPairSync } = await import("node:crypto");
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const pubRaw = publicKey.export({ type: "spki", format: "der" }).subarray(-32);
+  const privRaw = privateKey.export({ type: "pkcs8", format: "der" }).subarray(-32);
+  nodeSignKey = privRaw.toString("hex");
+  nodeSignPub = pubRaw.toString("hex");
+
+  // Save to life.key (merge with existing data if present)
+  await mkdir(DATA_DIR, { recursive: true });
+  let existing = {};
+  try { existing = JSON.parse(await readFile(keyFile, "utf8")); } catch {}
+  existing.signKey = nodeSignKey;
+  existing.signPub = nodeSignPub;
+  existing.clawId = existing.clawId || getClawId();
+  existing.createdAt = existing.createdAt || new Date().toISOString();
+  existing.warning = "KEEP THIS FILE SAFE. This key controls your ClawLife. Loss = permanent death.";
+  await writeFile(keyFile, JSON.stringify(existing, null, 2), "utf8");
+  const { chmod } = await import("node:fs/promises");
+  await chmod(keyFile, 0o600);
 }
 
 // ── Sensor controllability weights ──────────────────────────────
@@ -1038,7 +1075,7 @@ async function reportToRelay(result) {
         feel: result.feel, era: result.era, hash: result.hash, entropy: result.entropy,
         seq: result.seq, prevHash: result.prevHash, timestamp: result.timestamp,
         authenticity: result.authenticity, entropyQuality: result.entropyQuality,
-        sensorFlags: result.sensorFlags, clawId, alias: nodeAlias,
+        sensorFlags: result.sensorFlags, clawId, alias: nodeAlias, publicKey: nodeSignPub,
       }),
       signal: AbortSignal.timeout(5000),
     });
@@ -1166,8 +1203,9 @@ async function main() {
     // Start background daemon if not already running
     const daemonResult = await startDaemon();
 
-    // Load identity for display
+    // Load identity and signing keys
     await loadIdentity();
+    await loadSigningKeys();
     await loadSeqState();
 
     // Give one reading to the user
@@ -1275,6 +1313,7 @@ async function main() {
 
     const clawId = getClawId();
     await loadIdentity();
+    await loadSigningKeys();
 
     const dht = new KademliaNode({
       clawId,
@@ -1414,8 +1453,9 @@ async function main() {
     return;
   }
 
-  // Load identity (generates alias on first run)
+  // Load identity and signing keys
   await loadIdentity();
+  await loadSigningKeys();
 
   // Load sequence state for chain integrity
   await loadSeqState();

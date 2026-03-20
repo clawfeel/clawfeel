@@ -15,10 +15,12 @@ const SYNC_BATCH = 50;          // max txs per sync response
 const PULL_BATCH = 20;          // max txs per pull request
 
 export class GossipManager {
-  constructor({ dht, dag, clawId, fanout = DEFAULT_FANOUT }) {
+  constructor({ dht, dag, clawId, signKey, signPub, fanout = DEFAULT_FANOUT }) {
     this.dht = dht;
     this.dag = dag;
     this.clawId = clawId;
+    this.signKey = signKey || null;   // Ed25519 private key hex
+    this.signPub = signPub || null;   // Ed25519 public key hex
     this.fanout = fanout;
 
     // Dedup: recently seen tx hashes
@@ -53,6 +55,7 @@ export class GossipManager {
 
     const tx = new Transaction({
       clawId: this.clawId,
+      publicKey: this.signPub,
       feel: result.feel,
       entropy: result.entropy,
       timestamp: result.timestamp,
@@ -61,6 +64,11 @@ export class GossipManager {
       entropyQuality: result.entropyQuality,
       parents,
     });
+
+    // Sign with Ed25519 private key
+    if (this.signKey) {
+      tx.sign(this.signKey);
+    }
 
     const addResult = this.dag.add(tx);
     if (addResult.ok) {

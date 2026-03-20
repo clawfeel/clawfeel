@@ -80,6 +80,7 @@ function updateNode(clawId, ip, data) {
       clawId,
       ip,
       alias: data.alias || "unknown",
+      publicKey: data.publicKey || null, // Ed25519 public key hex
       firstSeen: now,
       lastSeen: now,
       lastReport: 0,
@@ -122,6 +123,7 @@ function updateNode(clawId, ip, data) {
   node.sensors = data.sensors || node.sensors;
   node.timestamp = data.timestamp || new Date().toISOString();
   node.alias = data.alias || node.alias;
+  if (data.publicKey) node.publicKey = data.publicKey;
   node.ip = ip;
 
   // ── Sybil detection ──

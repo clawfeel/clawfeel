@@ -12,6 +12,8 @@
 import {
   createHash, randomBytes, scryptSync,
   createCipheriv, createDecipheriv,
+  generateKeyPairSync, createPrivateKey, createPublicKey,
+  sign as cryptoSign, verify as cryptoVerify,
 } from "node:crypto";
 import { readFile, writeFile, mkdir, chmod } from "node:fs/promises";
 import path from "node:path";
@@ -48,6 +50,57 @@ function decrypt(encryptedData, key) {
   return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 }
 
+// ── Ed25519 helpers ──────────────────────────────────────────────
+
+function generateSigningKeypair() {
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const pubRaw = publicKey.export({ type: "spki", format: "der" }).subarray(-32);
+  const privRaw = privateKey.export({ type: "pkcs8", format: "der" }).subarray(-32);
+  return { signPub: pubRaw.toString("hex"), signKey: privRaw.toString("hex") };
+}
+
+function importSignPrivateKey(hexKey) {
+  // Ed25519 PKCS#8 DER prefix (48 bytes total = 16 prefix + 32 key)
+  const prefix = Buffer.from("302e020100300506032b657004220420", "hex");
+  const der = Buffer.concat([prefix, Buffer.from(hexKey, "hex")]);
+  return createPrivateKey({ key: der, format: "der", type: "pkcs8" });
+}
+
+function importSignPublicKey(hexKey) {
+  // Ed25519 SPKI DER prefix (44 bytes total = 12 prefix + 32 key)
+  const prefix = Buffer.from("302a300506032b6570032100", "hex");
+  const der = Buffer.concat([prefix, Buffer.from(hexKey, "hex")]);
+  return createPublicKey({ key: der, format: "der", type: "spki" });
+}
+
+/**
+ * Sign a message with Ed25519 private key.
+ * @param {string} message - message to sign (typically a hash hex string)
+ * @param {string} privateKeyHex - 32-byte private key as hex
+ * @returns {string} 64-byte signature as hex (128 chars)
+ */
+export function ed25519Sign(message, privateKeyHex) {
+  const keyObj = importSignPrivateKey(privateKeyHex);
+  const sig = cryptoSign(null, Buffer.from(message, "utf8"), keyObj);
+  return sig.toString("hex");
+}
+
+/**
+ * Verify an Ed25519 signature.
+ * @param {string} message - original message
+ * @param {string} signatureHex - 64-byte signature as hex
+ * @param {string} publicKeyHex - 32-byte public key as hex
+ * @returns {boolean}
+ */
+export function ed25519Verify(message, signatureHex, publicKeyHex) {
+  try {
+    const keyObj = importSignPublicKey(publicKeyHex);
+    return cryptoVerify(null, Buffer.from(message, "utf8"), keyObj, Buffer.from(signatureHex, "hex"));
+  } catch {
+    return false;
+  }
+}
+
 // ── ClawLife ───────────────────────────────────────────────────────
 
 export class ClawLife {
@@ -57,8 +110,10 @@ export class ClawLife {
     this.fileStore = fileStore;
     this.keyFile = path.join(dataDir, "life.key");
     this.stateFile = path.join(dataDir, "life.json");
-    this.privateKey = null;       // 256-bit Buffer
+    this.privateKey = null;       // 256-bit Buffer (AES encryption key)
     this.publicId = null;         // SHA-256 of private key (safe to share)
+    this.signKey = null;          // Ed25519 private key hex (32 bytes)
+    this.signPub = null;          // Ed25519 public key hex (32 bytes)
   }
 
   // ── Key management ──
@@ -75,11 +130,25 @@ export class ClawLife {
       if (stored.key) {
         this.privateKey = Buffer.from(stored.key, "hex");
         this.publicId = stored.publicId;
-        return { publicId: this.publicId, isNew: false };
+        // Load Ed25519 keys if present, or generate & save
+        if (stored.signKey && stored.signPub) {
+          this.signKey = stored.signKey;
+          this.signPub = stored.signPub;
+        } else {
+          // Upgrade: existing key file without Ed25519 — add signing keys
+          const kp = generateSigningKeypair();
+          this.signKey = kp.signKey;
+          this.signPub = kp.signPub;
+          stored.signKey = kp.signKey;
+          stored.signPub = kp.signPub;
+          await writeFile(this.keyFile, JSON.stringify(stored, null, 2), "utf8");
+          await chmod(this.keyFile, 0o600);
+        }
+        return { publicId: this.publicId, signPub: this.signPub, isNew: false };
       }
     } catch { /* first run */ }
 
-    // Generate new key
+    // Generate new AES key
     if (passphrase) {
       const salt = SCRYPT_SALT_PREFIX + this.clawId;
       this.privateKey = deriveKey(passphrase, salt);
@@ -89,30 +158,52 @@ export class ClawLife {
 
     this.publicId = createHash("sha256").update(this.privateKey).digest("hex").substring(0, 32);
 
-    // Save key to disk
+    // Generate Ed25519 signing keypair
+    const kp = generateSigningKeypair();
+    this.signKey = kp.signKey;
+    this.signPub = kp.signPub;
+
+    // Save all keys to disk
     await mkdir(this.dataDir, { recursive: true });
     await writeFile(this.keyFile, JSON.stringify({
       key: this.privateKey.toString("hex"),
+      signKey: this.signKey,
+      signPub: this.signPub,
       publicId: this.publicId,
       clawId: this.clawId,
       createdAt: new Date().toISOString(),
       warning: "KEEP THIS FILE SAFE. This key controls your ClawLife. Loss = permanent death.",
     }, null, 2), "utf8");
-    await chmod(this.keyFile, 0o600); // owner-only read/write
+    await chmod(this.keyFile, 0o600);
 
-    return { publicId: this.publicId, isNew: true };
+    return { publicId: this.publicId, signPub: this.signPub, isNew: true };
   }
 
   /**
    * Import a private key (for migration to new device).
    */
-  async importKey(hexKey) {
+  async importKey(hexKey, signKeyHex) {
     this.privateKey = Buffer.from(hexKey, "hex");
     this.publicId = createHash("sha256").update(this.privateKey).digest("hex").substring(0, 32);
+
+    // Import or generate Ed25519 keys
+    if (signKeyHex) {
+      this.signKey = signKeyHex;
+      // Derive public from private
+      const keyObj = importSignPrivateKey(signKeyHex);
+      const pubDer = createPublicKey(keyObj).export({ type: "spki", format: "der" });
+      this.signPub = pubDer.subarray(-32).toString("hex");
+    } else {
+      const kp = generateSigningKeypair();
+      this.signKey = kp.signKey;
+      this.signPub = kp.signPub;
+    }
 
     await mkdir(this.dataDir, { recursive: true });
     await writeFile(this.keyFile, JSON.stringify({
       key: hexKey,
+      signKey: this.signKey,
+      signPub: this.signPub,
       publicId: this.publicId,
       clawId: this.clawId,
       importedAt: new Date().toISOString(),
@@ -120,7 +211,7 @@ export class ClawLife {
     }, null, 2), "utf8");
     await chmod(this.keyFile, 0o600);
 
-    return { publicId: this.publicId };
+    return { publicId: this.publicId, signPub: this.signPub };
   }
 
   /**

@@ -10,16 +10,19 @@
 import { createHash } from "node:crypto";
 import { readFile, appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { ed25519Sign, ed25519Verify } from "./life.mjs";
 
 const MAX_MEMORY_TXS = 2000;  // prune beyond this
 const CONFIRM_THRESHOLD = 5;  // descendants needed for confirmation
+const TX_VERSION = 2;         // v2 = Ed25519 signatures
 
 // ── Transaction ───────────────────────────────────────────────────
 
 export class Transaction {
-  constructor({ clawId, feel, entropy, timestamp, seq, authenticity, entropyQuality, parents }) {
-    this.version = 1;
+  constructor({ clawId, publicKey, feel, entropy, timestamp, seq, authenticity, entropyQuality, parents }) {
+    this.version = TX_VERSION;
     this.clawId = clawId;
+    this.publicKey = publicKey || null; // Ed25519 public key hex (32 bytes)
     this.feel = feel;
     this.entropy = entropy;             // 64 hex chars (256-bit)
     this.timestamp = timestamp;
@@ -28,13 +31,14 @@ export class Transaction {
     this.entropyQuality = entropyQuality; // 0-100
     this.parents = parents || [];       // array of parent tx hashes
     this.hash = this.computeHash();
-    this.signature = this.computeSignature();
+    this.signature = null;              // set via sign()
   }
 
   computeHash() {
     const canonical = JSON.stringify({
       v: this.version,
       c: this.clawId,
+      pk: this.publicKey,
       f: this.feel,
       e: this.entropy,
       t: this.timestamp,
@@ -46,24 +50,42 @@ export class Transaction {
     return createHash("sha256").update(canonical).digest("hex");
   }
 
-  computeSignature() {
-    return createHash("sha256")
+  /**
+   * Sign this transaction with Ed25519 private key.
+   * @param {string} privateKeyHex - 32-byte Ed25519 private key as hex
+   */
+  sign(privateKeyHex) {
+    this.signature = ed25519Sign(this.hash, privateKeyHex);
+  }
+
+  /**
+   * Verify transaction integrity and Ed25519 signature.
+   * - v1 (legacy): accepts old SHA-256 pseudo-signature
+   * - v2: requires valid Ed25519 signature matching publicKey
+   */
+  verify() {
+    if (this.hash !== this.computeHash()) return false;
+    if (this.parents.length === 0 && this.clawId === "000000000000") return true; // genesis
+
+    if (this.version >= 2) {
+      // Ed25519 verification
+      if (!this.publicKey || !this.signature) return false;
+      return ed25519Verify(this.hash, this.signature, this.publicKey);
+    }
+
+    // Legacy v1: old pseudo-signature (backward compatible)
+    const legacySig = createHash("sha256")
       .update(this.hash + ":" + this.clawId)
       .digest("hex")
       .substring(0, 32);
-  }
-
-  verify() {
-    if (this.hash !== this.computeHash()) return false;
-    if (this.signature !== this.computeSignature()) return false;
-    if (this.parents.length === 0 && this.clawId !== "000000000000") return false; // only genesis has no parents
-    return true;
+    return this.signature === legacySig;
   }
 
   toJSON() {
     return {
       version: this.version,
       clawId: this.clawId,
+      publicKey: this.publicKey,
       feel: this.feel,
       entropy: this.entropy,
       timestamp: this.timestamp,
@@ -79,6 +101,7 @@ export class Transaction {
   static fromJSON(obj) {
     const tx = new Transaction({
       clawId: obj.clawId,
+      publicKey: obj.publicKey || null,
       feel: obj.feel,
       entropy: obj.entropy,
       timestamp: obj.timestamp,
@@ -87,7 +110,8 @@ export class Transaction {
       entropyQuality: obj.entropyQuality,
       parents: obj.parents,
     });
-    // Restore hash/sig from stored data (verify separately)
+    // Restore version/hash/sig from stored data
+    tx.version = obj.version || 1;
     tx.hash = obj.hash;
     tx.signature = obj.signature;
     return tx;
