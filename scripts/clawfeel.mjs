@@ -66,8 +66,15 @@ const IS_LINUX = PLATFORM === "linux";
 const IS_MAC = PLATFORM === "darwin";
 
 // ── Node identity (privacy-preserving) ──────────────────────────
-//  Generates a random alias on first run, stored in ~/.clawfeel/identity.json.
+//  Priority: CLI --alias > feel.md > identity.json > auto-generate.
 //  Real hostname is NEVER sent to the network.
+//
+//  feel.md (OpenClaw user config) — human-readable, user-editable:
+//    Located at ~/.openclaw/feel.md or ./feel.md
+//    Parsed as YAML-like frontmatter key: value pairs.
+//
+//  identity.json — machine-generated, auto-synced from feel.md:
+//    Located at ~/.clawfeel/identity.json
 
 function generateAlias() {
   const suffix = randomBytes(2).toString("hex");
@@ -75,31 +82,118 @@ function generateAlias() {
 }
 
 let nodeAlias = null;
+let nodeRelay = null; // relay URL from feel.md
+
+// Search paths for feel.md
+const FEEL_MD_PATHS = [
+  path.join(os.homedir(), ".openclaw", "feel.md"),
+  path.join(os.homedir(), ".openclaw", "workspace", "feel.md"),
+  path.join(process.cwd(), "feel.md"),
+];
+
+/**
+ * Parse feel.md frontmatter-style config.
+ * Format:
+ *   alias: MyClaw
+ *   relay: https://clawfeel-relay.fly.dev
+ *   clawId: 3eda7c810253
+ */
+function parseFeelMd(content) {
+  const config = {};
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("---")) continue;
+    const colonIdx = trimmed.indexOf(":");
+    if (colonIdx > 0) {
+      const key = trimmed.substring(0, colonIdx).trim().toLowerCase();
+      const value = trimmed.substring(colonIdx + 1).trim();
+      if (key && value) config[key] = value;
+    }
+  }
+  return config;
+}
+
+/**
+ * Generate feel.md content from identity config.
+ */
+function generateFeelMd(config) {
+  return `# ClawFeel Identity
+# Edit this file to customize your node settings.
+# Changes take effect on next clawfeel run.
+
+alias: ${config.alias}
+clawId: ${config.clawId}
+relay: ${config.relay || "https://clawfeel-relay.fly.dev"}
+createdAt: ${config.createdAt}
+`;
+}
 
 async function loadIdentity() {
-  // CLI --alias overrides stored alias
+  const clawId = getClawId();
+
+  // CLI --alias always wins
   if (ALIAS) {
     nodeAlias = ALIAS;
     return;
   }
 
+  // ── 1. Try feel.md (user-editable config, highest priority) ──
+  for (const feelPath of FEEL_MD_PATHS) {
+    try {
+      const raw = await readFile(feelPath, "utf8");
+      const config = parseFeelMd(raw);
+      if (config.alias) {
+        nodeAlias = config.alias;
+        // Sync feel.md → identity.json
+        await mkdir(DATA_DIR, { recursive: true });
+        await writeFile(IDENTITY_FILE, JSON.stringify({
+          alias: config.alias,
+          clawId: config.clawid || clawId,
+          relay: config.relay || null,
+          createdAt: config.createdat || new Date().toISOString(),
+          source: feelPath,
+        }, null, 2), "utf8");
+        // Set relay from feel.md if not specified on CLI
+        if (config.relay && !RELAY) {
+          nodeRelay = config.relay;
+        }
+        return;
+      }
+    } catch { /* file not found, try next */ }
+  }
+
+  // ── 2. Try identity.json (machine-generated) ──
   try {
     const raw = await readFile(IDENTITY_FILE, "utf8");
     const data = JSON.parse(raw.trim());
     if (data.alias) {
       nodeAlias = data.alias;
+      if (data.relay && !RELAY) nodeRelay = data.relay;
       return;
     }
   } catch { /* first run */ }
 
-  // Generate new identity
+  // ── 3. Generate new identity ──
   nodeAlias = generateAlias();
-  await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(IDENTITY_FILE, JSON.stringify({
+  const config = {
     alias: nodeAlias,
-    clawId: getClawId(),
+    clawId,
+    relay: "https://clawfeel-relay.fly.dev",
     createdAt: new Date().toISOString(),
-  }, null, 2), "utf8");
+  };
+
+  // Save identity.json
+  await mkdir(DATA_DIR, { recursive: true });
+  await writeFile(IDENTITY_FILE, JSON.stringify(config, null, 2), "utf8");
+
+  // Create feel.md in first available OpenClaw directory
+  for (const feelPath of FEEL_MD_PATHS) {
+    try {
+      await mkdir(path.dirname(feelPath), { recursive: true });
+      await writeFile(feelPath, generateFeelMd(config), "utf8");
+      break; // only create in first available location
+    } catch { /* try next */ }
+  }
 }
 
 // ── Sensor controllability weights ──────────────────────────────
@@ -884,8 +978,9 @@ function listenForClaws() {
 // ── Relay report (HTTP POST) ─────────────────────────────────────
 
 async function reportToRelay(result) {
-  if (!RELAY) return;
-  const url = RELAY.replace(/\/$/, "") + "/api/report";
+  const relayUrl = RELAY || nodeRelay;
+  if (!relayUrl) return;
+  const url = relayUrl.replace(/\/$/, "") + "/api/report";
   const clawId = getClawId();
   try {
     const res = await fetch(url, {
@@ -947,7 +1042,7 @@ async function main() {
       broadcastFeel(result);
     }
 
-    if (RELAY) {
+    if (RELAY || nodeRelay) {
       await reportToRelay(result);
     }
 

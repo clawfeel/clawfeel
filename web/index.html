@@ -502,6 +502,42 @@
   .footer-legal a { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
   .footer-legal a:hover { color: var(--green-bright); }
 
+  /* ── Nav ── */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(2,10,6,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--bg-panel-border);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--green-bright);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); text-decoration: none; }
+  .nav-links { display: flex; gap: 20px; }
+  .nav-links a {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .nav-links a:hover { color: var(--green-bright); text-decoration: none; }
+
   /* ── Particle canvas ── */
   .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
   .content { position: relative; z-index: 1; }
@@ -525,12 +561,32 @@
 
 <canvas class="particle-canvas" id="particleCanvas"></canvas>
 
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#00ff88" stroke-width="2" opacity="0.3"/>
+      <circle cx="50" cy="50" r="35" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.2"/>
+      <path d="M50 25 L50 75 M35 35 L25 20 M65 35 L75 20 M35 55 L20 60 M65 55 L80 60 M35 65 L25 80 M65 65 L75 80" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <circle cx="50" cy="30" r="6" fill="#00ff88" opacity="0.8"/>
+      <circle cx="42" cy="28" r="2" fill="#020a06"/>
+      <circle cx="58" cy="28" r="2" fill="#020a06"/>
+    </svg>
+    CLAWFEEL
+  </a>
+  <div class="nav-links">
+    <a href="simulator.html">Simulator</a>
+    <a href="whitepaper.html">Whitepaper</a>
+    <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
+    <a href="https://x.com/clawfeel">X</a>
+  </div>
+</nav>
+
 <div class="content">
 
   <!-- ═══ Hero ═══ -->
-  <div class="hero">
+  <div class="hero" style="padding-top:120px;">
     <div class="hero-feel" id="heroFeel">73</div>
-    <div class="hero-logo"><span class="icon">🦞</span>CLAWFEEL</div>
+    <div class="hero-logo"><svg class="icon" width="64" height="64" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:16px;"><circle cx="50" cy="50" r="45" fill="none" stroke="#00ff88" stroke-width="2" opacity="0.4"/><circle cx="50" cy="50" r="35" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.25"/><circle cx="50" cy="50" r="25" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.15"/><path d="M50 20 L50 80" stroke="#00ff88" stroke-width="3" stroke-linecap="round"/><path d="M35 32 L22 15 M65 32 L78 15" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round"/><path d="M35 50 L15 48 M65 50 L85 48" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round"/><path d="M35 65 L20 80 M65 65 L80 80" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round"/><path d="M40 72 L35 90 M60 72 L65 90" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/><ellipse cx="50" cy="28" rx="12" ry="10" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="2"/><circle cx="44" cy="26" r="2.5" fill="#00ff88"/><circle cx="56" cy="26" r="2.5" fill="#00ff88"/><circle cx="44" cy="26" r="1" fill="#020a06"/><circle cx="56" cy="26" r="1" fill="#020a06"/></svg>CLAWFEEL</div>
     <div class="hero-tagline">YOUR CLAW'S HEARTBEAT</div>
     <div class="hero-sub">
       Every device runs on unique hardware, under unique conditions, at a unique moment in time.
@@ -768,7 +824,7 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <div class="footer-logo">🦞 CLAWFEEL</div>
+        <div class="footer-logo"><svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:6px;"><circle cx="50" cy="50" r="45" fill="none" stroke="#00ff88" stroke-width="2" opacity="0.3"/><path d="M50 20 L50 80 M35 32 L22 15 M65 32 L78 15 M35 50 L15 48 M65 50 L85 48 M35 65 L20 80 M65 65 L80 80" stroke="#00ff88" stroke-width="3" stroke-linecap="round"/><ellipse cx="50" cy="28" rx="12" ry="10" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="2"/><circle cx="44" cy="26" r="2.5" fill="#00ff88"/><circle cx="56" cy="26" r="2.5" fill="#00ff88"/></svg> CLAWFEEL</div>
         <div class="footer-desc">
           Hardware entropy for a decentralized world.<br>
           Proof of Existence, not Proof of Work.
