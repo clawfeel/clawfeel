@@ -1041,7 +1041,21 @@ async function main() {
   // Load sequence state for chain integrity
   await loadSeqState();
 
-  for (let i = 0; i < COUNT; i++) {
+  // Auto-daemon mode: if relay is active and user didn't specify count/interval,
+  // keep reporting every 30s to stay online
+  const hasRelay = !!(RELAY || nodeRelay);
+  const userSetCount = args.includes("--count");
+  const userSetInterval = args.includes("--interval");
+  const daemonMode = hasRelay && !userSetCount && !userSetInterval && !DIGIT_ONLY;
+  const loopCount = daemonMode ? Infinity : COUNT;
+  const loopInterval = daemonMode ? 30 : INTERVAL;
+
+  if (daemonMode && PRETTY) {
+    console.log("  🔄 Daemon mode: reporting every 30s (Ctrl+C to stop)");
+    console.log("");
+  }
+
+  for (let i = 0; i < loopCount; i++) {
     const sensorResults = await collectSensors();
     const result = computeFeel(sensorResults);
 
@@ -1068,8 +1082,8 @@ async function main() {
     // Save sequence state after each reading
     await saveSeqState();
 
-    if (INTERVAL > 0 && i < COUNT - 1) {
-      await new Promise((resolve) => setTimeout(resolve, INTERVAL * 1000));
+    if (loopInterval > 0 && i < loopCount - 1) {
+      await new Promise((resolve) => setTimeout(resolve, loopInterval * 1000));
     }
   }
 }
