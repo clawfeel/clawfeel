@@ -43,6 +43,8 @@ class RemoteProvider {
     this.#timeout = timeout;
   }
 
+  get url() { return this.#url; }
+
   async fetchNetwork() {
     const res = await fetch(`${this.#url}/api/network`, {
       signal: AbortSignal.timeout(this.#timeout),
@@ -245,6 +247,52 @@ class ClawRandom {
       throw new Error("subscribe() requires remote mode: ClawRandom.remote()");
     }
     return this.#provider.subscribe(callback);
+  }
+
+  // ── Beacon Methods (remote mode) ──
+
+  /**
+   * Get the latest beacon round.
+   * @returns {Promise<Object>} Beacon round with hash, number, contributors, signature
+   */
+  async getBeacon() {
+    if (this.#mode !== "remote") {
+      throw new Error("getBeacon() requires remote mode: ClawRandom.remote()");
+    }
+    const res = await fetch(`${this.#provider.url}/api/beacon/latest`, {
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) throw new Error(`Beacon error: ${res.status}`);
+    return res.json();
+  }
+
+  /**
+   * Get a specific beacon round by number.
+   * @param {number} roundNumber
+   * @returns {Promise<Object>}
+   */
+  async getBeaconRound(roundNumber) {
+    if (this.#mode !== "remote") {
+      throw new Error("getBeaconRound() requires remote mode: ClawRandom.remote()");
+    }
+    const res = await fetch(`${this.#provider.url}/api/beacon/${roundNumber}`, {
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) throw new Error(`Beacon round ${roundNumber} not found`);
+    return res.json();
+  }
+
+  /**
+   * Verify a beacon round: recompute XOR from contributors and check hash.
+   * @param {Object} beacon - Beacon round object
+   * @returns {boolean}
+   */
+  async verifyBeacon(beacon) {
+    if (!beacon || !beacon.contributors) return false;
+    const { BeaconRound } = await import("./beacon.mjs");
+    const round = BeaconRound.fromJSON(beacon);
+    const result = round.verify();
+    return result.valid;
   }
 
   /**

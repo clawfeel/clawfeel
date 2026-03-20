@@ -19,10 +19,11 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { createServer } from "node:http";
-import { createHash } from "node:crypto";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import { argv } from "node:process";
 import os from "node:os";
 import path from "node:path";
+import { BeaconManager } from "./beacon.mjs";
 
 // ── Args ──
 const args = argv.slice(2);
@@ -274,6 +275,7 @@ function computeNetworkState() {
 function broadcastSSE() {
   if (sseClients.size === 0) return;
   const state = computeNetworkState();
+  state.beacon = beaconManager.getLatest()?.toJSON() || null;
   const data = `data: ${JSON.stringify(state)}\n\n`;
   for (const res of sseClients) {
     try {
@@ -284,7 +286,38 @@ function broadcastSSE() {
   }
 }
 
-setInterval(broadcastSSE, SSE_INTERVAL_MS);
+// ── Beacon ──
+
+const BEACON_INTERVAL_MS = 10_000; // seal a beacon round every 10s
+const beaconTicksPerRound = BEACON_INTERVAL_MS / SSE_INTERVAL_MS; // 5 ticks
+
+// Generate relay signing keypair (ephemeral per instance)
+const { publicKey: relayPubKey, privateKey: relayPrivKey } = generateKeyPairSync("ed25519");
+const relaySignKey = relayPrivKey.export({ format: "der", type: "pkcs8" }).toString("hex");
+const relaySignPub = relayPubKey.export({ format: "der", type: "spki" }).toString("hex");
+
+const beaconManager = new BeaconManager({
+  dataDir: path.join(os.homedir(), ".clawfeel"),
+  roundDuration: BEACON_INTERVAL_MS,
+  signKey: relaySignKey,
+  signPub: relaySignPub,
+});
+beaconManager.init().catch(() => {});
+
+setInterval(() => {
+  broadcastSSE();
+
+  // Seal beacon round every BEACON_INTERVAL_MS
+  if (tickCount > 0 && tickCount % beaconTicksPerRound === 0) {
+    const onlineNodes = [];
+    for (const [, n] of nodes) {
+      if (Date.now() - n.lastSeen < NODE_TIMEOUT_MS) onlineNodes.push(n);
+    }
+    if (onlineNodes.length > 0) {
+      beaconManager.sealRound(onlineNodes);
+    }
+  }
+}, SSE_INTERVAL_MS);
 
 // ── CORS headers ──
 function setCORS(res) {
@@ -366,9 +399,44 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // ── GET /api/beacon/latest ──
+  if (req.method === "GET" && path === "/api/beacon/latest") {
+    const beacon = beaconManager.getLatest();
+    res.writeHead(beacon ? 200 : 404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(beacon ? beacon.toJSON() : { error: "No beacon rounds yet" }));
+    return;
+  }
+
+  // ── GET /api/beacon/:round ──
+  if (req.method === "GET" && path.startsWith("/api/beacon/")) {
+    const roundId = parseInt(path.split("/").pop(), 10);
+    if (isNaN(roundId)) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid round number" }));
+      return;
+    }
+    const beacon = beaconManager.getRound(roundId);
+    res.writeHead(beacon ? 200 : 404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(beacon ? beacon.toJSON() : { error: `Round ${roundId} not found` }));
+    return;
+  }
+
+  // ── GET /api/beacons?from=N&to=N ──
+  if (req.method === "GET" && path === "/api/beacons") {
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const from = parseInt(urlObj.searchParams.get("from") || "1", 10);
+    const to = parseInt(urlObj.searchParams.get("to") || "999999", 10);
+    const rounds = beaconManager.getRange(from, to, 100);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ rounds: rounds.map(r => r.toJSON()), count: rounds.length }));
+    return;
+  }
+
   // ── GET /api/network ──
   if (req.method === "GET" && path === "/api/network") {
     const state = computeNetworkState();
+    // Include latest beacon in network state
+    state.beacon = beaconManager.getLatest()?.toJSON() || null;
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(state));
     return;
