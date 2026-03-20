@@ -52,6 +52,9 @@ const NO_RELAY = flag("no-relay");
 const DHT_PORT = parseInt(param("dht-port", "31416"), 10);
 const BOOTSTRAP = param("bootstrap", null);
 const DAG_STATUS = flag("dag-status");
+const STOP = flag("stop");
+const STATUS = flag("status");
+const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
 const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
@@ -63,6 +66,8 @@ const HISTORY_FILE = path.join(DATA_DIR, "history.jsonl");
 const SEQ_FILE = path.join(DATA_DIR, "seq");
 const PEERS_FILE = path.join(DATA_DIR, "peers.jsonl");
 const IDENTITY_FILE = path.join(DATA_DIR, "identity.json");
+const PID_FILE = path.join(DATA_DIR, "daemon.pid");
+const DAEMON_LOG = path.join(DATA_DIR, "daemon.log");
 
 // ── Platform detection ───────────────────────────────────────────
 
@@ -1027,9 +1032,152 @@ async function reportToRelay(result) {
   }
 }
 
+// ── Daemon management ────────────────────────────────────────────
+//  Automatically runs clawfeel as a background process.
+//  Users never need to think about this — install skill, it just runs.
+
+import { spawn } from "node:child_process";
+
+async function getDaemonPid() {
+  try {
+    const pid = parseInt((await readFile(PID_FILE, "utf8")).trim(), 10);
+    if (isNaN(pid)) return null;
+    // Check if process is alive
+    try { process.kill(pid, 0); return pid; } catch { return null; }
+  } catch { return null; }
+}
+
+async function stopDaemon() {
+  const pid = await getDaemonPid();
+  if (pid) {
+    try {
+      process.kill(pid, "SIGTERM");
+      await writeFile(PID_FILE, "", "utf8").catch(() => {});
+      return { stopped: true, pid };
+    } catch {
+      return { stopped: false, error: "Failed to stop" };
+    }
+  }
+  return { stopped: false, error: "No daemon running" };
+}
+
+async function startDaemon() {
+  // Check if already running
+  const existingPid = await getDaemonPid();
+  if (existingPid) {
+    return { started: false, pid: existingPid, message: "Already running" };
+  }
+
+  await mkdir(DATA_DIR, { recursive: true });
+
+  // Spawn detached background process
+  const { openSync } = await import("node:fs");
+  const logFd = openSync(DAEMON_LOG, "a");
+
+  const child = spawn(process.execPath, [
+    ...process.argv.slice(1).filter(a => a !== "--pretty" && a !== "--stop" && a !== "--status"),
+    "--__daemon",
+  ], {
+    detached: true,
+    stdio: ["ignore", logFd, logFd],
+    env: { ...process.env },
+  });
+
+  child.unref();
+
+  // Save PID
+  await writeFile(PID_FILE, String(child.pid), "utf8");
+
+  return { started: true, pid: child.pid };
+}
+
+async function getDaemonStatus() {
+  const pid = await getDaemonPid();
+  let identity = null;
+  try {
+    identity = JSON.parse(await readFile(IDENTITY_FILE, "utf8"));
+  } catch {}
+
+  return {
+    running: !!pid,
+    pid,
+    alias: identity?.alias || null,
+    clawId: identity?.clawId || null,
+    relay: identity?.relay || null,
+  };
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 
 async function main() {
+  // ── Daemon commands ──
+  if (STOP) {
+    const result = await stopDaemon();
+    if (result.stopped) {
+      console.log(`🛑 ClawFeel daemon stopped (PID ${result.pid})`);
+    } else {
+      console.log(`ℹ️  ${result.error}`);
+    }
+    return;
+  }
+
+  if (STATUS) {
+    const status = await getDaemonStatus();
+    if (status.running) {
+      console.log(`🟢 ClawFeel daemon running (PID ${status.pid})`);
+      console.log(`   Alias: ${status.alias || "unknown"}`);
+      console.log(`   ClawId: ${status.clawId || "unknown"}`);
+      console.log(`   Relay: ${status.relay || "none"}`);
+    } else {
+      console.log("🔴 ClawFeel daemon not running");
+    }
+    return;
+  }
+
+  // ── Auto-daemon: if not already a daemon and not a one-shot command,
+  //    start a background daemon and return one reading to the user ──
+  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS;
+  const userSetCount = args.includes("--count");
+  const userSetInterval = args.includes("--interval");
+
+  if (!IS_DAEMON && !isOneShot && !userSetCount && !userSetInterval) {
+    // Start background daemon if not already running
+    const daemonResult = await startDaemon();
+
+    // Load identity for display
+    await loadIdentity();
+    await loadSeqState();
+
+    // Give one reading to the user
+    const sensorResults = await collectSensors();
+    const result = computeFeel(sensorResults);
+    await saveSeqState();
+
+    // Report to relay once
+    const hasRelay = !NO_RELAY && !!(RELAY || nodeRelay);
+    if (hasRelay) await reportToRelay(result);
+
+    if (PRETTY) {
+      prettyPrint(result);
+      if (hasRelay) {
+        const clawId = getClawId();
+        console.log(`  📡 Relay: online`);
+        console.log(`  🌐 Live:  https://clawfeel.ai/simulator.html?me=${clawId}`);
+      }
+      console.log("");
+      if (daemonResult.started) {
+        console.log(`  ✅ Background daemon started (PID ${daemonResult.pid})`);
+        console.log("     Reporting every 30s. Run with --stop to stop.");
+      } else {
+        console.log(`  ✅ Background daemon already running (PID ${daemonResult.pid})`);
+      }
+      console.log("");
+    } else {
+      console.log(JSON.stringify(result, null, 2));
+    }
+    return;
+  }
+
   if (HISTORY) {
     await showHistory(COUNT === 1 ? 20 : COUNT);
     return;
@@ -1090,19 +1238,10 @@ async function main() {
     }
   }
 
-  // Auto-daemon mode: if relay or P2P is active and user didn't specify count/interval
-  const hasRelay = !NO_RELAY && !!(RELAY || nodeRelay);
-  const userSetCount = args.includes("--count");
-  const userSetInterval = args.includes("--interval");
-  const daemonMode = (hasRelay || P2P) && !userSetCount && !userSetInterval && !DIGIT_ONLY;
-  const loopCount = daemonMode ? Infinity : COUNT;
-  const loopInterval = daemonMode ? (P2P ? 10 : 30) : INTERVAL;
-
-  if (daemonMode && PRETTY) {
-    const mode = P2P ? "P2P + Relay" : "Relay";
-    console.log(`  🔄 Daemon mode (${mode}): reporting every ${loopInterval}s (Ctrl+C to stop)`);
-    console.log("");
-  }
+  // Loop settings: __daemon runs forever at 30s, otherwise respect user flags
+  const hasRelayLoop = !NO_RELAY && !!(RELAY || nodeRelay);
+  const loopCount = IS_DAEMON ? Infinity : COUNT;
+  const loopInterval = IS_DAEMON ? 30 : (INTERVAL > 0 ? INTERVAL : (P2P ? 10 : 0));
 
   for (let i = 0; i < loopCount; i++) {
     const sensorResults = await collectSensors();
@@ -1124,7 +1263,7 @@ async function main() {
       broadcastFeel(result);
     }
 
-    if (hasRelay) {
+    if (hasRelayLoop) {
       await reportToRelay(result);
     }
 
