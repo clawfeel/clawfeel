@@ -84,6 +84,7 @@ const DAEMON_LOG = path.join(DATA_DIR, "daemon.log");
 const PLATFORM = os.platform();
 const IS_LINUX = PLATFORM === "linux";
 const IS_MAC = PLATFORM === "darwin";
+const IS_WIN = PLATFORM === "win32";
 
 // ── Node identity (privacy-preserving) ──────────────────────────
 //  Priority: CLI --alias > feel.md > identity.json > auto-generate.
@@ -303,6 +304,15 @@ async function readCpuTemp() {
         if (!isNaN(level)) return { value: 40 + level * 10, authentic: true };
       } catch { /* fallback */ }
     }
+    if (IS_WIN) {
+      try {
+        const out = execFileSync("powershell", ["-NoProfile", "-Command",
+          "Get-CimInstance MSAcpi_ThermalZoneTemperature -Namespace root/wmi -ErrorAction Stop | Select -First 1 -Expand CurrentTemperature"
+        ], { encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] }).trim();
+        const kelvin10 = parseFloat(out);
+        if (!isNaN(kelvin10)) return { value: kelvin10 / 10 - 273.15, authentic: true };
+      } catch { /* fallback — not all Windows machines expose thermal zones */ }
+    }
   } catch { /* fallback */ }
   // ⚠️ FALLBACK: marked as inauthentic
   return { value: 45 + (randomBytes(1)[0] / 255) * 30, authentic: false };
@@ -343,6 +353,15 @@ async function readDiskIO() {
       const parts = out.split(/\s+/);
       const kbPerSec = parseFloat(parts[1]) || 0;
       return { value: kbPerSec / 1024, authentic: true };
+    }
+    if (IS_WIN) {
+      try {
+        const out = execFileSync("powershell", ["-NoProfile", "-Command",
+          "(Get-Counter '\\PhysicalDisk(_Total)\\Disk Bytes/sec' -ErrorAction Stop).CounterSamples.CookedValue"
+        ], { encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] }).trim();
+        const bytesPerSec = parseFloat(out);
+        if (!isNaN(bytesPerSec)) return { value: bytesPerSec / (1024 * 1024), authentic: true };
+      } catch { /* fallback */ }
     }
   } catch { /* fallback */ }
   return { value: randomBytes(2).readUInt16BE(0) / 65535 * 500, authentic: false };
@@ -401,14 +420,15 @@ async function readEntropyPool() {
       return { value: parseInt(raw.trim(), 10), authentic: true };
     }
   } catch { /* fallback */ }
-  // macOS: timing-based entropy measurement — semi-authentic
+  // macOS / Windows: timing-based entropy measurement — semi-authentic
+  // Measures how long crypto.randomBytes takes (reflects OS entropy pool depth)
   const start = process.hrtime.bigint();
-  randomBytes(32);
+  randomBytes(256);
   const end = process.hrtime.bigint();
   const ns = Number(end - start);
   return {
     value: Math.max(100, Math.min(4096, Math.round(4096 - ns / 1000))),
-    authentic: IS_MAC, // macOS timing method is semi-authentic
+    authentic: IS_MAC || IS_WIN, // timing method is semi-authentic on macOS/Windows
   };
 }
 

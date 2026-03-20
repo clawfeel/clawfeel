@@ -100,6 +100,7 @@ function updateNode(clawId, ip, data) {
       entropyDetail: data.entropyDetail || null,
       sensors: data.sensors || {},
       timestamp: data.timestamp || new Date().toISOString(),
+      type: data.type || "node", // "node" (hardware) or "browser" (light)
     });
   }
 
@@ -124,8 +125,14 @@ function updateNode(clawId, ip, data) {
   node.sensors = data.sensors || node.sensors;
   node.timestamp = data.timestamp || new Date().toISOString();
   node.alias = data.alias || node.alias;
+  node.type = data.type || node.type || "node";
   if (data.publicKey) node.publicKey = data.publicKey;
   node.ip = ip;
+
+  // Browser nodes have capped reputation (lighter entropy)
+  if (node.type === "browser" && node.reputation > 50) {
+    node.reputation = 50;
+  }
 
   // ── Sybil detection ──
   if (!ipClawCount.has(ip)) ipClawCount.set(ip, new Set());

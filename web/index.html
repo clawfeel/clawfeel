@@ -549,6 +549,26 @@
   }
   .nav-install-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.3); }
 
+  .nav-contribute-btn {
+    background: transparent !important;
+    border: 1px solid var(--green-bright) !important;
+    color: var(--green-bright) !important;
+    padding: 6px 14px !important;
+    border-radius: 4px;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    font-size: 0.75rem !important;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-contribute-btn:hover { background: rgba(0,255,136,0.1) !important; }
+  .nav-contribute-btn.active {
+    background: var(--green-bright) !important;
+    color: var(--bg-deep) !important;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 5px rgba(0,255,136,0.3); } 50% { box-shadow: 0 0 20px rgba(0,255,136,0.6); } }
+
   /* ── Particle canvas ── */
   .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
   .content { position: relative; z-index: 1; }
@@ -580,6 +600,7 @@
     <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
     <a href="https://x.com/clawfeel">X</a>
     <a href="#install" class="nav-install-btn" onclick="installSkill(event)">Install</a>
+    <a href="#" class="nav-contribute-btn" id="contributeBtn" onclick="toggleBrowserNode(event)">🌐 Contribute Entropy</a>
   </div>
 </nav>
 
@@ -1129,6 +1150,34 @@ function installSkill(e) {
   const installSection = document.getElementById('install');
   if (installSection) {
     installSection.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// ── Browser Entropy: Contribute from your browser ──
+let browserEntropy = null;
+let browserDaemonStop = null;
+
+function toggleBrowserNode(e) {
+  e.preventDefault();
+  const btn = document.getElementById('contributeBtn');
+
+  if (browserDaemonStop) {
+    // Stop contributing
+    browserDaemonStop();
+    browserDaemonStop = null;
+    btn.textContent = '🌐 Contribute Entropy';
+    btn.classList.remove('active');
+  } else {
+    // Start contributing — load browser entropy module
+    const script = document.createElement('script');
+    script.src = 'browser-entropy.js';
+    script.onload = () => {
+      browserEntropy = new BrowserEntropy('https://clawfeel-relay.fly.dev');
+      browserDaemonStop = browserEntropy.startDaemon(30_000);
+      btn.textContent = '🟢 Contributing...';
+      btn.classList.add('active');
+    };
+    document.head.appendChild(script);
   }
 }
 </script>
