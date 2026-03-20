@@ -15,13 +15,15 @@ const SYNC_BATCH = 50;          // max txs per sync response
 const PULL_BATCH = 20;          // max txs per pull request
 
 export class GossipManager {
-  constructor({ dht, dag, clawId, signKey, signPub, fanout = DEFAULT_FANOUT }) {
+  constructor({ dht, dag, clawId, signKey, signPub, fanout = DEFAULT_FANOUT, lightMode = false }) {
     this.dht = dht;
     this.dag = dag;
     this.clawId = clawId;
     this.signKey = signKey || null;   // Ed25519 private key hex
     this.signPub = signPub || null;   // Ed25519 public key hex
     this.fanout = fanout;
+    this.lightMode = lightMode;
+    this.seenMax = lightMode ? 500 : SEEN_MAX;
 
     // Dedup: recently seen tx hashes
     this.seen = new Set();
@@ -42,7 +44,7 @@ export class GossipManager {
     if (this.seen.has(hash)) return;
     this.seen.add(hash);
     this.seenOrder.push(hash);
-    while (this.seenOrder.length > SEEN_MAX) {
+    while (this.seenOrder.length > this.seenMax) {
       const old = this.seenOrder.shift();
       this.seen.delete(old);
     }
@@ -119,9 +121,26 @@ export class GossipManager {
       case "GOSSIP_PULL_REQ":
         return this._handlePullRequest(msg);
 
+      case "GOSSIP_MERKLE_PROOF":
+        return this._handleMerkleProof(msg);
+
       default:
         return null; // not a gossip message
     }
+  }
+
+  _handleMerkleProof(msg) {
+    if (!msg.txHash) return { id: msg.id, type: "GOSSIP_MERKLE_RES", error: "missing txHash" };
+    const proof = this.dag.getMerkleProof(msg.txHash);
+    if (!proof) return { id: msg.id, type: "GOSSIP_MERKLE_RES", found: false };
+    return {
+      id: msg.id,
+      type: "GOSSIP_MERKLE_RES",
+      found: true,
+      root: proof.root,
+      proof: proof.proof,
+      leaf: proof.leaf,
+    };
   }
 
   async _handleGossipTx(msg) {
@@ -173,11 +192,16 @@ export class GossipManager {
       if (missing.length >= SYNC_BATCH) break;
     }
 
+    // Limit response for light nodes
+    const maxTxs = msg.lightNode ? Math.min(msg.maxTxs || 50, 50) : SYNC_BATCH;
+    const txs = missing.slice(0, maxTxs);
+
     return {
       id: msg.id,
       type: "GOSSIP_SYNC_RES",
       tips: myTips,
-      txs: missing,
+      txs,
+      merkleRoot: this.dag.computeMerkleRoot(),
     };
   }
 
@@ -265,12 +289,80 @@ export class GossipManager {
 
   // ── Stats ──
 
+  // ── Light Sync (for light nodes) ──
+
+  async lightSync() {
+    const peers = this.dht.getRandomContacts(2); // fewer peers
+    if (peers.length === 0) return;
+
+    const myTips = this.dag.getTips(5); // only 5 tips
+
+    for (const contact of peers) {
+      try {
+        const res = await this.dht.sendRpc(contact, {
+          id: randomBytes(4).toString("hex"),
+          type: "GOSSIP_SYNC_REQ",
+          tips: myTips,
+          lightNode: true,
+          maxTxs: 50,
+        });
+
+        if (res.txs) {
+          // Only accept up to 50 transactions
+          for (const txData of res.txs.slice(0, 50)) {
+            const tx = Transaction.fromJSON(txData);
+            if (tx.verify()) {
+              const result = this.dag.add(tx);
+              if (result.ok) {
+                this.dag.save(tx).catch(() => {});
+              }
+            }
+          }
+        }
+
+        // Request Merkle root for verification
+        if (res.merkleRoot) {
+          this._lastPeerMerkleRoot = res.merkleRoot;
+        }
+
+        this.stats.syncsDone++;
+      } catch {
+        // peer unreachable
+      }
+    }
+
+    // Aggressive prune for light nodes
+    this.dag.prune();
+  }
+
+  // ── Merkle Proof Request ──
+
+  async requestMerkleProof(txHash, contact) {
+    try {
+      const res = await this.dht.sendRpc(contact, {
+        id: randomBytes(4).toString("hex"),
+        type: "GOSSIP_MERKLE_PROOF",
+        txHash,
+      });
+      if (res.proof && res.root) {
+        const { DAGStore } = await import("./dag.mjs");
+        return DAGStore.verifyMerkleProof(txHash, res.proof, res.root);
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  // ── Stats ──
+
   getStats() {
     return {
       ...this.stats,
       dagStats: this.dag.getStats(),
       networkEntropy: this.dag.computeNetworkEntropy(),
       dhtPeers: this.dht.stats.peers,
+      lightMode: this.lightMode,
     };
   }
 }

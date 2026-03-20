@@ -48,6 +48,7 @@ const ANCHOR_VALUE = param("anchor-value", null);
 const RELAY = param("relay", null);
 const ALIAS = param("alias", null);
 const P2P = flag("p2p");
+const LIGHT_MODE = flag("light");
 const NO_RELAY = flag("no-relay");
 const DHT_PORT = parseInt(param("dht-port", "31416"), 10);
 const BOOTSTRAP = param("bootstrap", null);
@@ -1514,25 +1515,36 @@ async function main() {
       port: DHT_PORT,
       bootstrapNodes: bootstrapList,
       dataDir: DATA_DIR,
+      lightMode: LIGHT_MODE,
     });
 
-    const dag = new DAGStore({ dataDir: DATA_DIR });
+    const dag = new DAGStore({
+      dataDir: DATA_DIR,
+      lightMode: LIGHT_MODE,
+    });
     await dag.load();
 
     gossipManager = new GossipManager({
-      dht, dag, clawId: getClawId(), fanout: 6,
+      dht, dag, clawId: getClawId(),
+      fanout: LIGHT_MODE ? 3 : 6,
+      lightMode: LIGHT_MODE,
     });
 
     await dht.start();
 
+    const modeLabel = LIGHT_MODE ? "🪶 Light" : "🌐 Full";
     if (PRETTY) {
-      console.log(`  🌐 P2P mode: DHT on port ${dht.port}, ${dht.stats.peers} peers`);
+      console.log(`  ${modeLabel} P2P mode: DHT on port ${dht.port}, ${dht.stats.peers} peers`);
       console.log(`  📊 DAG: ${dag.txMap.size} transactions, ${dag.tips.size} tips`);
       console.log("");
     }
 
     // Initial sync
-    await gossipManager.fullSync();
+    if (LIGHT_MODE) {
+      await gossipManager.lightSync();
+    } else {
+      await gossipManager.fullSync();
+    }
 
     if (DAG_STATUS) {
       const stats = gossipManager.getStats();

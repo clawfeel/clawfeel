@@ -136,9 +136,11 @@ function createGenesis() {
 // ── DAG Store ─────────────────────────────────────────────────────
 
 export class DAGStore {
-  constructor({ dataDir }) {
+  constructor({ dataDir, lightMode = false }) {
     this.dataDir = dataDir;
-    this.dagFile = path.join(dataDir, "dag.jsonl");
+    this.dagFile = path.join(dataDir, lightMode ? "dag-light.jsonl" : "dag.jsonl");
+    this.lightMode = lightMode;
+    this.maxTxs = lightMode ? 50 : MAX_MEMORY_TXS;
 
     // Primary storage
     this.txMap = new Map();           // hash → Transaction
@@ -358,7 +360,8 @@ export class DAGStore {
 
   // ── Pruning ──
 
-  prune(keepLast = MAX_MEMORY_TXS) {
+  prune(keepLast) {
+    if (keepLast === undefined) keepLast = this.maxTxs;
     if (this.txMap.size <= keepLast) return 0;
 
     // Sort by timestamp, remove oldest
@@ -380,5 +383,95 @@ export class DAGStore {
     }
 
     return removed;
+  }
+
+  // ── Merkle Tree (for light node verification) ──
+
+  /**
+   * Compute Merkle root of all current transaction hashes.
+   * @returns {string} Merkle root hash (64 hex chars)
+   */
+  computeMerkleRoot() {
+    const hashes = [...this.txMap.keys()].sort();
+    if (hashes.length === 0) return "0".repeat(64);
+    return this._merkleRoot(hashes);
+  }
+
+  _merkleRoot(hashes) {
+    if (hashes.length === 1) return hashes[0];
+    const next = [];
+    for (let i = 0; i < hashes.length; i += 2) {
+      const left = hashes[i];
+      const right = i + 1 < hashes.length ? hashes[i + 1] : left;
+      next.push(createHash("sha256").update(left + right).digest("hex"));
+    }
+    return this._merkleRoot(next);
+  }
+
+  /**
+   * Generate a Merkle proof that txHash is in the DAG.
+   * @param {string} txHash
+   * @returns {Object|null} { root, proof: [{hash, side}], leaf }
+   */
+  getMerkleProof(txHash) {
+    if (!this.txMap.has(txHash)) return null;
+    const hashes = [...this.txMap.keys()].sort();
+    const idx = hashes.indexOf(txHash);
+    if (idx === -1) return null;
+
+    const proof = [];
+    let layer = hashes;
+
+    let pos = idx;
+    while (layer.length > 1) {
+      const next = [];
+      for (let i = 0; i < layer.length; i += 2) {
+        const left = layer[i];
+        const right = i + 1 < layer.length ? layer[i + 1] : left;
+        next.push(createHash("sha256").update(left + right).digest("hex"));
+
+        // If our position is in this pair, record the sibling
+        if (i === pos || i + 1 === pos) {
+          const sibling = pos === i ? right : left;
+          const side = pos % 2 === 0 ? "right" : "left";
+          proof.push({ hash: sibling, side });
+        }
+      }
+      pos = Math.floor(pos / 2);
+      layer = next;
+    }
+
+    return { root: layer[0], proof, leaf: txHash };
+  }
+
+  /**
+   * Verify a Merkle proof.
+   * @param {string} leaf - Transaction hash
+   * @param {Array} proof - [{hash, side}]
+   * @param {string} expectedRoot - Expected Merkle root
+   * @returns {boolean}
+   */
+  static verifyMerkleProof(leaf, proof, expectedRoot) {
+    let current = leaf;
+    for (const step of proof) {
+      const [left, right] = step.side === "left"
+        ? [step.hash, current]
+        : [current, step.hash];
+      current = createHash("sha256").update(left + right).digest("hex");
+    }
+    return current === expectedRoot;
+  }
+
+  /**
+   * Get stats about this DAG store.
+   */
+  getStats() {
+    return {
+      transactions: this.txMap.size,
+      tips: this.tips.size,
+      maxTxs: this.maxTxs,
+      lightMode: this.lightMode,
+      merkleRoot: this.computeMerkleRoot(),
+    };
   }
 }

@@ -95,7 +95,7 @@ function frameReceive(socket, timeout = RPC_TIMEOUT) {
 // ── Kademlia Node ─────────────────────────────────────────────────
 
 export class KademliaNode {
-  constructor({ clawId, host = "0.0.0.0", port = DEFAULT_PORT, bootstrapNodes, dataDir }) {
+  constructor({ clawId, host = "0.0.0.0", port = DEFAULT_PORT, bootstrapNodes, dataDir, lightMode = false }) {
     this.clawId = clawId;
     this.dhtId = makeDhtId(clawId);
     this.host = host;
@@ -103,8 +103,10 @@ export class KademliaNode {
     this.bootstrapNodes = bootstrapNodes || DEFAULT_BOOTSTRAP;
     this.dataDir = dataDir;
     this.routingFile = path.join(dataDir, "routing.json");
+    this.lightMode = lightMode;
+    this.k = lightMode ? 5 : K; // smaller buckets for light nodes
 
-    // 160 k-buckets, each holding up to K contacts
+    // 160 k-buckets, each holding up to k contacts
     this.buckets = Array.from({ length: ID_BITS }, () => []);
 
     // Storage for DHT key-value pairs
@@ -151,7 +153,7 @@ export class KademliaNode {
     }
 
     // Add new contact
-    if (bucket.length < K) {
+    if (bucket.length < this.k) {
       bucket.push({ ...contact, lastSeen: Date.now() });
     } else {
       // Bucket full — replace oldest if it's unresponsive
