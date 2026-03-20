@@ -638,10 +638,10 @@
   <section>
     <div class="container">
       <div class="section-title">Live Network Demo</div>
-      <div class="section-sub">20 simulated nodes &middot; XOR + SHA-256 aggregation</div>
+      <div class="section-sub" id="miniSubtitle">Connecting to relay...</div>
       <div class="mini-sim">
         <div class="mini-sim-header">
-          <div class="mini-sim-title">CLAWFEEL NETWORK</div>
+          <div class="mini-sim-title" id="miniModeLabel">CLAWFEEL NETWORK</div>
           <div class="mini-sim-title"><span id="miniNodeCount">0</span> NODES ONLINE</div>
         </div>
         <div class="mini-sim-number" id="miniNumber">--</div>
@@ -962,8 +962,82 @@ function tickMini() {
   miniNumber.style.color = cls;
 }
 
-setTimeout(bringMiniOnline, 800);
-setInterval(tickMini, 300);
+// ── Try Live Mode first, fallback to simulated ──
+const RELAY_URL = 'https://clawfeel-relay.fly.dev';
+let miniLive = false;
+let miniSimInterval = null;
+
+function startMiniSimulated() {
+  miniLive = false;
+  document.getElementById('miniSubtitle').textContent = '20 simulated nodes · XOR + SHA-256 aggregation';
+  document.getElementById('miniModeLabel').innerHTML = '🔵 SIMULATED';
+  setTimeout(bringMiniOnline, 800);
+  miniSimInterval = setInterval(tickMini, 300);
+}
+
+function startMiniLive() {
+  const sse = new EventSource(RELAY_URL + '/api/stream');
+  let gotData = false;
+
+  const timeout = setTimeout(() => {
+    if (!gotData) { sse.close(); startMiniSimulated(); }
+  }, 5000);
+
+  sse.onmessage = (event) => {
+    try {
+      const state = JSON.parse(event.data);
+      if (state.stats.onlineNodes === 0 && !gotData) return; // wait for real nodes
+
+      if (!gotData) {
+        gotData = true;
+        clearTimeout(timeout);
+        miniLive = true;
+        if (miniSimInterval) { clearInterval(miniSimInterval); miniSimInterval = null; }
+        document.getElementById('miniSubtitle').innerHTML = '<span style="color:#ff4466;">● LIVE</span> — real hardware entropy from real devices';
+        document.getElementById('miniModeLabel').innerHTML = '🔴 LIVE';
+      }
+
+      // Update display
+      miniNodeCount.textContent = state.stats.onlineNodes;
+      if (state.networkRandom.number != null) {
+        miniNumber.textContent = String(state.networkRandom.number).padStart(2, '0');
+        const c = state.networkRandom.number <= 30 ? 'var(--red-chaos)' : state.networkRandom.number <= 70 ? 'var(--green-bright)' : 'var(--blue-eternal)';
+        miniNumber.style.color = c;
+      }
+
+      // Render live nodes in grid
+      const grid = document.getElementById('miniGrid');
+      // Resize grid if needed
+      while (grid.children.length < state.nodes.length) {
+        const el = document.createElement('div');
+        el.className = 'mini-node';
+        el.textContent = '--';
+        grid.appendChild(el);
+      }
+      while (grid.children.length > Math.max(state.nodes.length, 1)) {
+        grid.removeChild(grid.lastChild);
+      }
+      state.nodes.forEach((n, i) => {
+        if (i < grid.children.length) {
+          const cls = n.feel <= 30 ? 'chaos' : n.feel <= 70 ? 'transition' : 'eternal';
+          grid.children[i].className = `mini-node ${cls}`;
+          grid.children[i].textContent = n.feel;
+        }
+      });
+    } catch {}
+  };
+
+  sse.onerror = () => {
+    if (!gotData) {
+      clearTimeout(timeout);
+      sse.close();
+      startMiniSimulated();
+    }
+  };
+}
+
+// Try live first
+startMiniLive();
 </script>
 </body>
 </html>

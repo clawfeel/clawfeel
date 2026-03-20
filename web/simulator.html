@@ -174,6 +174,64 @@
   .footer a { color: var(--green-dim); text-decoration: none; }
   .footer a:hover { color: var(--green-bright); }
 
+  /* ── Mode toggle ── */
+  .mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px auto;
+  }
+  .mode-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 8px 20px;
+    border-radius: 4px;
+    border: 1px solid var(--bg-panel-border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .mode-btn.active {
+    border-color: var(--green-bright);
+    color: var(--green-bright);
+    background: rgba(0,255,136,0.08);
+    box-shadow: 0 0 15px rgba(0,255,136,0.1);
+  }
+  .mode-btn.live-btn.active {
+    border-color: #ff4466;
+    color: #ff4466;
+    background: rgba(255,68,102,0.08);
+    box-shadow: 0 0 15px rgba(255,68,102,0.1);
+    animation: livePulse 2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,68,102,0.1); }
+    50% { box-shadow: 0 0 25px rgba(255,68,102,0.25); }
+  }
+  .live-badge {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff4466;
+    margin-right: 6px;
+    animation: liveDot 1.5s ease-in-out infinite;
+  }
+  @keyframes liveDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .live-info {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+
   .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
   .content { position: relative; z-index: 1; }
 
@@ -197,6 +255,12 @@
     <div class="logo"><span class="claw-icon">🦞</span>CLAWFEEL</div>
     <div class="subtitle">THREE-BODY &nbsp; ENTROPY &nbsp; NETWORK &nbsp;·&nbsp; Security-Hardened</div>
   </div>
+
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btnSimulated" onclick="setMode('simulated')">🔵 SIMULATED</button>
+    <button class="mode-btn live-btn" id="btnLive" onclick="setMode('live')"><span class="live-badge" style="display:none" id="liveDot"></span>🔴 LIVE</button>
+  </div>
+  <div class="live-info" id="liveInfo"></div>
 
   <div class="stats-bar">
     <div class="stat-item">
@@ -986,12 +1050,220 @@ function drawParticles() {
   requestAnimationFrame(drawParticles);
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  LIVE MODE — Connect to real relay via SSE
+// ═══════════════════════════════════════════════════════════════
+
+const RELAY_URL = 'https://clawfeel-relay.fly.dev';
+let currentMode = 'simulated';
+let sseSource = null;
+let simInterval = null;
+
+function setMode(mode) {
+  currentMode = mode;
+  const btnSim = document.getElementById('btnSimulated');
+  const btnLive = document.getElementById('btnLive');
+  const liveDot = document.getElementById('liveDot');
+  const liveInfo = document.getElementById('liveInfo');
+  const attackSection = document.querySelector('.attack-section');
+
+  btnSim.classList.toggle('active', mode === 'simulated');
+  btnLive.classList.toggle('active', mode === 'live');
+
+  if (mode === 'live') {
+    // Stop simulation
+    if (simInterval) { clearInterval(simInterval); simInterval = null; }
+    liveDot.style.display = 'inline-block';
+    liveInfo.textContent = 'CONNECTING TO RELAY...';
+    attackSection.style.display = 'none';
+    startLiveMode();
+  } else {
+    // Stop live, restart simulation
+    stopLiveMode();
+    liveDot.style.display = 'none';
+    liveInfo.textContent = '';
+    attackSection.style.display = '';
+    // Reset nodes to simulated
+    for (const n of nodes) {
+      n.type = 'normal';
+      n.reputation = 80;
+      n.replayValue = null;
+      n.history = [];
+    }
+    // Restart sim
+    if (!simInterval) {
+      onlineQueue = [];
+      onlineCount = nodes.filter(n => n.online).length;
+      simInterval = setInterval(tick, TICK_MS);
+    }
+  }
+}
+
+function startLiveMode() {
+  if (sseSource) sseSource.close();
+
+  // Clear grid
+  $grid.innerHTML = '';
+  nodeEls.length = 0;
+
+  sseSource = new EventSource(RELAY_URL + '/api/stream');
+
+  sseSource.onopen = () => {
+    document.getElementById('liveInfo').innerHTML =
+      `Connected to <span style="color:var(--green-bright)">${RELAY_URL}</span>`;
+  };
+
+  sseSource.onmessage = (event) => {
+    try {
+      const state = JSON.parse(event.data);
+      renderLiveState(state);
+    } catch {}
+  };
+
+  sseSource.onerror = () => {
+    document.getElementById('liveInfo').innerHTML =
+      `<span style="color:var(--red-chaos)">Connection lost. Reconnecting...</span>`;
+  };
+}
+
+function stopLiveMode() {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  // Rebuild simulated grid
+  $grid.innerHTML = '';
+  nodeEls.length = 0;
+  for (let i = 0; i < NODE_COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'node online ' + nodes[i].cls;
+    el.innerHTML = `
+      <div class="node-id">CLAW-${nodes[i].id}</div>
+      <div class="node-feel">${nodes[i].feel}</div>
+      <div class="node-era">${nodes[i].era}</div>
+      <div class="node-security">
+        <span class="node-auth full">${nodes[i].authenticity}/7</span>
+        <span class="node-quality">Q:${nodes[i].entropyQuality}</span>
+      </div>
+      <div class="node-bar" style="width:${nodes[i].feel}%"></div>
+    `;
+    $grid.appendChild(el);
+    nodeEls.push(el);
+  }
+}
+
+let liveNodeEls = new Map(); // clawId → DOM element
+
+function renderLiveState(state) {
+  const { stats, networkRandom, nodes: liveNodes } = state;
+
+  // Update stats
+  $statNodes.textContent = stats.onlineNodes;
+  $statAvg.textContent = stats.avgFeel;
+  $statChaos.textContent = stats.chaos;
+  $statTrans.textContent = stats.transition;
+  $statEternal.textContent = stats.eternal;
+  $statQuality.textContent = stats.avgQuality;
+  $statQuality.style.color = stats.avgQuality >= 70 ? 'var(--green-bright)' : stats.avgQuality >= 40 ? 'var(--orange-warn)' : 'var(--red-chaos)';
+  $statAuth.textContent = stats.avgAuth;
+  $statAttackers.textContent = stats.suspectCount;
+  $statTPS.textContent = stats.onlineNodes;
+  $gridCount.textContent = `${stats.onlineNodes} live`;
+
+  // Update network random number
+  if (networkRandom.number != null) {
+    const rCls = networkRandom.era === 'Chaos' ? 'chaos' : networkRandom.era === 'Eternal' ? 'eternal' : 'transition';
+    $randomNumber.textContent = String(networkRandom.number).padStart(2, '0');
+    $randomNumber.style.color = rCls === 'chaos' ? 'var(--red-chaos)' :
+      rCls === 'eternal' ? 'var(--blue-eternal)' : 'var(--green-bright)';
+    $randomHash.textContent = `XOR+Hash: ${networkRandom.hash}... │ ${stats.onlineNodes} live nodes │ Q:${stats.avgQuality}`;
+    $epochChaos.classList.toggle('active', rCls === 'chaos');
+    $epochTrans.classList.toggle('active', rCls === 'transition');
+    $epochEternal.classList.toggle('active', rCls === 'eternal');
+
+    // Waveform
+    waveHistory.push(networkRandom.number);
+    waveHistoryRaw.push(networkRandom.number);
+    if (waveHistory.length > MAX_WAVE) waveHistory.shift();
+    if (waveHistoryRaw.length > MAX_WAVE) waveHistoryRaw.shift();
+  } else {
+    $randomNumber.textContent = '——';
+    $randomHash.textContent = 'No live nodes connected. Run: npx clawfeel --relay ' + RELAY_URL + ' --interval 5 --count 999';
+  }
+
+  // Update node grid
+  const currentIds = new Set(liveNodes.map(n => n.clawId));
+
+  // Remove nodes no longer online
+  for (const [id, el] of liveNodeEls) {
+    if (!currentIds.has(id)) {
+      el.remove();
+      liveNodeEls.delete(id);
+    }
+  }
+
+  // Add or update nodes
+  for (const n of liveNodes) {
+    const cls = n.feel <= 30 ? 'chaos' : n.feel <= 70 ? 'transition' : 'eternal';
+    const authCls = n.authenticity >= 6 ? 'full' : n.authenticity >= 4 ? 'partial' : 'low';
+
+    if (!liveNodeEls.has(n.clawId)) {
+      // Create new node element
+      const el = document.createElement('div');
+      el.className = `node online ${cls}`;
+      el.innerHTML = `
+        <div class="node-id">${n.hostname ? n.hostname.substring(0,12) : 'CLAW-' + n.clawId.substring(0,8)}</div>
+        <div class="node-feel">${n.feel}</div>
+        <div class="node-era">${n.era}</div>
+        <div class="node-security">
+          <span class="node-auth ${authCls}">${n.authenticity}/7</span>
+          <span class="node-quality">Q:${n.entropyQuality}</span>
+        </div>
+        <div class="node-bar" style="width:${n.feel}%"></div>
+      `;
+      $grid.appendChild(el);
+      liveNodeEls.set(n.clawId, el);
+      // Pulse animation
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 400);
+    } else {
+      // Update existing node
+      const el = liveNodeEls.get(n.clawId);
+      el.className = `node online ${cls}`;
+      el.querySelector('.node-feel').textContent = n.feel;
+      el.querySelector('.node-era').textContent = n.era;
+      el.querySelector('.node-bar').style.width = `${n.feel}%`;
+      const authEl = el.querySelector('.node-auth');
+      authEl.textContent = `${n.authenticity}/7`;
+      authEl.className = `node-auth ${authCls}`;
+      el.querySelector('.node-quality').textContent = `Q:${n.entropyQuality}`;
+      // Pulse on update
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+    }
+  }
+
+  // Live feed
+  if (liveNodes.length > 0) {
+    const picked = liveNodes[Math.floor(Math.random() * liveNodes.length)];
+    const valCls = picked.feel <= 30 ? 'val-chaos' : picked.feel > 70 ? 'val-eternal' : 'val-trans';
+    addFeedLine($liveFeed,
+      `<span class="ts">${timeStr()}</span> ` +
+      `<span class="id">${picked.hostname || picked.clawId}</span> ` +
+      `Feel:<span class="${valCls}">${String(picked.feel).padStart(3)}</span> ` +
+      `Auth:${picked.authenticity}/7 Q:${picked.entropyQuality} Rep:${picked.reputation}`
+    );
+  }
+
+  // Update live info
+  document.getElementById('liveInfo').innerHTML =
+    `<span style="color:var(--green-bright)">🟢 LIVE</span> — ${stats.onlineNodes} real node${stats.onlineNodes !== 1 ? 's' : ''} connected to relay`;
+}
+
 // ── Init ──
 initParticles();
 drawParticles();
 requestAnimationFrame(drawWave);
 setTimeout(bringOnline, 500);
-setInterval(tick, TICK_MS);
+simInterval = setInterval(tick, TICK_MS);
 
 window.addEventListener('resize', () => {
   const dpr = window.devicePixelRatio || 1;
