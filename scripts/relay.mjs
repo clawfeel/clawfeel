@@ -21,11 +21,16 @@
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { argv } from "node:process";
+import os from "node:os";
+import path from "node:path";
 
 // ── Args ──
 const args = argv.slice(2);
 const portIdx = args.indexOf("--port");
 const PORT = portIdx !== -1 && args[portIdx + 1] ? parseInt(args[portIdx + 1], 10) : 3415;
+const dhtPortIdx = args.indexOf("--dht-port");
+const DHT_PORT = dhtPortIdx !== -1 && args[dhtPortIdx + 1] ? parseInt(args[dhtPortIdx + 1], 10) : 31416;
+const DATA_DIR = path.join(os.homedir(), ".clawfeel");
 
 // ── State ──
 const nodes = new Map();       // clawId → nodeState
@@ -372,6 +377,28 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // ── GET /api/bootstrap ── DHT bootstrap info
+  if (req.method === "GET" && path === "/api/bootstrap") {
+    const peerList = [...nodes.values()]
+      .filter(n => Date.now() - n.lastSeen < NODE_TIMEOUT_MS)
+      .map(n => ({
+        clawId: n.clawId,
+        alias: n.alias,
+        feel: n.feel,
+        entropyQuality: n.entropyQuality,
+        reputation: Math.round(n.reputation),
+      }));
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      service: "ClawFeel Relay",
+      version: "3.1.0",
+      dhtPort: DHT_PORT,
+      peers: peerList,
+      peerCount: peerList.length,
+    }));
+    return;
+  }
+
   // ── GET / ── Health check / status
   if (req.method === "GET" && (path === "/" || path === "/status")) {
     const onlineCount = [...nodes.values()].filter(
@@ -380,10 +407,11 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       service: "ClawFeel Relay",
-      version: "2.5.0",
+      version: "3.1.0",
       status: "online",
       nodes: onlineCount,
       sseClients: sseClients.size,
+      dhtPort: DHT_PORT,
       uptime: Math.round(process.uptime()),
     }));
     return;
@@ -394,17 +422,36 @@ const server = createServer(async (req, res) => {
   res.end(JSON.stringify({ error: "Not found" }));
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log("");
-  console.log("  ┌─ ClawFeel Relay v2.5 ──────────────────────┐");
-  console.log(`  │  Listening on http://localhost:${PORT}          │`);
+  console.log("  ┌─ ClawFeel Relay v3.1 ──────────────────────┐");
+  console.log(`  │  HTTP on http://localhost:${PORT}               │`);
+  console.log(`  │  DHT  on TCP :${DHT_PORT}                       │`);
   console.log("  │                                             │");
   console.log("  │  Endpoints:                                 │");
-  console.log("  │    POST /api/report  — node reports Feel    │");
-  console.log("  │    GET  /api/network — network state JSON   │");
-  console.log("  │    GET  /api/stream  — SSE real-time feed   │");
+  console.log("  │    POST /api/report    — node reports Feel  │");
+  console.log("  │    GET  /api/network   — network state JSON │");
+  console.log("  │    GET  /api/stream    — SSE real-time feed │");
+  console.log("  │    GET  /api/bootstrap — DHT peer list      │");
   console.log("  │                                             │");
   console.log("  │  Waiting for Claws... 🦞                    │");
   console.log("  └─────────────────────────────────────────────┘");
+
+  // Start DHT node (bootstrap node for the P2P network)
+  try {
+    const { KademliaNode } = await import("./dht.mjs");
+    const dht = new KademliaNode({
+      clawId: "relay-bootstrap",
+      host: "0.0.0.0",
+      port: DHT_PORT,
+      bootstrapNodes: [],
+      dataDir: DATA_DIR,
+    });
+    await dht.start();
+    console.log(`  🌐 DHT bootstrap node running on :${dht.port}`);
+  } catch (err) {
+    console.log(`  ⚠️  DHT failed to start: ${err.message}`);
+  }
+
   console.log("");
 });
