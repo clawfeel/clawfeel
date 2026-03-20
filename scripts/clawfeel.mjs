@@ -46,6 +46,7 @@ const LISTEN = flag("listen");
 const ANCHOR = flag("anchor");
 const ANCHOR_VALUE = param("anchor-value", null);
 const RELAY = param("relay", null);
+const ALIAS = param("alias", null);
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
 const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
@@ -56,12 +57,56 @@ const DATA_DIR = path.join(os.homedir(), ".clawfeel");
 const HISTORY_FILE = path.join(DATA_DIR, "history.jsonl");
 const SEQ_FILE = path.join(DATA_DIR, "seq");
 const PEERS_FILE = path.join(DATA_DIR, "peers.jsonl");
+const IDENTITY_FILE = path.join(DATA_DIR, "identity.json");
 
 // ── Platform detection ───────────────────────────────────────────
 
 const PLATFORM = os.platform();
 const IS_LINUX = PLATFORM === "linux";
 const IS_MAC = PLATFORM === "darwin";
+
+// ── Node identity (privacy-preserving) ──────────────────────────
+//  Generates a random alias on first run, stored in ~/.clawfeel/identity.json.
+//  Real hostname is NEVER sent to the network.
+
+const CLAW_PREFIXES = [
+  "Claw", "Lobster", "Reef", "Tide", "Wave", "Shell", "Coral", "Drift",
+  "Pulse", "Node", "Flux", "Glow", "Spark", "Echo", "Bolt", "Neon",
+];
+
+function generateAlias() {
+  const prefix = CLAW_PREFIXES[randomBytes(1)[0] % CLAW_PREFIXES.length];
+  const suffix = randomBytes(2).toString("hex");
+  return `${prefix}-${suffix}`;
+}
+
+let nodeAlias = null;
+
+async function loadIdentity() {
+  // CLI --alias overrides stored alias
+  if (ALIAS) {
+    nodeAlias = ALIAS;
+    return;
+  }
+
+  try {
+    const raw = await readFile(IDENTITY_FILE, "utf8");
+    const data = JSON.parse(raw.trim());
+    if (data.alias) {
+      nodeAlias = data.alias;
+      return;
+    }
+  } catch { /* first run */ }
+
+  // Generate new identity
+  nodeAlias = generateAlias();
+  await mkdir(DATA_DIR, { recursive: true });
+  await writeFile(IDENTITY_FILE, JSON.stringify({
+    alias: nodeAlias,
+    clawId: getClawId(),
+    createdAt: new Date().toISOString(),
+  }, null, 2), "utf8");
+}
 
 // ── Sensor controllability weights ──────────────────────────────
 //  Higher weight = harder to manipulate = contributes more entropy
@@ -632,7 +677,7 @@ function broadcastFeel(result) {
         type: "clawfeel:reveal",
         version: 2,
         clawId,
-        hostname: os.hostname(),
+        alias: nodeAlias,
         nonce,
         ...result,
       });
@@ -648,7 +693,7 @@ function broadcastFeel(result) {
       type: "clawfeel",
       version: 1,
       clawId,
-      hostname: os.hostname(),
+      alias: nodeAlias,
       ...result,
     });
     const legacyBuf = Buffer.from(legacyMsg);
@@ -788,7 +833,7 @@ function listenForClaws() {
 
         const peer = updatePeer(data.clawId, rinfo.address, data);
         const isSelf = data.clawId === myId;
-        const label = isSelf ? "(self)" : `${data.hostname}`;
+        const label = isSelf ? "(self)" : `${data.alias || data.clawId}`;
         const eraEmoji = data.era === "Chaos" ? "🌪️" : data.era === "Eternal" ? "☀️" : "🌤️";
         const time = new Date().toLocaleTimeString();
         const repIcon = peer.reputation >= 70 ? "🟢" : peer.reputation >= 40 ? "🟡" : "🔴";
@@ -809,7 +854,7 @@ function listenForClaws() {
       if (data.type === "clawfeel") {
         const peer = updatePeer(data.clawId, rinfo.address, data);
         const isSelf = data.clawId === myId;
-        const label = isSelf ? "(self)" : `${data.hostname}`;
+        const label = isSelf ? "(self)" : `${data.alias || data.clawId}`;
         const eraEmoji = data.era === "Chaos" ? "🌪️" : data.era === "Eternal" ? "☀️" : "🌤️";
         const time = new Date().toLocaleTimeString();
         const repIcon = peer.reputation >= 70 ? "🟢" : peer.reputation >= 40 ? "🟡" : "🔴";
@@ -855,7 +900,7 @@ async function reportToRelay(result) {
         "Content-Type": "application/json",
         "X-Claw-Id": clawId,
       },
-      body: JSON.stringify({ ...result, clawId, hostname: os.hostname() }),
+      body: JSON.stringify({ ...result, clawId, alias: nodeAlias }),
       signal: AbortSignal.timeout(5000),
     });
     const data = await res.json();
@@ -881,6 +926,9 @@ async function main() {
     listenForClaws();
     return;
   }
+
+  // Load identity (generates alias on first run)
+  await loadIdentity();
 
   // Load sequence state for chain integrity
   await loadSeqState();

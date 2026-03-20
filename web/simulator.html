@@ -1209,7 +1209,7 @@ function renderLiveState(state) {
       const el = document.createElement('div');
       el.className = `node online ${cls}`;
       el.innerHTML = `
-        <div class="node-id">${n.hostname ? n.hostname.substring(0,12) : 'CLAW-' + n.clawId.substring(0,8)}</div>
+        <div class="node-id">${n.alias || 'Claw-' + n.clawId.substring(0,4)}</div>
         <div class="node-feel">${n.feel}</div>
         <div class="node-era">${n.era}</div>
         <div class="node-security">
@@ -1247,7 +1247,7 @@ function renderLiveState(state) {
     const valCls = picked.feel <= 30 ? 'val-chaos' : picked.feel > 70 ? 'val-eternal' : 'val-trans';
     addFeedLine($liveFeed,
       `<span class="ts">${timeStr()}</span> ` +
-      `<span class="id">${picked.hostname || picked.clawId}</span> ` +
+      `<span class="id">${picked.alias || picked.clawId}</span> ` +
       `Feel:<span class="${valCls}">${String(picked.feel).padStart(3)}</span> ` +
       `Auth:${picked.authenticity}/7 Q:${picked.entropyQuality} Rep:${picked.reputation}`
     );

@@ -74,7 +74,7 @@ function updateNode(clawId, ip, data) {
     nodes.set(clawId, {
       clawId,
       ip,
-      hostname: data.hostname || "unknown",
+      alias: data.alias || "unknown",
       firstSeen: now,
       lastSeen: now,
       lastReport: 0,
@@ -116,7 +116,7 @@ function updateNode(clawId, ip, data) {
   node.entropyDetail = data.entropyDetail || node.entropyDetail;
   node.sensors = data.sensors || node.sensors;
   node.timestamp = data.timestamp || new Date().toISOString();
-  node.hostname = data.hostname || node.hostname;
+  node.alias = data.alias || node.alias;
   node.ip = ip;
 
   // ── Sybil detection ──
@@ -248,7 +248,7 @@ function computeNetworkState() {
     },
     nodes: onlineNodes.map(n => ({
       clawId: n.clawId,
-      hostname: n.hostname,
+      alias: n.alias,
       feel: n.feel,
       era: n.era,
       hash: n.hash,
