@@ -735,6 +735,59 @@
 
   <div class="divider"></div>
 
+  <!-- ═══ Random Beacon ═══ -->
+  <section>
+    <div class="container">
+      <div class="section-title">🔮 Random Beacon</div>
+      <div class="section-sub">Verifiable randomness every 10 seconds — anyone can audit</div>
+
+      <div id="beaconPanel" style="max-width:700px;margin:40px auto;background:rgba(0,20,10,0.6);border:1px solid var(--green-dim);border-radius:12px;padding:32px;font-family:'Courier New',monospace;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div style="font-size:12px;color:var(--green-dim);text-transform:uppercase;letter-spacing:2px;">Latest Beacon Round</div>
+          <div id="beaconRoundNum" style="font-size:14px;color:var(--green-bright);">#—</div>
+        </div>
+
+        <div id="beaconNumber" style="font-size:36px;font-weight:700;color:var(--green-bright);text-align:center;margin:20px 0;letter-spacing:2px;text-shadow:0 0 20px rgba(0,255,136,0.4);">
+          Connecting...
+        </div>
+
+        <div id="beaconHash" style="font-size:11px;color:var(--green-dim);text-align:center;word-break:break-all;margin-bottom:20px;">
+          —
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">
+          <div>
+            <div style="font-size:11px;color:var(--green-dim);margin-bottom:4px;">ERA</div>
+            <div id="beaconEra" style="font-size:16px;color:var(--green-bright);">—</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--green-dim);margin-bottom:4px;">CONTRIBUTORS</div>
+            <div id="beaconContributors" style="font-size:16px;color:var(--green-bright);">—</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--green-dim);margin-bottom:4px;">VERIFIED</div>
+            <div id="beaconVerified" style="font-size:16px;">—</div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;text-align:center;">
+          <div style="font-size:10px;color:var(--green-dim);" id="beaconTime">—</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <div style="font-size:13px;color:var(--green-dim);max-width:500px;margin:0 auto;">
+          Every 10 seconds, all online nodes contribute their hardware entropy.<br>
+          The beacon XORs all hashes, re-hashes with SHA-256, and signs with Ed25519.<br>
+          <strong style="color:var(--green-bright);">Anyone can independently verify the result.</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
   <!-- ═══ vs Bitcoin ═══ -->
   <section>
     <div class="container">
@@ -1129,6 +1182,20 @@ function startMiniLive() {
           if (isMe) grid.children[i].style.boxShadow = '0 0 8px rgba(0,255,136,0.4)';
         }
       });
+
+      // Update Beacon panel
+      if (state.beacon) {
+        const b = state.beacon;
+        document.getElementById('beaconRoundNum').textContent = '#' + b.round;
+        document.getElementById('beaconNumber').textContent = b.beaconNumber;
+        document.getElementById('beaconHash').textContent = b.beaconHash;
+        document.getElementById('beaconEra').textContent = b.era;
+        document.getElementById('beaconEra').style.color = b.era === 'Chaos' ? '#ff4466' : b.era === 'Eternal' ? '#4488ff' : 'var(--green-bright)';
+        document.getElementById('beaconContributors').textContent = b.contributorCount || (b.contributors?.length || 0);
+        document.getElementById('beaconVerified').textContent = b.signature ? '✅' : '⚠️';
+        document.getElementById('beaconVerified').style.color = b.signature ? '#00ff88' : '#ffaa00';
+        document.getElementById('beaconTime').textContent = b.timestamp ? new Date(b.timestamp).toLocaleString() : '—';
+      }
     } catch {}
   };
 

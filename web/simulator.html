@@ -388,6 +388,61 @@
   </div>
 
   <!-- DAG + Topology visualization -->
+  <!-- ═══ Beacon + Health ═══ -->
+  <div class="feed-section">
+    <div class="feed-panel">
+      <div class="feed-panel-title">🔮 Random Beacon</div>
+      <div id="beaconSimPanel" style="padding:12px;font-family:'Courier New',monospace;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:var(--text-dim);font-size:11px;">ROUND</span>
+          <span id="simBeaconRound" style="color:var(--green-bright);font-size:13px;">#—</span>
+        </div>
+        <div id="simBeaconNumber" style="font-size:28px;color:var(--green-bright);text-align:center;margin:12px 0;letter-spacing:2px;text-shadow:0 0 15px rgba(0,255,136,0.3);">—</div>
+        <div id="simBeaconHash" style="font-size:9px;color:var(--text-dim);text-align:center;word-break:break-all;margin-bottom:8px;">—</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:11px;">
+          <div><span style="color:var(--text-dim);">ERA</span><br><span id="simBeaconEra" style="color:var(--green-bright);">—</span></div>
+          <div><span style="color:var(--text-dim);">NODES</span><br><span id="simBeaconNodes" style="color:var(--green-bright);">—</span></div>
+          <div><span style="color:var(--text-dim);">SIGNED</span><br><span id="simBeaconSigned">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="feed-panel">
+      <div class="feed-panel-title">📊 Network Health</div>
+      <div id="healthPanel" style="padding:12px;font-family:'Courier New',monospace;font-size:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px;">ONLINE NODES</div>
+            <div id="healthNodes" style="color:var(--green-bright);font-size:20px;font-weight:700;">0</div>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px;">AVG ENTROPY QUALITY</div>
+            <div id="healthQuality" style="color:var(--green-bright);font-size:20px;font-weight:700;">0</div>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px;">AUTH RATE</div>
+            <div id="healthAuth" style="color:var(--green-bright);font-size:20px;font-weight:700;">0%</div>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px;">SUSPECT NODES</div>
+            <div id="healthSuspect" style="color:#ffaa00;font-size:20px;font-weight:700;">0</div>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px;">ERA DISTRIBUTION</div>
+            <div id="healthEras" style="font-size:12px;">
+              <span style="color:#ff4466;">C:0</span>
+              <span style="color:var(--green-bright);">T:0</span>
+              <span style="color:#4488ff;">E:0</span>
+            </div>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px;">YOUR NODE</div>
+            <div id="healthYou" style="font-size:12px;color:var(--text-dim);">Not identified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="feed-section">
     <div class="feed-panel" style="max-height:360px;">
       <div class="feed-panel-title">🔗 DAG Transaction Graph</div>
@@ -1318,6 +1373,39 @@ function renderLiveState(state) {
   // Update live info
   document.getElementById('liveInfo').innerHTML =
     `<span style="color:var(--green-bright)">🟢 LIVE</span> — ${stats.onlineNodes} real node${stats.onlineNodes !== 1 ? 's' : ''} connected to relay`;
+
+  // Update Beacon panel
+  if (state.beacon) {
+    const b = state.beacon;
+    document.getElementById('simBeaconRound').textContent = '#' + b.round;
+    document.getElementById('simBeaconNumber').textContent = b.beaconNumber;
+    document.getElementById('simBeaconHash').textContent = b.beaconHash || '—';
+    document.getElementById('simBeaconEra').textContent = b.era || '—';
+    document.getElementById('simBeaconEra').style.color = b.era === 'Chaos' ? '#ff4466' : b.era === 'Eternal' ? '#4488ff' : 'var(--green-bright)';
+    document.getElementById('simBeaconNodes').textContent = b.contributorCount || (b.contributors?.length || 0);
+    document.getElementById('simBeaconSigned').textContent = b.signature ? '✅' : '⚠️';
+    document.getElementById('simBeaconSigned').style.color = b.signature ? '#00ff88' : '#ffaa00';
+  }
+
+  // Update Health panel
+  document.getElementById('healthNodes').textContent = stats.onlineNodes;
+  document.getElementById('healthQuality').textContent = stats.avgQuality || 0;
+  document.getElementById('healthQuality').style.color = (stats.avgQuality || 0) >= 70 ? '#00ff88' : (stats.avgQuality || 0) >= 40 ? '#ffaa00' : '#ff4466';
+  document.getElementById('healthAuth').textContent = (stats.avgAuth || 0).toFixed(1) + '/7';
+  document.getElementById('healthSuspect').textContent = stats.suspectCount || 0;
+  document.getElementById('healthEras').innerHTML =
+    `<span style="color:#ff4466;">C:${stats.chaos||0}</span> ` +
+    `<span style="color:var(--green-bright);">T:${stats.transition||0}</span> ` +
+    `<span style="color:#4488ff;">E:${stats.eternal||0}</span>`;
+
+  // Your node panel
+  const myNode = liveNodes.find(n => myClawId && n.clawId === myClawId);
+  const youEl = document.getElementById('healthYou');
+  if (myNode) {
+    youEl.innerHTML = `<span style="color:var(--green-bright);">⭐ Feel:${myNode.feel} Q:${myNode.entropyQuality}</span>`;
+  } else if (myClawId) {
+    youEl.innerHTML = `<span style="color:#ffaa00;">Offline</span>`;
+  }
 }
 
 // ── Init ──
