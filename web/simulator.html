@@ -174,6 +174,24 @@
   .footer a { color: var(--green-dim); text-decoration: none; }
   .footer a:hover { color: var(--green-bright); }
 
+  /* ── Nav ── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(2,10,6,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--bg-panel-border);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; color: var(--green-bright); text-decoration: none; }
+  .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); }
+  .nav-links { display: flex; gap: 20px; }
+  .nav-links a { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; text-decoration: none; }
+  .nav-links a:hover { color: var(--green-bright); }
+
   /* ── Mode toggle ── */
   .mode-toggle {
     display: flex;
@@ -250,8 +268,18 @@
 
 <canvas class="particle-canvas" id="particleCanvas"></canvas>
 
+<nav class="nav">
+  <a href="/" class="nav-logo">🦞 CLAWFEEL</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="whitepaper.html">Whitepaper</a>
+    <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
+    <a href="https://x.com/clawfeel">X</a>
+  </div>
+</nav>
+
 <div class="content">
-  <div class="header">
+  <div class="header" style="padding-top:50px;">
     <div class="logo"><span class="claw-icon">🦞</span>CLAWFEEL</div>
     <div class="subtitle">THREE-BODY &nbsp; ENTROPY &nbsp; NETWORK &nbsp;·&nbsp; Security-Hardened</div>
   </div>
