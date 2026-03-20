@@ -54,6 +54,10 @@ const BOOTSTRAP = param("bootstrap", null);
 const DAG_STATUS = flag("dag-status");
 const STOP = flag("stop");
 const STATUS = flag("status");
+const STORE_FILE = param("store", null);
+const GET_FILE = param("get", null);
+const OUTPUT_FILE = param("output", null);
+const STORE_LIST = flag("store-list");
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
@@ -1136,7 +1140,7 @@ async function main() {
 
   // ── Auto-daemon: if not already a daemon and not a one-shot command,
   //    start a background daemon and return one reading to the user ──
-  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS;
+  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS || STORE_FILE || GET_FILE || STORE_LIST;
   const userSetCount = args.includes("--count");
   const userSetInterval = args.includes("--interval");
 
@@ -1181,6 +1185,68 @@ async function main() {
   if (HISTORY) {
     await showHistory(COUNT === 1 ? 20 : COUNT);
     return;
+  }
+
+  // ── ClawStore commands (require P2P) ──
+  if (STORE_FILE || GET_FILE || STORE_LIST) {
+    const { KademliaNode } = await import("./dht.mjs");
+    const { FileStore } = await import("./store.mjs");
+
+    const dht = new KademliaNode({
+      clawId: getClawId(),
+      host: "0.0.0.0",
+      port: DHT_PORT,
+      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"] : ["clawfeel-relay.fly.dev:31416"],
+      dataDir: DATA_DIR,
+    });
+    await dht.start();
+    const fileStore = new FileStore({ dht, dataDir: DATA_DIR });
+
+    if (STORE_LIST) {
+      const manifests = await fileStore.list();
+      if (manifests.length === 0) {
+        console.log("No stored files.");
+      } else {
+        console.log(`\n  ${manifests.length} stored file(s):\n`);
+        for (const m of manifests) {
+          console.log(`  📦 ${m.hash.substring(0, 16)}  ${m.name || "(unnamed)"}  ${m.size} bytes  ${m.created}`);
+        }
+        console.log("");
+      }
+      await dht.stop();
+      return;
+    }
+
+    if (STORE_FILE) {
+      try {
+        const data = await readFile(STORE_FILE);
+        const fileName = STORE_FILE.split("/").pop();
+        console.log(`\n  📤 Storing: ${fileName} (${data.length} bytes)`);
+        const result = await fileStore.put(data, { name: fileName });
+        console.log(`  ✅ Stored!`);
+        console.log(`  📋 Manifest: ${result.manifestHash}`);
+        console.log(`  📦 Chunks: ${result.manifest.chunks.length} data + ${result.manifest.parity.length} parity`);
+        console.log(`\n  To retrieve: clawfeel --get ${result.manifestHash}\n`);
+      } catch (err) {
+        console.error(`  ❌ Store failed: ${err.message}`);
+      }
+      await dht.stop();
+      return;
+    }
+
+    if (GET_FILE) {
+      try {
+        console.log(`\n  📥 Retrieving: ${GET_FILE.substring(0, 16)}...`);
+        const data = await fileStore.get(GET_FILE);
+        const outPath = OUTPUT_FILE || `./${GET_FILE.substring(0, 12)}`;
+        await writeFile(outPath, data);
+        console.log(`  ✅ Retrieved! ${data.length} bytes → ${outPath}\n`);
+      } catch (err) {
+        console.error(`  ❌ Retrieve failed: ${err.message}`);
+      }
+      await dht.stop();
+      return;
+    }
   }
 
   if (LISTEN) {
