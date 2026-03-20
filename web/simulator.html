@@ -387,6 +387,18 @@
     </div>
   </div>
 
+  <!-- DAG + Topology visualization -->
+  <div class="feed-section">
+    <div class="feed-panel" style="max-height:360px;">
+      <div class="feed-panel-title">🔗 DAG Transaction Graph</div>
+      <canvas id="dagCanvas" style="width:100%;height:300px;display:block;"></canvas>
+    </div>
+    <div class="feed-panel" style="max-height:360px;">
+      <div class="feed-panel-title">🌐 P2P Node Topology</div>
+      <canvas id="topoCanvas" style="width:100%;height:300px;display:block;"></canvas>
+    </div>
+  </div>
+
   <div class="footer" style="display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap;">
     <a href="/" style="font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:3px;"><img src="logo.svg" alt="" style="height:16px;vertical-align:middle;margin-right:4px;"> CLAWFEEL</a>
     <span style="color:var(--text-dim);">&middot;</span>
@@ -1318,6 +1330,329 @@ window.addEventListener('resize', () => {
   pCanvas.height = window.innerHeight * dpr;
   pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  DAG Transaction Graph + P2P Topology Visualization
+// ═══════════════════════════════════════════════════════════════
+
+// ── DAG simulation data ──
+const dagTxs = [];        // { hash, parents[], clawId, feel, era, x, y, time }
+const MAX_DAG_TXS = 60;
+let dagTickCount = 0;
+
+function addDagTx(nodeData) {
+  dagTickCount++;
+  const parentCount = Math.min(2, dagTxs.length);
+  const parents = [];
+  // Pick 2 recent txs as parents
+  if (dagTxs.length >= 2) {
+    const tipIdx1 = dagTxs.length - 1 - Math.floor(Math.random() * Math.min(5, dagTxs.length));
+    let tipIdx2 = tipIdx1;
+    while (tipIdx2 === tipIdx1 && dagTxs.length > 1) {
+      tipIdx2 = dagTxs.length - 1 - Math.floor(Math.random() * Math.min(8, dagTxs.length));
+    }
+    parents.push(tipIdx1, tipIdx2);
+  } else if (dagTxs.length === 1) {
+    parents.push(0);
+  }
+
+  const cls = nodeData.feel <= 30 ? 'chaos' : nodeData.feel <= 70 ? 'transition' : 'eternal';
+  dagTxs.push({
+    hash: nodeData.hash || fakeHash().substring(0, 8),
+    parents,
+    clawId: nodeData.id || nodeData.clawId || 'unknown',
+    feel: nodeData.feel,
+    cls,
+    time: dagTickCount,
+  });
+
+  if (dagTxs.length > MAX_DAG_TXS) {
+    // Shift and adjust parent indices
+    dagTxs.shift();
+    for (const tx of dagTxs) {
+      tx.parents = tx.parents.map(p => p - 1).filter(p => p >= 0);
+    }
+  }
+}
+
+// ── Draw DAG ──
+const dagCanvas = document.getElementById('dagCanvas');
+const dagCtx = dagCanvas.getContext('2d');
+
+function drawDAG() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = dagCanvas.getBoundingClientRect();
+  dagCanvas.width = rect.width * dpr;
+  dagCanvas.height = rect.height * dpr;
+  dagCtx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+
+  dagCtx.clearRect(0, 0, W, H);
+
+  if (dagTxs.length === 0) {
+    dagCtx.fillStyle = 'rgba(68,119,85,0.5)';
+    dagCtx.font = '11px JetBrains Mono';
+    dagCtx.textAlign = 'center';
+    dagCtx.fillText('Waiting for transactions...', W / 2, H / 2);
+    return;
+  }
+
+  // Layout: horizontal flow, left to right
+  const padX = 30, padY = 30;
+  const stepX = (W - padX * 2) / Math.max(dagTxs.length - 1, 1);
+  const midY = H / 2;
+
+  // Assign positions with vertical jitter
+  for (let i = 0; i < dagTxs.length; i++) {
+    dagTxs[i].x = padX + i * stepX;
+    // Vertical: alternate based on clawId hash to spread nodes
+    const jitter = ((parseInt(dagTxs[i].hash, 16) || i) % 5 - 2) * (H * 0.15);
+    dagTxs[i].y = midY + jitter;
+  }
+
+  // Draw edges (parent references)
+  for (let i = 0; i < dagTxs.length; i++) {
+    const tx = dagTxs[i];
+    for (const pIdx of tx.parents) {
+      if (pIdx >= 0 && pIdx < dagTxs.length) {
+        const parent = dagTxs[pIdx];
+        dagCtx.strokeStyle = 'rgba(0,255,136,0.12)';
+        dagCtx.lineWidth = 1;
+        dagCtx.beginPath();
+        dagCtx.moveTo(parent.x, parent.y);
+        // Bezier curve for nice arcs
+        const cpX = (parent.x + tx.x) / 2;
+        dagCtx.quadraticCurveTo(cpX, (parent.y + tx.y) / 2 - 15, tx.x, tx.y);
+        dagCtx.stroke();
+
+        // Arrow head
+        const angle = Math.atan2(tx.y - parent.y, tx.x - parent.x);
+        const arrLen = 5;
+        dagCtx.fillStyle = 'rgba(0,255,136,0.2)';
+        dagCtx.beginPath();
+        dagCtx.moveTo(tx.x - 6 * Math.cos(angle), tx.y - 6 * Math.sin(angle));
+        dagCtx.lineTo(tx.x - 6 * Math.cos(angle) - arrLen * Math.cos(angle - 0.4), tx.y - 6 * Math.sin(angle) - arrLen * Math.sin(angle - 0.4));
+        dagCtx.lineTo(tx.x - 6 * Math.cos(angle) - arrLen * Math.cos(angle + 0.4), tx.y - 6 * Math.sin(angle) - arrLen * Math.sin(angle + 0.4));
+        dagCtx.fill();
+      }
+    }
+  }
+
+  // Draw nodes
+  for (let i = 0; i < dagTxs.length; i++) {
+    const tx = dagTxs[i];
+    const color = tx.cls === 'chaos' ? '#ff3344' : tx.cls === 'eternal' ? '#00ccff' : '#00ff88';
+    const isRecent = i >= dagTxs.length - 3;
+
+    // Glow for recent
+    if (isRecent) {
+      dagCtx.fillStyle = color.replace(')', ',0.15)').replace('#', 'rgba(').replace(/([0-9a-f]{2})/gi, (m) => parseInt(m, 16) + ',');
+      // Simpler glow
+      dagCtx.globalAlpha = 0.15;
+      dagCtx.fillStyle = color;
+      dagCtx.beginPath(); dagCtx.arc(tx.x, tx.y, 10, 0, Math.PI * 2); dagCtx.fill();
+      dagCtx.globalAlpha = 1;
+    }
+
+    // Node circle
+    dagCtx.fillStyle = color;
+    dagCtx.beginPath();
+    dagCtx.arc(tx.x, tx.y, 5, 0, Math.PI * 2);
+    dagCtx.fill();
+
+    // Label (only for recent nodes to avoid clutter)
+    if (isRecent || i % 4 === 0) {
+      dagCtx.fillStyle = 'rgba(68,119,85,0.6)';
+      dagCtx.font = '8px JetBrains Mono';
+      dagCtx.textAlign = 'center';
+      dagCtx.fillText(tx.feel, tx.x, tx.y - 9);
+    }
+  }
+
+  // Legend
+  dagCtx.fillStyle = 'rgba(68,119,85,0.4)';
+  dagCtx.font = '9px JetBrains Mono';
+  dagCtx.textAlign = 'left';
+  dagCtx.fillText(`${dagTxs.length} transactions`, 6, H - 6);
+  dagCtx.textAlign = 'right';
+  dagCtx.fillText('each tx → 2 parents', W - 6, H - 6);
+}
+
+// ── P2P Topology ──
+const topoCanvas = document.getElementById('topoCanvas');
+const topoCtx = topoCanvas.getContext('2d');
+
+// Simulated topology nodes (positioned in a circle with force-directed jitter)
+const topoNodes = []; // { id, alias, x, y, vx, vy, feel, cls, quality, online }
+
+function updateTopoNodes(onlineNodes) {
+  // Sync topology nodes with current online nodes
+  const ids = new Set();
+
+  // In simulated mode, use the simulated nodes
+  const sourceNodes = currentMode === 'live' ? onlineNodes : nodes.filter(n => n.online).slice(0, 20);
+
+  for (const n of sourceNodes) {
+    const id = n.clawId || n.id;
+    ids.add(id);
+    let existing = topoNodes.find(t => t.id === id);
+    if (!existing) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 60 + Math.random() * 40;
+      existing = { id, alias: n.alias || id, x: 0, y: 0, vx: 0, vy: 0, feel: 50, cls: 'transition', quality: 80, online: true };
+      existing.x = Math.cos(angle) * radius;
+      existing.y = Math.sin(angle) * radius;
+      topoNodes.push(existing);
+    }
+    existing.feel = n.feel;
+    existing.cls = n.feel <= 30 ? 'chaos' : n.feel <= 70 ? 'transition' : 'eternal';
+    existing.quality = n.entropyQuality || 80;
+    existing.online = true;
+  }
+
+  // Remove offline nodes
+  for (let i = topoNodes.length - 1; i >= 0; i--) {
+    if (!ids.has(topoNodes[i].id)) {
+      topoNodes.splice(i, 1);
+    }
+  }
+}
+
+function drawTopology() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = topoCanvas.getBoundingClientRect();
+  topoCanvas.width = rect.width * dpr;
+  topoCanvas.height = rect.height * dpr;
+  topoCtx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const cx = W / 2, cy = H / 2;
+
+  topoCtx.clearRect(0, 0, W, H);
+
+  if (topoNodes.length === 0) {
+    topoCtx.fillStyle = 'rgba(68,119,85,0.5)';
+    topoCtx.font = '11px JetBrains Mono';
+    topoCtx.textAlign = 'center';
+    topoCtx.fillText('Waiting for nodes...', cx, cy);
+    return;
+  }
+
+  // Simple force-directed layout
+  const k = 40; // ideal distance
+  for (let iter = 0; iter < 3; iter++) {
+    // Repulsion between all pairs
+    for (let i = 0; i < topoNodes.length; i++) {
+      for (let j = i + 1; j < topoNodes.length; j++) {
+        const dx = topoNodes[i].x - topoNodes[j].x;
+        const dy = topoNodes[i].y - topoNodes[j].y;
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        const force = (k * k) / dist * 0.02;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        topoNodes[i].vx += fx; topoNodes[i].vy += fy;
+        topoNodes[j].vx -= fx; topoNodes[j].vy -= fy;
+      }
+    }
+
+    // Center gravity
+    for (const n of topoNodes) {
+      n.vx -= n.x * 0.005;
+      n.vy -= n.y * 0.005;
+      n.x += n.vx; n.y += n.vy;
+      n.vx *= 0.8; n.vy *= 0.8;
+      // Clamp
+      n.x = Math.max(-W / 2 + 20, Math.min(W / 2 - 20, n.x));
+      n.y = Math.max(-H / 2 + 20, Math.min(H / 2 - 20, n.y));
+    }
+  }
+
+  // Draw connections (each node connected to 2-3 nearest neighbors)
+  for (let i = 0; i < topoNodes.length; i++) {
+    const dists = [];
+    for (let j = 0; j < topoNodes.length; j++) {
+      if (i === j) continue;
+      const dx = topoNodes[i].x - topoNodes[j].x;
+      const dy = topoNodes[i].y - topoNodes[j].y;
+      dists.push({ j, d: Math.sqrt(dx * dx + dy * dy) });
+    }
+    dists.sort((a, b) => a.d - b.d);
+    const neighbors = dists.slice(0, 3);
+
+    for (const nb of neighbors) {
+      const n1 = topoNodes[i], n2 = topoNodes[nb.j];
+      topoCtx.strokeStyle = 'rgba(0,255,136,0.08)';
+      topoCtx.lineWidth = 1;
+      topoCtx.beginPath();
+      topoCtx.moveTo(cx + n1.x, cy + n1.y);
+      topoCtx.lineTo(cx + n2.x, cy + n2.y);
+      topoCtx.stroke();
+    }
+  }
+
+  // Draw nodes
+  for (const n of topoNodes) {
+    const color = n.cls === 'chaos' ? '#ff3344' : n.cls === 'eternal' ? '#00ccff' : '#00ff88';
+    const size = 4 + (n.quality / 100) * 4; // bigger = higher quality
+
+    // Glow
+    topoCtx.globalAlpha = 0.15;
+    topoCtx.fillStyle = color;
+    topoCtx.beginPath();
+    topoCtx.arc(cx + n.x, cy + n.y, size + 4, 0, Math.PI * 2);
+    topoCtx.fill();
+    topoCtx.globalAlpha = 1;
+
+    // Node
+    topoCtx.fillStyle = color;
+    topoCtx.beginPath();
+    topoCtx.arc(cx + n.x, cy + n.y, size, 0, Math.PI * 2);
+    topoCtx.fill();
+
+    // Label
+    topoCtx.fillStyle = 'rgba(68,119,85,0.6)';
+    topoCtx.font = '7px JetBrains Mono';
+    topoCtx.textAlign = 'center';
+    topoCtx.fillText(n.feel, cx + n.x, cy + n.y - size - 4);
+  }
+
+  // Center label
+  topoCtx.fillStyle = 'rgba(68,119,85,0.3)';
+  topoCtx.font = '9px JetBrains Mono';
+  topoCtx.textAlign = 'left';
+  topoCtx.fillText(`${topoNodes.length} peers`, 6, H - 6);
+  topoCtx.textAlign = 'right';
+  topoCtx.fillText('k=3 neighbors', W - 6, H - 6);
+}
+
+// ── Hook into tick cycle ──
+const origTick = tick;
+const dagTopoInterval = setInterval(() => {
+  // Add recent node data to DAG
+  const onlineNodes = nodes.filter(n => n.online);
+  if (onlineNodes.length > 0) {
+    const picked = onlineNodes[Math.floor(Math.random() * onlineNodes.length)];
+    addDagTx(picked);
+  }
+  updateTopoNodes(onlineNodes);
+  drawDAG();
+  drawTopology();
+}, 500);
+
+// Also update on live mode data
+const origRenderLive = typeof renderLiveState === 'function' ? renderLiveState : null;
+if (origRenderLive) {
+  const _origRender = renderLiveState;
+  renderLiveState = function(state) {
+    _origRender(state);
+    // Add live tx to DAG vis
+    if (state.nodes && state.nodes.length > 0) {
+      const picked = state.nodes[Math.floor(Math.random() * state.nodes.length)];
+      addDagTx({ hash: state.networkRandom?.hash || fakeHash().substring(0,8), feel: picked.feel, id: picked.clawId, ...picked });
+      updateTopoNodes(state.nodes);
+    }
+  };
+}
+
 </script>
 </body>
 </html>
