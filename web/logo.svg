@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Curved body (C-shape shrimp) -->
+  <path d="M62 20 C75 20 82 30 82 42 C82 54 75 62 65 66 C55 70 45 76 40 84 C37 89 38 93 40 95"
+        stroke="#00ff88" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Body segments -->
+  <path d="M76 38 C72 42 68 42 64 40" stroke="#00ff88" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+  <path d="M73 48 C69 52 63 52 59 50" stroke="#00ff88" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M67 57 C63 60 57 60 53 58" stroke="#00ff88" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <!-- Tail fan -->
+  <path d="M40 95 L32 92 M40 95 L35 99 M40 95 L44 99" stroke="#00ff88" stroke-width="4" stroke-linecap="round"/>
+  <!-- Antennae (two curves sweeping up) -->
+  <path d="M68 25 C72 15 80 8 90 5" stroke="#00ff88" stroke-width="3" stroke-linecap="round"/>
+  <path d="M65 22 C62 12 58 5 50 2" stroke="#00ff88" stroke-width="3" stroke-linecap="round"/>
+  <!-- Eye (large, round, with highlight) -->
+  <circle cx="70" cy="30" r="7" fill="#00ff88"/>
+  <circle cx="68" cy="28" r="2.5" fill="#020a06"/>
+  <circle cx="72" cy="27" r="1.5" fill="white" opacity="0.7"/>
+  <!-- Small legs -->
+  <path d="M72 50 L80 56 M67 55 L73 62 M60 60 L64 68" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+</svg>

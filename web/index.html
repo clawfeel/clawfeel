@@ -9,7 +9,7 @@
 <meta property="og:description" content="7 hardware sensors → SHA-256 → Feel (0-100). Proof of Existence, not Proof of Work.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://clawfeel.ai">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦞</text></svg>">
+<link rel="icon" href="logo.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
 
@@ -537,6 +537,15 @@
     text-decoration: none;
   }
   .nav-links a:hover { color: var(--green-bright); text-decoration: none; }
+  .nav-install-btn {
+    background: var(--green-bright) !important;
+    color: var(--bg-deep) !important;
+    padding: 6px 14px !important;
+    border-radius: 4px;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+  }
+  .nav-install-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.3); }
 
   /* ── Particle canvas ── */
   .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
@@ -563,7 +572,7 @@
 
 <nav class="nav">
   <a href="/" class="nav-logo">
-    <span style="font-size:20px;">🦞</span>
+    <img src="logo.svg" alt="ClawFeel" style="height:24px;vertical-align:middle;margin-right:8px;">
     CLAWFEEL
   </a>
   <div class="nav-links">
@@ -571,6 +580,7 @@
     <a href="whitepaper.html">Whitepaper</a>
     <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
     <a href="https://x.com/clawfeel">X</a>
+    <a href="#install" class="nav-install-btn" onclick="installSkill(event)">Install Skill</a>
   </div>
 </nav>
 
@@ -579,7 +589,7 @@
   <!-- ═══ Hero ═══ -->
   <div class="hero" style="padding-top:120px;">
     <div class="hero-feel" id="heroFeel">73</div>
-    <div class="hero-logo"><span class="icon" style="font-size:64px;margin-right:16px;filter:drop-shadow(0 0 15px rgba(0,255,136,0.4));">🦞</span>CLAWFEEL</div>
+    <div class="hero-logo"><img src="logo.svg" alt="ClawFeel" style="height:72px;vertical-align:middle;margin-right:16px;filter:drop-shadow(0 0 15px rgba(0,255,136,0.4));">CLAWFEEL</div>
     <div class="hero-tagline">YOUR CLAW'S HEARTBEAT</div>
     <div class="hero-sub">
       Every device runs on unique hardware, under unique conditions, at a unique moment in time.
@@ -783,31 +793,48 @@
   <!-- ═══ Quick Start ═══ -->
   <section>
     <div class="container">
-      <div class="section-title">Quick Start</div>
-      <div class="section-sub">Pure Node.js &middot; zero dependencies &middot; works on macOS &amp; Linux</div>
+      <div class="section-title" id="install">Install</div>
+      <div class="section-sub">Three ways to join the network &middot; zero dependencies &middot; macOS &amp; Linux</div>
       <div class="quickstart">
+        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin-bottom:12px;">Option 1: OpenClaw Skill (Recommended)</h3>
+        <div class="code-block">
+          <div class="code-label">OpenClaw</div>
+          <span class="comment"># Tell your OpenClaw agent:</span><br>
+          <span class="cmd">"Install the ClawFeel skill"</span><br><br>
+          <span class="comment"># Your agent will automatically:</span><br>
+          <span class="output"># 1. Install clawfeel from npm</span><br>
+          <span class="output"># 2. Start background daemon</span><br>
+          <span class="output"># 3. Join the network — permanently online</span>
+        </div>
+
+        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin:24px 0 12px;">Option 2: npm (Global Install)</h3>
         <div class="code-block">
           <div class="code-label">Terminal</div>
-          <span class="comment"># Install globally</span><br>
-          <span class="prompt">$</span> <span class="cmd">npm install -g clawfeel</span><br><br>
-          <span class="comment"># Or run directly</span><br>
-          <span class="prompt">$</span> <span class="cmd">npx clawfeel --pretty</span>
+          <span class="prompt">$</span> <span class="cmd">npm install -g clawfeel</span><br>
+          <span class="prompt">$</span> <span class="cmd">clawfeel --pretty</span><br><br>
+          <span class="comment"># Auto-starts background daemon, stays online forever</span><br>
+          <span class="comment"># Check status: clawfeel --status</span><br>
+          <span class="comment"># Stop: clawfeel --stop</span>
         </div>
-        <div class="output-block">  ╔════════════════════════════════════════════════╗
-  ║  ClawFeel  ☀️  Eternal
-  ╠════════════════════════════════════════════════╣
-  ║  Feel:    73  ███████████████░░░░░   ║
-  ║  Digit:     3                                 ║
-  ╠════════════════════════════════════════════════╣
-  ║  CPU Temp:      52.3°C              ║
-  ║  Memory:       67.1%               ║
-  ║  Entropy:     3891 bits           ║
-  ╠═══════════ Security ═════════════════════════╣
-  ║  Auth:    ✅ FULL  (7/7)                      ║
-  ║  Quality: 🟢  82  ████████████████░░░░   ║
-  ╚════════════════════════════════════════════════╝</div>
-        <div style="text-align:center;margin-top:24px;">
-          <a href="https://github.com/clawfeel/clawfeel" class="btn btn-outline" style="font-size:11px;padding:10px 24px;">View on GitHub &rarr;</a>
+
+        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin:24px 0 12px;">Option 3: npx (No Install)</h3>
+        <div class="code-block">
+          <div class="code-label">Terminal</div>
+          <span class="prompt">$</span> <span class="cmd">npx clawfeel --pretty</span><br><br>
+          <span class="comment"># One command, no install needed</span>
+        </div>
+
+        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin:24px 0 12px;">Option 4: P2P Mode (Decentralized)</h3>
+        <div class="code-block">
+          <div class="code-label">Terminal</div>
+          <span class="prompt">$</span> <span class="cmd">npx clawfeel --p2p --pretty</span><br><br>
+          <span class="comment"># Join the DHT + DAG network directly</span><br>
+          <span class="comment"># No central relay needed</span>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="https://github.com/clawfeel/clawfeel" class="btn btn-outline" style="font-size:11px;padding:10px 24px;">GitHub &rarr;</a>
+          <a href="https://www.npmjs.com/package/clawfeel" class="btn btn-outline" style="font-size:11px;padding:10px 24px;">npm &rarr;</a>
         </div>
       </div>
     </div>
@@ -817,7 +844,7 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <div class="footer-logo">🦞 CLAWFEEL</div>
+        <div class="footer-logo"><img src="logo.svg" alt="" style="height:18px;vertical-align:middle;margin-right:6px;"> CLAWFEEL</div>
         <div class="footer-desc">
           Hardware entropy for a decentralized world.<br>
           Proof of Existence, not Proof of Work.
@@ -1096,6 +1123,15 @@ function startMiniLive() {
 
 // Try live first
 startMiniLive();
+
+// ── Install Skill button ──
+function installSkill(e) {
+  e.preventDefault();
+  const installSection = document.getElementById('install');
+  if (installSection) {
+    installSection.scrollIntoView({ behavior: 'smooth' });
+  }
+}
 </script>
 </body>
 </html>
