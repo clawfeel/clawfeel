@@ -77,7 +77,7 @@ const IS_MAC = PLATFORM === "darwin";
 //    Located at ~/.clawfeel/identity.json
 
 function generateAlias() {
-  const suffix = randomBytes(2).toString("hex");
+  const suffix = randomBytes(4).toString("hex");
   return `Claw-${suffix}`;
 }
 
@@ -551,13 +551,19 @@ function computeFeel(sensorResults) {
 
   const entropyString = parts.join("|");
 
-  // SHA-256 hash
-  const hash = createHash("sha256").update(entropyString).digest("hex");
+  // SHA-256 hash (full 256-bit entropy)
+  const hashBuf = createHash("sha256").update(entropyString).digest();
+  const hash = hashBuf.toString("hex"); // 64 hex chars = 256 bits
 
-  // Feel score: first 8 hex chars → integer → mod 101 → 0–100
+  // Feel score: first 8 hex chars → integer → mod 101 → 0–100 (human-readable)
   const hashInt = parseInt(hash.substring(0, 8), 16);
   const feel = hashInt % 101;
   const digit = feel % 10;
+
+  // Crypto-grade random: full 256-bit entropy in multiple formats
+  const random64 = hashBuf.readBigUInt64BE(0).toString(); // 64-bit integer
+  const randomHex = hash;                                  // 256-bit hex
+  const randomBytes256 = hashBuf.toString("base64");       // 256-bit base64
 
   // Update chain
   prevHash = hash.substring(0, 16);
@@ -595,8 +601,12 @@ function computeFeel(sensorResults) {
       uptimeJitter: Math.round(sensors.uptimeJitter * 1000000) / 1000000,
       entropyPool:  Math.round(sensors.entropyPool),
     },
-    hash: hash.substring(0, 16),
-    // ── New security fields ──
+    hash: hash.substring(0, 16),         // short hash (chain link)
+    // ── Crypto-grade random output ──
+    entropy: randomHex,                   // 256-bit (64 hex chars) — cryptographic grade
+    random: random64,                     // 64-bit integer string — financial grade
+    randomBytes: randomBytes256,          // 256-bit base64 — raw entropy
+    // ── Security fields ──
     seq: currentSeq,
     prevHash,
     authenticity: authenticCount,         // 0-7: how many sensors are real
@@ -641,6 +651,10 @@ function prettyPrint(result) {
   console.log(`  ║    Authenticity: ${String(result.entropyDetail.authenticity).padStart(2)}/25                     ║`);
   console.log(`  ║    Temporal:     ${String(result.entropyDetail.temporal).padStart(2)}/25                     ║`);
   console.log(`  ║    Correlation:  ${String(result.entropyDetail.correlation).padStart(2)}/25                     ║`);
+  console.log("  ╠═══════════ Entropy (256-bit) ════════════════╣");
+  console.log(`  ║  ${result.entropy.substring(0,48)}  ║`);
+  console.log(`  ║  ${result.entropy.substring(48).padEnd(48)}  ║`);
+  console.log(`  ║  Random64: ${result.random.padStart(20)}                ║`);
   console.log("  ╠════════════════════════════════════════════════╣");
   console.log(`  ║  Seq:   ${String(result.seq).padStart(6)}                               ║`);
   console.log(`  ║  Hash:  ${result.hash}                         ║`);
