@@ -292,10 +292,21 @@ function setCORS(res) {
 }
 
 // ── Read request body ──
+const MAX_BODY_SIZE = 65536; // 64KB max request body
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", c => chunks.push(c));
+    let size = 0;
+    req.on("data", c => {
+      size += c.length;
+      if (size > MAX_BODY_SIZE) {
+        req.destroy();
+        reject(new Error("Body too large"));
+        return;
+      }
+      chunks.push(c);
+    });
     req.on("end", () => {
       try {
         resolve(JSON.parse(Buffer.concat(chunks).toString()));
@@ -308,11 +319,14 @@ function readBody(req) {
 }
 
 // ── Get client IP ──
+const MAX_SSE_CLIENTS = 200;  // max concurrent SSE connections
+
 function getClientIP(req) {
-  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim()
-    || req.headers["x-real-ip"]
-    || req.socket.remoteAddress
-    || "unknown";
+  // Prefer socket IP to prevent header spoofing
+  // Only trust X-Forwarded-For behind known proxies (Fly.io sets it)
+  const socketIP = req.socket.remoteAddress || "unknown";
+  const flyIP = req.headers["fly-client-ip"]; // Fly.io sets this reliably
+  return flyIP || socketIP;
 }
 
 // ── HTTP Server ──
@@ -360,6 +374,11 @@ const server = createServer(async (req, res) => {
 
   // ── GET /api/stream (SSE) ──
   if (req.method === "GET" && path === "/api/stream") {
+    if (sseClients.size >= MAX_SSE_CLIENTS) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Too many connections" }));
+      return;
+    }
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",

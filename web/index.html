@@ -1040,7 +1040,7 @@ function tickMini() {
 // ── "You" identification ──
 const urlParams = new URLSearchParams(window.location.search);
 const meParam = urlParams.get('me');
-if (meParam) localStorage.setItem('clawfeel_me', meParam);
+if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
 
 // ── Try Live Mode first, fallback to simulated ──

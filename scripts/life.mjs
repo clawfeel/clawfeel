@@ -13,14 +13,14 @@ import {
   createHash, randomBytes, scryptSync,
   createCipheriv, createDecipheriv,
 } from "node:crypto";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, chmod } from "node:fs/promises";
 import path from "node:path";
 
 const KEY_LENGTH = 32;          // 256-bit AES key
 const IV_LENGTH = 16;           // 128-bit IV for AES-GCM
 const AUTH_TAG_LENGTH = 16;     // 128-bit auth tag
 const SCRYPT_SALT_PREFIX = "clawlife:";
-const SCRYPT_N = 16384;         // CPU/memory cost
+const SCRYPT_N = 131072;        // CPU/memory cost (OWASP minimum 2^17)
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 
@@ -98,6 +98,7 @@ export class ClawLife {
       createdAt: new Date().toISOString(),
       warning: "KEEP THIS FILE SAFE. This key controls your ClawLife. Loss = permanent death.",
     }, null, 2), "utf8");
+    await chmod(this.keyFile, 0o600); // owner-only read/write
 
     return { publicId: this.publicId, isNew: true };
   }
@@ -117,6 +118,7 @@ export class ClawLife {
       importedAt: new Date().toISOString(),
       warning: "KEEP THIS FILE SAFE. This key controls your ClawLife. Loss = permanent death.",
     }, null, 2), "utf8");
+    await chmod(this.keyFile, 0o600);
 
     return { publicId: this.publicId };
   }

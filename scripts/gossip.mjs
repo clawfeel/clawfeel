@@ -191,7 +191,8 @@ export class GossipManager {
 
   // ── Pull missing transactions from a peer ──
 
-  async _pullMissing(hashes, contact) {
+  async _pullMissing(hashes, contact, depth = 0) {
+    if (depth > 5) return; // prevent recursive amplification DoS
     try {
       const res = await this.dht.sendRpc(contact, {
         id: randomBytes(4).toString("hex"),
@@ -209,7 +210,7 @@ export class GossipManager {
             }
             // Recursively pull if still missing parents
             if (result.reason === "missing_parents") {
-              await this._pullMissing(result.missing, contact);
+              await this._pullMissing(result.missing, contact, depth + 1);
             }
           }
         }

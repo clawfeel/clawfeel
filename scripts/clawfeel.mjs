@@ -22,7 +22,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
 import { createSocket } from "node:dgram";
 import os from "node:os";
 import path from "node:path";
@@ -259,8 +259,8 @@ async function readCpuTemp() {
     }
     if (IS_MAC) {
       try {
-        const out = execSync("sysctl -n machdep.xcpm.cpu_thermal_level 2>/dev/null", {
-          encoding: "utf8", timeout: 2000,
+        const out = execFileSync("sysctl", ["-n", "machdep.xcpm.cpu_thermal_level"], {
+          encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"],
         }).trim();
         const level = parseInt(out, 10);
         if (!isNaN(level)) return { value: 40 + level * 10, authentic: true };
@@ -300,9 +300,9 @@ async function readDiskIO() {
       return { value: (totalSectors * 512) / (1024 * 1024), authentic: true };
     }
     if (IS_MAC) {
-      const out = execSync("iostat -d -c 1 2>/dev/null | tail -1", {
-        encoding: "utf8", timeout: 2000,
-      }).trim();
+      const out = execFileSync("iostat", ["-d", "-c", "1"], {
+        encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"],
+      }).trim().split("\n").pop().trim();
       const parts = out.split(/\s+/);
       const kbPerSec = parseFloat(parts[1]) || 0;
       return { value: kbPerSec / 1024, authentic: true };
@@ -319,7 +319,7 @@ async function readNetLatency() {
     const times = [];
     for (let i = 0; i < 3; i++) {
       const start = process.hrtime.bigint();
-      execSync("echo ping >/dev/null 2>&1", { timeout: 1000 });
+      execFileSync("true", [], { timeout: 1000, stdio: ["pipe", "pipe", "pipe"] });
       const end = process.hrtime.bigint();
       times.push(Number(end - start) / 1e6);
     }
@@ -799,13 +799,17 @@ function broadcastFeel(result) {
 
     // Phase 2: Reveal (after 2 second delay)
     setTimeout(() => {
+      // Only send safe fields — no raw sensors, no hardware fingerprint
       const revealMsg = JSON.stringify({
         type: "clawfeel:reveal",
         version: 2,
         clawId,
         alias: nodeAlias,
         nonce,
-        ...result,
+        feel: result.feel, era: result.era, hash: result.hash,
+        seq: result.seq, prevHash: result.prevHash,
+        authenticity: result.authenticity, entropyQuality: result.entropyQuality,
+        sensorFlags: result.sensorFlags, timestamp: result.timestamp,
       });
       const revealBuf = Buffer.from(revealMsg);
       socket.send(revealBuf, 0, revealBuf.length, PORT, "255.255.255.255", (err) => {
@@ -820,7 +824,9 @@ function broadcastFeel(result) {
       version: 1,
       clawId,
       alias: nodeAlias,
-      ...result,
+      feel: result.feel, era: result.era, hash: result.hash,
+      seq: result.seq, authenticity: result.authenticity,
+      entropyQuality: result.entropyQuality, timestamp: result.timestamp,
     });
     const legacyBuf = Buffer.from(legacyMsg);
     socket.send(legacyBuf, 0, legacyBuf.length, PORT, "255.255.255.255");
@@ -1027,7 +1033,13 @@ async function reportToRelay(result) {
         "Content-Type": "application/json",
         "X-Claw-Id": clawId,
       },
-      body: JSON.stringify({ ...result, clawId, alias: nodeAlias }),
+      // Strip raw sensor data for privacy — only send derived values
+      body: JSON.stringify({
+        feel: result.feel, era: result.era, hash: result.hash, entropy: result.entropy,
+        seq: result.seq, prevHash: result.prevHash, timestamp: result.timestamp,
+        authenticity: result.authenticity, entropyQuality: result.entropyQuality,
+        sensorFlags: result.sensorFlags, clawId, alias: nodeAlias,
+      }),
       signal: AbortSignal.timeout(5000),
     });
     const data = await res.json();

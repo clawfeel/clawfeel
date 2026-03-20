@@ -19,6 +19,8 @@ const RPC_TIMEOUT = 5000;    // 5s timeout for RPCs
 const REFRESH_INTERVAL = 60_000; // refresh stale buckets every 60s
 const DEFAULT_PORT = 31416;
 const DEFAULT_BOOTSTRAP = ["clawfeel-relay.fly.dev:31416"];
+const MAX_STORE_ENTRIES = 10_000;  // max key-value pairs
+const MAX_VALUE_SIZE = 65536;      // 64KB max per value
 
 // ── ID utilities ──────────────────────────────────────────────────
 
@@ -265,10 +267,22 @@ export class KademliaNode {
           }
           break;
 
-        case "STORE":
-          this.store.set(msg.key, msg.value);
-          response = { id: msg.id, type: "STORED", from: this._makeContact() };
+        case "STORE": {
+          const valStr = JSON.stringify(msg.value || "");
+          const keyValid = typeof msg.key === "string" && /^[0-9a-f]+$/i.test(msg.key);
+          if (!keyValid || valStr.length > MAX_VALUE_SIZE) {
+            response = { id: msg.id, type: "ERROR", error: "Invalid key or value too large" };
+          } else {
+            // Evict oldest if at capacity
+            if (this.store.size >= MAX_STORE_ENTRIES && !this.store.has(msg.key)) {
+              const oldest = this.store.keys().next().value;
+              this.store.delete(oldest);
+            }
+            this.store.set(msg.key, msg.value);
+            response = { id: msg.id, type: "STORED", from: this._makeContact() };
+          }
           break;
+        }
 
         default:
           // Pass to external handler (gossip messages)

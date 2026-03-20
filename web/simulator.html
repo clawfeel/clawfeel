@@ -1104,7 +1104,8 @@ let currentMode = 'simulated';
 // ── "You" identification via ?me=clawId or localStorage ──
 const urlParams = new URLSearchParams(window.location.search);
 const meParam = urlParams.get('me');
-if (meParam) localStorage.setItem('clawfeel_me', meParam);
+// Validate: must be hex string, 8-16 chars
+if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
 let sseSource = null;
 let simInterval = null;
@@ -1255,7 +1256,9 @@ function renderLiveState(state) {
     const authCls = n.authenticity >= 6 ? 'full' : n.authenticity >= 4 ? 'partial' : 'low';
 
     const isMe = myClawId && n.clawId === myClawId;
-    const displayName = isMe ? '⭐ You' : (n.alias || 'Claw-' + n.clawId.substring(0,4));
+    // Sanitize alias to prevent XSS (strip HTML tags)
+    const rawAlias = (n.alias || 'Claw-' + n.clawId.substring(0,4)).replace(/[<>&"']/g, '');
+    const displayName = isMe ? '⭐ You' : rawAlias;
 
     if (!liveNodeEls.has(n.clawId)) {
       // Create new node element
