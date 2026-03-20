@@ -147,6 +147,48 @@ clawfeel --listen
 
 ---
 
+## SDK (Developer API)
+
+Use ClawFeel as a library in your own applications:
+
+```javascript
+import { ClawRandom } from 'clawfeel'
+
+// Local mode — uses this machine's hardware sensors
+const claw = await ClawRandom.local()
+const entropy = await claw.getEntropy(256)   // 256-bit hex string
+const dice = await claw.range(1, 6)          // random integer 1-6
+const bytes = await claw.randomBytes(32)     // 32 random bytes
+const float = await claw.randomFloat()       // [0, 1) like Math.random()
+const feel  = await claw.getFeel()           // { feel, era, hash, entropy, ... }
+
+// Remote mode — fetch from ClawFeel network
+const net = await ClawRandom.remote()
+const random = await net.getNetworkRandom()  // aggregated network entropy
+const nodes  = await net.getNodes()          // online nodes list
+
+// Real-time subscription (SSE)
+const unsub = net.subscribe(state => {
+  console.log('Network random:', state.networkRandom)
+})
+// unsub() to stop
+```
+
+### API Reference
+
+| Method | Mode | Returns |
+|--------|------|---------|
+| `getEntropy(bits)` | both | Hex string (1-8192 bits) |
+| `getFeel()` | both | Full reading object |
+| `range(min, max)` | both | Random integer in [min, max] |
+| `randomBytes(n)` | both | Buffer of n random bytes |
+| `randomFloat()` | both | Float in [0, 1) |
+| `getNetworkRandom()` | remote | Network consensus random |
+| `getNodes()` | remote | Online node list |
+| `subscribe(callback)` | remote | SSE stream, returns unsub function |
+
+---
+
 ## Architecture
 
 ```

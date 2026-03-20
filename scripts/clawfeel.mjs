@@ -1556,7 +1556,17 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error("ClawFeel error:", err.message);
-  process.exit(1);
-});
+// Only run CLI when executed directly, not when imported as library
+const isDirectRun = process.argv[1] && (
+  process.argv[1].endsWith("clawfeel.mjs") ||
+  process.argv[1].endsWith("clawfeel")
+);
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error("ClawFeel error:", err.message);
+    process.exit(1);
+  });
+}
+
+// ── Public API exports for SDK ──
+export { collectSensors, computeFeel, loadIdentity, getClawId };
