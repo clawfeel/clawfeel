@@ -58,6 +58,12 @@ const STORE_FILE = param("store", null);
 const GET_FILE = param("get", null);
 const OUTPUT_FILE = param("output", null);
 const STORE_LIST = flag("store-list");
+const LIFE_INIT = flag("life-init");
+const LIFE_SAVE = flag("life-save");
+const LIFE_RESTORE = param("life-restore", null);
+const LIFE_KEY = param("life-key", null);
+const LIFE_EXPORT = flag("life-export");
+const LIFE_STATUS = flag("life-status");
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
@@ -1140,7 +1146,7 @@ async function main() {
 
   // ── Auto-daemon: if not already a daemon and not a one-shot command,
   //    start a background daemon and return one reading to the user ──
-  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS || STORE_FILE || GET_FILE || STORE_LIST;
+  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS || STORE_FILE || GET_FILE || STORE_LIST || LIFE_INIT || LIFE_SAVE || LIFE_RESTORE || LIFE_EXPORT || LIFE_STATUS;
   const userSetCount = args.includes("--count");
   const userSetInterval = args.includes("--interval");
 
@@ -1244,6 +1250,148 @@ async function main() {
       } catch (err) {
         console.error(`  ❌ Retrieve failed: ${err.message}`);
       }
+      await dht.stop();
+      return;
+    }
+  }
+
+  // ── ClawLife commands ──
+  if (LIFE_INIT || LIFE_SAVE || LIFE_RESTORE || LIFE_EXPORT || LIFE_STATUS) {
+    const { KademliaNode } = await import("./dht.mjs");
+    const { FileStore } = await import("./store.mjs");
+    const { ClawLife } = await import("./life.mjs");
+
+    const clawId = getClawId();
+    await loadIdentity();
+
+    const dht = new KademliaNode({
+      clawId,
+      host: "0.0.0.0",
+      port: DHT_PORT,
+      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"] : ["clawfeel-relay.fly.dev:31416"],
+      dataDir: DATA_DIR,
+    });
+    await dht.start();
+    const fileStore = new FileStore({ dht, dataDir: DATA_DIR });
+    const life = new ClawLife({ clawId, dataDir: DATA_DIR, fileStore });
+
+    if (LIFE_STATUS) {
+      const status = await life.getStatus();
+      if (status.keyExists) {
+        console.log(`\n  🧬 ClawLife: Active`);
+        console.log(`  🔑 Public ID: ${status.publicId}`);
+        if (status.lastSave) {
+          console.log(`  💾 Last save: ${status.lastSave.savedAt}`);
+          console.log(`  📋 Manifest:  ${status.lastSave.manifestHash.substring(0, 16)}...`);
+          console.log(`  📦 Size:      ${status.lastSave.size} bytes`);
+        } else {
+          console.log("  💾 No saves yet. Run --life-save to backup.");
+        }
+      } else {
+        console.log("\n  🧬 ClawLife: Not initialized");
+        console.log("  Run --life-init to create your ClawLife key.");
+      }
+      console.log("");
+      await dht.stop();
+      return;
+    }
+
+    if (LIFE_INIT) {
+      const result = await life.initKey();
+      if (result.isNew) {
+        console.log("\n  🧬 ClawLife initialized!");
+        console.log(`  🔑 Public ID: ${result.publicId}`);
+        console.log(`  🔐 Private key saved to: ~/.clawfeel/life.key`);
+        console.log("");
+        console.log("  ⚠️  IMPORTANT: Back up your private key!");
+        console.log("     Run: clawfeel --life-export");
+        console.log("     Loss of this key = permanent death of your ClawLife.");
+      } else {
+        console.log(`\n  🧬 ClawLife already initialized (${result.publicId})`);
+      }
+      console.log("");
+      await dht.stop();
+      return;
+    }
+
+    if (LIFE_EXPORT) {
+      await life.initKey();
+      const key = life.exportKey();
+      console.log("\n  🔐 ClawLife Private Key (KEEP SECRET!):");
+      console.log(`\n  ${key}\n`);
+      console.log("  To restore on another device:");
+      console.log(`  clawfeel --life-restore <manifest-hash> --life-key ${key.substring(0, 8)}...`);
+      console.log("");
+      await dht.stop();
+      return;
+    }
+
+    if (LIFE_SAVE) {
+      await life.initKey();
+      // Collect current agent state
+      let agentMemory = {};
+      try {
+        // Try reading OpenClaw feel.md as part of agent state
+        for (const p of FEEL_MD_PATHS) {
+          try {
+            agentMemory.feelMd = await readFile(p, "utf8");
+            break;
+          } catch {}
+        }
+      } catch {}
+
+      // Collect recent history
+      let history = [];
+      try {
+        const raw = await readFile(HISTORY_FILE, "utf8");
+        history = raw.trim().split("\n").slice(-20).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      } catch {}
+
+      const agentState = {
+        alias: nodeAlias,
+        memory: agentMemory,
+        history,
+        identity: {
+          clawId,
+          alias: nodeAlias,
+          createdAt: new Date().toISOString(),
+        },
+        feel: {
+          totalReadings: currentSeq,
+        },
+      };
+
+      console.log("\n  🧬 Saving ClawLife to network...");
+      const result = await life.save(agentState);
+      console.log("  ✅ ClawLife saved!");
+      console.log(`  🔑 Life ID:  ${result.lifeId}`);
+      console.log(`  📋 Manifest: ${result.manifestHash}`);
+      console.log(`  📦 Size:     ${result.size} bytes (encrypted)`);
+      console.log(`\n  To restore: clawfeel --life-restore ${result.manifestHash}\n`);
+      await dht.stop();
+      return;
+    }
+
+    if (LIFE_RESTORE) {
+      const key = LIFE_KEY || null;
+      if (!key) {
+        // Try loading local key
+        await life.initKey();
+      }
+      console.log("\n  🧬 Restoring ClawLife from network...");
+      try {
+        const state = await life.restore(LIFE_RESTORE, key);
+        const outPath = OUTPUT_FILE || path.join(DATA_DIR, "life-restored.json");
+        await writeFile(outPath, JSON.stringify(state, null, 2), "utf8");
+        console.log("  ✅ ClawLife restored!");
+        console.log(`  👤 Alias:    ${state.alias || state.identity?.alias || "unknown"}`);
+        console.log(`  🔑 Life ID:  ${state.publicId}`);
+        console.log(`  📅 Saved:    ${state.timestamp}`);
+        console.log(`  💾 Output:   ${outPath}`);
+      } catch (err) {
+        console.error(`  ❌ Restore failed: ${err.message}`);
+      }
+      console.log("");
       await dht.stop();
       return;
     }
