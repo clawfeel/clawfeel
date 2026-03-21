@@ -30,477 +30,19 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
   body {
     background: var(--bg-deep);
-    color: var(--green-bright);
+    color: var(--text-body);
     font-family: 'JetBrains Mono', monospace;
     overflow-x: hidden;
     line-height: 1.7;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.012) 2px, rgba(0,255,136,0.012) 4px);
-    pointer-events: none;
-    z-index: 9999;
+    font-size: 14px;
   }
 
   a { color: var(--green-bright); text-decoration: none; transition: all 0.3s; }
   a:hover { text-shadow: 0 0 12px var(--green-glow); }
-
-  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-
-  /* ── Hero ── */
-  .hero {
-    text-align: center;
-    padding: 100px 24px 80px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .hero-logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 64px;
-    font-weight: 900;
-    letter-spacing: 10px;
-    text-shadow: 0 0 60px var(--green-glow), 0 0 120px rgba(0,255,136,0.1);
-    position: relative;
-    z-index: 1;
-  }
-  .hero-logo .icon { font-style: normal; margin-right: 16px; }
-  .hero-feel {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 180px;
-    font-weight: 900;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .hero-tagline {
-    font-size: 16px;
-    color: var(--text-dim);
-    letter-spacing: 3px;
-    margin-top: 16px;
-    position: relative;
-    z-index: 1;
-  }
-  .hero-sub {
-    font-size: 13px;
-    color: var(--text-body);
-    margin-top: 24px;
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
-    position: relative;
-    z-index: 1;
-  }
-  .hero-cta {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 40px;
-    position: relative;
-    z-index: 1;
-    flex-wrap: wrap;
-  }
-  .btn {
-    display: inline-block;
-    padding: 14px 32px;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    transition: all 0.3s;
-    cursor: pointer;
-    border: none;
-  }
-  .btn-primary {
-    background: var(--green-bright);
-    color: var(--bg-deep);
-    box-shadow: 0 0 30px rgba(0,255,136,0.2);
-  }
-  .btn-primary:hover {
-    box-shadow: 0 0 50px rgba(0,255,136,0.4);
-    transform: translateY(-2px);
-    color: var(--bg-deep);
-  }
-  .btn-outline {
-    background: transparent;
-    color: var(--green-bright);
-    border: 1px solid var(--bg-panel-border);
-  }
-  .btn-outline:hover {
-    border-color: var(--green-bright);
-    box-shadow: 0 0 20px rgba(0,255,136,0.1);
-    transform: translateY(-2px);
-  }
-
-  /* ── Section common ── */
-  section { padding: 80px 24px; }
-  .section-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 12px;
-    letter-spacing: 4px;
-  }
-  .section-sub {
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 12px;
-    letter-spacing: 3px;
-    margin-bottom: 48px;
-    text-transform: uppercase;
-  }
-  .divider {
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--bg-panel-border), transparent);
-    margin: 0;
-  }
-
-  /* ── Features ── */
-  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  .feature-card {
-    background: var(--bg-panel);
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 6px;
-    padding: 32px 24px;
-    text-align: center;
-    transition: all 0.3s;
-  }
-  .feature-card:hover {
-    border-color: rgba(0,255,136,0.3);
-    box-shadow: 0 0 30px rgba(0,255,136,0.05);
-    transform: translateY(-4px);
-  }
-  .feature-icon { font-size: 36px; margin-bottom: 16px; }
-  .feature-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 12px;
-  }
-  .feature-desc { font-size: 12px; color: var(--text-body); line-height: 1.8; }
-
-  /* ── How it works ── */
-  .pipeline {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    flex-wrap: wrap;
-    margin-bottom: 48px;
-  }
-  .pipeline-step {
-    background: var(--bg-panel);
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 4px;
-    padding: 16px 20px;
-    text-align: center;
-    min-width: 130px;
-  }
-  .pipeline-step .step-label {
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .pipeline-step .step-value {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .pipeline-arrow {
-    font-size: 20px;
-    color: var(--text-dim);
-    padding: 0 8px;
-  }
-
-  .era-display {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    margin-top: 32px;
-  }
-  .era-card {
-    padding: 20px 32px;
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 4px;
-    text-align: center;
-    min-width: 160px;
-  }
-  .era-card .era-range { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 4px; }
-  .era-card .era-name { font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 700; }
-  .era-card.chaos { color: var(--red-chaos); border-color: rgba(255,51,68,0.2); }
-  .era-card.transition { color: var(--yellow-trans); border-color: rgba(204,255,0,0.2); }
-  .era-card.eternal { color: var(--blue-eternal); border-color: rgba(0,204,255,0.2); }
-
-  /* ── Architecture ── */
-  .arch-stack { max-width: 600px; margin: 0 auto; }
-  .arch-layer {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px 24px;
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 4px;
-    margin-bottom: 8px;
-    transition: all 0.3s;
-    position: relative;
-  }
-  .arch-layer:hover {
-    border-color: rgba(0,255,136,0.3);
-    background: var(--bg-panel);
-  }
-  .arch-layer.done { border-left: 3px solid var(--green-bright); }
-  .arch-layer.upcoming { border-left: 3px solid var(--text-dim); opacity: 0.6; }
-  .arch-num {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--text-dim);
-    min-width: 32px;
-  }
-  .arch-layer.done .arch-num { color: var(--green-bright); }
-  .arch-info { flex: 1; }
-  .arch-name {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2px;
-  }
-  .arch-desc { font-size: 11px; color: var(--text-body); margin-top: 4px; }
-  .arch-status {
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    letter-spacing: 1px;
-  }
-  .arch-status.live { background: rgba(0,255,136,0.15); color: var(--green-bright); }
-  .arch-status.soon { background: rgba(68,119,85,0.15); color: var(--text-dim); }
-
-  /* ── Quick start ── */
-  .quickstart { max-width: 700px; margin: 0 auto; }
-  .code-block {
-    background: rgba(0,255,136,0.03);
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 4px;
-    padding: 20px 24px;
-    font-size: 13px;
-    overflow-x: auto;
-    margin-bottom: 16px;
-    position: relative;
-  }
-  .code-block .code-label {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-  .code-block .prompt { color: var(--text-dim); }
-  .code-block .cmd { color: var(--green-bright); }
-  .code-block .comment { color: var(--text-dim); }
-  .code-block .output { color: var(--text-body); }
-
-  .output-block {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(0,255,136,0.06);
-    border-radius: 4px;
-    padding: 16px 20px;
-    font-size: 11px;
-    color: var(--text-body);
-    white-space: pre;
-    overflow-x: auto;
-    line-height: 1.5;
-  }
-
-  /* ── Mini simulator ── */
-  .mini-sim {
-    background: var(--bg-panel);
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 6px;
-    padding: 24px;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  .mini-sim-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  .mini-sim-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    letter-spacing: 3px;
-    color: var(--text-dim);
-  }
-  .mini-sim-number {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 48px;
-    font-weight: 900;
-    text-align: center;
-    margin: 16px 0;
-    text-shadow: 0 0 40px var(--green-glow);
-  }
-  .mini-nodes {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 4px;
-    margin: 16px 0;
-  }
-  .mini-node {
-    aspect-ratio: 1;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    border: 1px solid var(--bg-panel-border);
-    transition: all 0.3s;
-  }
-  .mini-node.chaos { color: var(--red-chaos); background: rgba(255,51,68,0.06); border-color: rgba(255,51,68,0.15); }
-  .mini-node.transition { color: var(--yellow-trans); background: rgba(204,255,0,0.04); border-color: rgba(204,255,0,0.12); }
-  .mini-node.eternal { color: var(--blue-eternal); background: rgba(0,204,255,0.06); border-color: rgba(0,204,255,0.15); }
-
-  /* ── Comparison table ── */
-  .compare-table {
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    border-collapse: collapse;
-  }
-  .compare-table th, .compare-table td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid var(--bg-panel-border);
-    font-size: 12px;
-  }
-  .compare-table th {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
-  .compare-table td { color: var(--text-body); }
-  .compare-table td:first-child { color: var(--green-bright); font-weight: 500; }
-
-  /* ── Footer ── */
-  .footer {
-    padding: 60px 24px 40px;
-    border-top: 1px solid var(--bg-panel-border);
-  }
-  .footer-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 40px;
-    margin-bottom: 40px;
-  }
-  .footer-brand .footer-logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    margin-bottom: 12px;
-  }
-  .footer-brand .footer-desc {
-    font-size: 11px;
-    color: var(--text-body);
-    line-height: 1.8;
-    margin-bottom: 16px;
-  }
-  .footer-socials {
-    display: flex;
-    gap: 12px;
-  }
-  .footer-socials a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--bg-panel-border);
-    border-radius: 4px;
-    transition: all 0.3s;
-  }
-  .footer-socials a:hover {
-    border-color: var(--green-bright);
-    box-shadow: 0 0 15px rgba(0,255,136,0.15);
-    transform: translateY(-2px);
-  }
-  .footer-socials a svg { width: 16px; height: 16px; fill: var(--text-dim); transition: fill 0.3s; }
-  .footer-socials a:hover svg { fill: var(--green-bright); }
-  .footer-col-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: var(--green-bright);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-  }
-  .footer-col a {
-    display: block;
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-    transition: all 0.3s;
-  }
-  .footer-col a:hover { color: var(--green-bright); padding-left: 4px; }
-  .footer-col .contact-item {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-  }
-  .footer-col .contact-item a { display: inline; margin-bottom: 0; }
-  .footer-bottom {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding-top: 24px;
-    border-top: 1px solid rgba(0,255,136,0.06);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .footer-copy { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
-  .footer-legal { display: flex; gap: 20px; }
-  .footer-legal a { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
-  .footer-legal a:hover { color: var(--green-bright); }
 
   /* ── Nav ── */
   .nav {
@@ -509,13 +51,15 @@
     left: 0;
     right: 0;
     z-index: 100;
-    background: rgba(2,10,6,0.85);
-    backdrop-filter: blur(12px);
+    height: 64px;
+    background: rgba(2, 10, 6, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--bg-panel-border);
-    padding: 12px 24px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
   }
   .nav-logo {
     font-family: 'Orbitron', sans-serif;
@@ -526,65 +70,723 @@
     display: flex;
     align-items: center;
     text-decoration: none;
+    gap: 10px;
+    flex-shrink: 0;
   }
   .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); text-decoration: none; }
-  .nav-icon { height: 22px; margin-right: 8px; }
-  .nav-links { display: flex; gap: 16px; align-items: center; }
-  .nav-links a {
+  .nav-logo .emoji { font-size: 22px; font-style: normal; }
+  .nav-center {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .nav-center a {
     font-size: 11px;
     color: var(--text-dim);
     letter-spacing: 2px;
     text-transform: uppercase;
     text-decoration: none;
-    line-height: 1;
+    transition: color 0.3s;
   }
-  .nav-links a:hover { color: var(--green-bright); text-decoration: none; }
+  .nav-center a:hover { color: var(--green-bright); text-shadow: none; }
+  .nav-right {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .nav-right a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+  .nav-right a:hover { color: var(--green-bright); text-shadow: none; }
+  .nav-right a svg { width: 18px; height: 18px; fill: currentColor; }
   .nav-install-btn {
-    background: var(--green-bright) !important;
+    background: var(--green-bright);
     color: var(--bg-deep) !important;
-    padding: 6px 14px !important;
-    border-radius: 4px;
-    font-weight: 700 !important;
-    letter-spacing: 1px !important;
-  }
-  .nav-install-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.3); }
-
-  .nav-contribute-btn {
-    background: transparent !important;
-    border: 1px solid var(--green-bright) !important;
-    color: var(--green-bright) !important;
-    padding: 6px 14px !important;
-    border-radius: 4px;
-    font-weight: 700 !important;
-    letter-spacing: 1px !important;
-    font-size: 0.75rem !important;
-    cursor: pointer;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     transition: all 0.3s;
+    text-shadow: none !important;
   }
-  .nav-contribute-btn:hover { background: rgba(0,255,136,0.1) !important; }
-  .nav-contribute-btn.active {
-    background: var(--green-bright) !important;
-    color: var(--bg-deep) !important;
-    animation: pulse 2s infinite;
+  .nav-install-btn:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    transform: translateY(-1px);
+    text-shadow: none !important;
   }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 5px rgba(0,255,136,0.3); } 50% { box-shadow: 0 0 20px rgba(0,255,136,0.6); } }
 
   /* ── Particle canvas ── */
   .particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
   .content { position: relative; z-index: 1; }
 
+  /* ── Section base ── */
+  .section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 40px;
+  }
+  .section-inner {
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--green-bright);
+    text-align: center;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .section-subtitle {
+    font-size: 14px;
+    color: var(--text-dim);
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto 60px;
+    line-height: 1.8;
+  }
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--bg-panel-border), transparent);
+  }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(0, 255, 136, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-emoji {
+    font-size: 80px;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-logo-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: 12px;
+    color: var(--green-bright);
+    text-shadow: 0 0 60px var(--green-glow), 0 0 120px rgba(0, 255, 136, 0.1);
+    position: relative;
+    z-index: 1;
+    margin-bottom: 24px;
+  }
+  .hero-tagline {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--green-bright);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+    opacity: 0.9;
+  }
+  .hero-subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-feel {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 120px;
+    font-weight: 900;
+    color: var(--green-bright);
+    text-shadow: 0 0 60px var(--green-glow), 0 0 120px rgba(0, 255, 136, 0.15);
+    position: relative;
+    z-index: 1;
+    margin-bottom: 60px;
+    animation: feelPulse 3s ease-in-out infinite;
+  }
+  @keyframes feelPulse {
+    0%, 100% { text-shadow: 0 0 40px var(--green-glow), 0 0 80px rgba(0, 255, 136, 0.1); }
+    50% { text-shadow: 0 0 80px var(--green-glow), 0 0 160px rgba(0, 255, 136, 0.2); }
+  }
+  .hero-cta {
+    position: relative;
+    z-index: 1;
+  }
+  .btn {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--green-bright);
+    color: var(--bg-deep);
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.4);
+    transform: translateY(-2px);
+    color: var(--bg-deep);
+    text-shadow: none;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--green-bright);
+    border: 1px solid var(--bg-panel-border);
+  }
+  .btn-outline:hover {
+    border-color: var(--green-bright);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* ── Glass card ── */
+  .glass-card {
+    background: rgba(0, 255, 136, 0.03);
+    border: 1px solid rgba(0, 255, 136, 0.1);
+    border-radius: 12px;
+    padding: 40px 32px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.4s;
+  }
+  .glass-card:hover {
+    border-color: rgba(0, 255, 136, 0.25);
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.04);
+    transform: translateY(-4px);
+  }
+
+  /* ── Section 2: Definition ── */
+  .definition-text {
+    font-size: 20px;
+    color: var(--green-bright);
+    text-align: center;
+    max-width: 740px;
+    margin: 0 auto 72px;
+    line-height: 1.8;
+    font-weight: 300;
+    opacity: 0.9;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .metric-card {
+    text-align: center;
+  }
+  .metric-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--green-bright);
+    margin-bottom: 8px;
+  }
+  .metric-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Section 3: Architecture ── */
+  .arch-stack {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .arch-layer {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 28px;
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 8px;
+    transition: all 0.4s;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .arch-layer.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .arch-layer:hover {
+    border-color: rgba(0, 255, 136, 0.3);
+    background: var(--bg-panel);
+  }
+  .arch-icon {
+    font-size: 28px;
+    text-align: center;
+  }
+  .arch-info {}
+  .arch-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--green-bright);
+    margin-bottom: 4px;
+  }
+  .arch-desc {
+    font-size: 12px;
+    color: var(--text-body);
+  }
+  .arch-tag {
+    font-size: 10px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(0, 255, 136, 0.08);
+    color: var(--green-mid);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  /* ── Section 4: Live Network ── */
+  .live-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .live-stat-card {
+    text-align: center;
+  }
+  .live-stat-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--green-bright);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .live-stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green-bright);
+    animation: pulseDot 2s ease-in-out infinite;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  @keyframes pulseDot {
+    0%, 100% { box-shadow: 0 0 4px var(--green-glow); opacity: 1; }
+    50% { box-shadow: 0 0 16px var(--green-glow); opacity: 0.6; }
+  }
+  .contribute-area {
+    text-align: center;
+    margin-top: 40px;
+  }
+  .contribute-btn {
+    display: inline-block;
+    padding: 14px 36px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--green-bright);
+    background: transparent;
+    color: var(--green-bright);
+    transition: all 0.3s;
+    margin-bottom: 20px;
+  }
+  .contribute-btn:hover {
+    background: rgba(0, 255, 136, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+  }
+  .contribute-btn.active {
+    background: var(--green-bright);
+    color: var(--bg-deep);
+    animation: pulseBtn 2s infinite;
+  }
+  @keyframes pulseBtn {
+    0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.6); }
+  }
+
+  /* ── Section 5: Beacon ── */
+  .beacon-display {
+    max-width: 640px;
+    margin: 0 auto 48px;
+    padding: 40px;
+    border-radius: 12px;
+    background: rgba(0, 20, 10, 0.5);
+    border: 1px solid rgba(0, 255, 136, 0.1);
+  }
+  .beacon-round {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .beacon-round-num {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--green-mid);
+  }
+  .beacon-number {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--green-bright);
+    text-align: center;
+    margin: 24px 0;
+    letter-spacing: 2px;
+    text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+  }
+  .beacon-hash {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    word-break: break-all;
+    margin-bottom: 24px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .beacon-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    text-align: center;
+  }
+  .beacon-meta-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .beacon-meta-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--green-bright);
+  }
+  .beacon-time {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .code-block {
+    max-width: 640px;
+    margin: 0 auto;
+    background: rgba(0, 255, 136, 0.02);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    font-size: 13px;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .code-label {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .code-block .kw { color: var(--blue-eternal); }
+  .code-block .str { color: var(--yellow-trans); }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .fn { color: var(--green-bright); }
+  .code-block .num { color: #ff88aa; }
+
+  /* ── Section 6: Features grid ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .feature-card {
+    text-align: center;
+    padding: 48px 28px;
+  }
+  .feature-icon {
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+  .feature-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--green-bright);
+    margin-bottom: 12px;
+  }
+  .feature-desc {
+    font-size: 12px;
+    color: var(--text-body);
+    line-height: 1.8;
+  }
+
+  /* ── Section 7: Comparison ── */
+  .compare-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    overflow-x: auto;
+  }
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .compare-table th,
+  .compare-table td {
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 255, 136, 0.06);
+    font-size: 12px;
+  }
+  .compare-table th {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--bg-panel-border);
+  }
+  .compare-table td {
+    color: var(--text-body);
+  }
+  .compare-table td:first-child {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .compare-table .highlight-col {
+    background: rgba(0, 255, 136, 0.03);
+    border-left: 1px solid rgba(0, 255, 136, 0.1);
+    border-right: 1px solid rgba(0, 255, 136, 0.1);
+    color: var(--green-bright);
+  }
+  .compare-table th.highlight-col {
+    color: var(--green-bright);
+    border-top: 1px solid rgba(0, 255, 136, 0.1);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  .compare-table tr:last-child td.highlight-col {
+    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+  .check { color: var(--green-bright); }
+  .partial { color: var(--yellow-trans); }
+
+  /* ── Section 8: Get Started ── */
+  .tabs-container {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .tabs-header {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 0;
+  }
+  .tab-btn {
+    padding: 12px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--bg-panel-border);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
+    color: var(--text-dim);
+    transition: all 0.3s;
+    position: relative;
+  }
+  .tab-btn.active {
+    background: rgba(0, 255, 136, 0.03);
+    color: var(--green-bright);
+    border-color: rgba(0, 255, 136, 0.15);
+  }
+  .tab-btn .badge {
+    font-size: 8px;
+    background: var(--green-bright);
+    color: var(--bg-deep);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+  }
+  .tab-content {
+    border: 1px solid rgba(0, 255, 136, 0.15);
+    border-radius: 0 8px 8px 8px;
+    background: rgba(0, 255, 136, 0.02);
+    padding: 28px;
+    display: none;
+  }
+  .tab-content.active { display: block; }
+  .tab-content .prompt { color: var(--text-dim); }
+  .tab-content .cmd { color: var(--green-bright); }
+  .tab-content .comment { color: var(--text-dim); font-style: italic; }
+
+  .enterprise-block {
+    max-width: 640px;
+    margin: 48px auto 0;
+  }
+  .enterprise-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding: 80px 40px 40px;
+    border-top: 1px solid var(--bg-panel-border);
+  }
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto 48px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 60px;
+  }
+  .footer-col-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--green-bright);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .footer-col a {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+  .footer-col a:hover {
+    color: var(--green-bright);
+    padding-left: 4px;
+    text-shadow: none;
+  }
+  .footer-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 255, 136, 0.06);
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* ── Scroll animations ── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   /* ── Responsive ── */
   @media (max-width: 768px) {
-    .hero-logo { font-size: 36px; letter-spacing: 4px; }
-    .hero-feel { font-size: 100px; }
-    .features { grid-template-columns: 1fr; }
-    .pipeline { flex-direction: column; gap: 8px; }
-    .pipeline-arrow { transform: rotate(90deg); }
-    .era-display { flex-direction: column; align-items: center; }
-    .mini-nodes { grid-template-columns: repeat(5, 1fr); }
-    .section-title { font-size: 22px; }
-    .footer-inner { grid-template-columns: 1fr 1fr; gap: 24px; }
-    .footer-bottom { flex-direction: column; text-align: center; }
+    .nav { padding: 0 20px; }
+    .nav-center { display: none; }
+    .hero { padding: 100px 20px 60px; }
+    .hero-logo-text { font-size: 32px; letter-spacing: 6px; }
+    .hero-feel { font-size: 72px; }
+    .hero-tagline { font-size: 14px; }
+    .section { padding: 80px 20px; min-height: auto; }
+    .section-title { font-size: 24px; letter-spacing: 2px; }
+    .definition-text { font-size: 16px; }
+    .metric-grid { grid-template-columns: 1fr; gap: 32px; }
+    .arch-layer { grid-template-columns: 40px 1fr; gap: 12px; }
+    .arch-tag { display: none; }
+    .live-stats { grid-template-columns: 1fr; gap: 24px; }
+    .live-stat-value { font-size: 28px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .compare-wrapper { margin: 0 -20px; }
+    .compare-table th, .compare-table td { padding: 10px 12px; font-size: 10px; }
+    .tabs-header { flex-wrap: wrap; }
+    .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+    .beacon-meta { grid-template-columns: 1fr; gap: 12px; }
+    .beacon-number { font-size: 28px; }
   }
 </style>
 </head>
@@ -592,385 +794,390 @@
 
 <canvas class="particle-canvas" id="particleCanvas"></canvas>
 
+<!-- ═══ Navigation ═══ -->
 <nav class="nav">
-  <a href="/" class="nav-logo"><img src="logo.svg" alt="" class="nav-icon">CLAWFEEL</a>
-  <div class="nav-links">
+  <a href="/" class="nav-logo">
+    <span class="emoji">🦞</span>
+    CLAWFEEL
+  </a>
+  <div class="nav-center">
     <a href="simulator.html">Simulator</a>
     <a href="explorer.html">Explorer</a>
     <a href="whitepaper.html">Whitepaper</a>
-    <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
-    <a href="https://x.com/clawfeel">X</a>
-    <a href="#install" class="nav-install-btn" onclick="installSkill(event)">Install</a>
-    <a href="#" class="nav-contribute-btn" id="contributeBtn" onclick="toggleBrowserNode(event)">🌐 Contribute Entropy</a>
+  </div>
+  <div class="nav-right">
+    <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    </a>
+    <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a href="#get-started" class="nav-install-btn">Install</a>
   </div>
 </nav>
 
 <div class="content">
 
-  <!-- ═══ Hero ═══ -->
-  <div class="hero" style="padding-top:120px;">
+  <!-- ═══ Section 1: Hero ═══ -->
+  <div class="hero">
+    <div class="hero-emoji">🦞</div>
+    <div class="hero-logo-text">CLAWFEEL</div>
+    <div class="hero-tagline">Your Claw's Heartbeat</div>
+    <div class="hero-subtitle">Decentralized Entropy for a Trustless World</div>
     <div class="hero-feel" id="heroFeel">73</div>
-    <div class="hero-logo"><img src="logo.svg" alt="ClawFeel" style="height:72px;vertical-align:middle;margin-right:16px;filter:drop-shadow(0 0 15px rgba(0,255,136,0.4));">CLAWFEEL</div>
-    <div class="hero-tagline">YOUR CLAW'S HEARTBEAT</div>
-    <div class="hero-sub">
-      Every device runs on unique hardware, under unique conditions, at a unique moment in time.
-      ClawFeel distills that uniqueness into a single number — the Feel.
-      No mining. No energy waste. Just physics.
-    </div>
     <div class="hero-cta">
-      <a href="simulator.html" class="btn btn-primary">Live Simulator &rarr;</a>
-      <a href="https://github.com/clawfeel/clawfeel" class="btn btn-outline">GitHub</a>
+      <a href="#get-started" class="btn btn-primary">Get Started &rarr;</a>
     </div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- ═══ Features ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title">What is ClawFeel?</div>
-      <div class="section-sub">Hardware entropy &middot; security hardened &middot; zero dependencies</div>
-      <div class="features">
-        <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <div class="feature-title">7 SENSORS</div>
-          <div class="feature-desc">
-            CPU temperature, memory, disk I/O, network jitter, CPU load, uptime jitter, entropy pool
-            &mdash; hashed through SHA-256 into a single Feel score (0&ndash;100).
-          </div>
+  <!-- ═══ Section 2: One-liner Definition ═══ -->
+  <div class="section">
+    <div class="section-inner fade-in">
+      <p class="definition-text">
+        ClawFeel turns every device's physical hardware signals into
+        cryptographic-grade randomness &mdash; no mining, no waste, just existence.
+      </p>
+      <div class="metric-grid">
+        <div class="glass-card metric-card">
+          <div class="metric-value">256-bit</div>
+          <div class="metric-label">Crypto-grade Entropy</div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-title">PROOF OF EXISTENCE</div>
-          <div class="feature-desc">
-            Not Proof of Work. No mining rigs. No energy waste.
-            Your hardware's physical signals are the proof &mdash;
-            existence itself is the consensus.
-          </div>
+        <div class="glass-card metric-card">
+          <div class="metric-value">7 Sensors</div>
+          <div class="metric-label">Hardware Fingerprint</div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">🛡️</div>
-          <div class="feature-title">SECURITY HARDENED</div>
-          <div class="feature-desc">
-            Sensor authenticity tracking, entropy quality scoring,
-            commit-reveal protocol, Sybil defense, chain hashing,
-            and weighted aggregation built in.
-          </div>
+        <div class="glass-card metric-card">
+          <div class="metric-value">0 Deps</div>
+          <div class="metric-label">Pure Node.js</div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
   <div class="divider"></div>
 
-  <!-- ═══ How it works ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title">How It Works</div>
-      <div class="section-sub">From hardware signals to unforgeable randomness</div>
-      <div class="pipeline">
-        <div class="pipeline-step">
-          <div class="step-label">Collect</div>
-          <div class="step-value">7 Sensors</div>
+  <!-- ═══ Section 3: Architecture ═══ -->
+  <div class="section">
+    <div class="section-inner">
+      <div class="section-title fade-in">Five Layers of Trust</div>
+      <div class="section-subtitle fade-in">A complete stack for AI-native decentralized infrastructure</div>
+      <div class="arch-stack" id="archStack">
+        <div class="arch-layer" data-delay="0">
+          <div class="arch-icon">🦞</div>
+          <div class="arch-info">
+            <div class="arch-name">ClawFeel</div>
+            <div class="arch-desc">Hardware entropy engine</div>
+          </div>
+          <div class="arch-tag">7 sensors &rarr; SHA-256</div>
         </div>
-        <div class="pipeline-arrow">&rarr;</div>
-        <div class="pipeline-step">
-          <div class="step-label">Normalize</div>
-          <div class="step-value">[0, 1]</div>
+        <div class="arch-layer" data-delay="100">
+          <div class="arch-icon">🌐</div>
+          <div class="arch-info">
+            <div class="arch-name">ClawNet</div>
+            <div class="arch-desc">P2P network</div>
+          </div>
+          <div class="arch-tag">Kademlia DHT + Gossip</div>
         </div>
-        <div class="pipeline-arrow">&rarr;</div>
-        <div class="pipeline-step">
-          <div class="step-label">Weight</div>
-          <div class="step-value">By Control</div>
+        <div class="arch-layer" data-delay="200">
+          <div class="arch-icon">🔗</div>
+          <div class="arch-info">
+            <div class="arch-name">ClawDAG</div>
+            <div class="arch-desc">DAG consensus</div>
+          </div>
+          <div class="arch-tag">Parallel transactions</div>
         </div>
-        <div class="pipeline-arrow">&rarr;</div>
-        <div class="pipeline-step">
-          <div class="step-label">Hash</div>
-          <div class="step-value">SHA-256</div>
+        <div class="arch-layer" data-delay="300">
+          <div class="arch-icon">💾</div>
+          <div class="arch-info">
+            <div class="arch-name">ClawStore</div>
+            <div class="arch-desc">Distributed storage</div>
+          </div>
+          <div class="arch-tag">Erasure coding</div>
         </div>
-        <div class="pipeline-arrow">&rarr;</div>
-        <div class="pipeline-step">
-          <div class="step-label">Output</div>
-          <div class="step-value" style="color:var(--green-bright)">Feel 0-100</div>
-        </div>
-      </div>
-
-      <div class="era-display">
-        <div class="era-card chaos">
-          <div class="era-range">0 &mdash; 30</div>
-          <div class="era-name">🌪️ Chaos</div>
-        </div>
-        <div class="era-card transition">
-          <div class="era-range">31 &mdash; 70</div>
-          <div class="era-name">🌤️ Transition</div>
-        </div>
-        <div class="era-card eternal">
-          <div class="era-range">71 &mdash; 100</div>
-          <div class="era-name">☀️ Eternal</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ═══ Live Demo ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title">Live Network Demo</div>
-      <div class="section-sub" id="miniSubtitle">Connecting to relay...</div>
-      <div class="mini-sim">
-        <div class="mini-sim-header">
-          <div class="mini-sim-title" id="miniModeLabel">CLAWFEEL NETWORK</div>
-          <div class="mini-sim-title"><span id="miniNodeCount">0</span> NODES ONLINE</div>
-        </div>
-        <div class="mini-sim-number" id="miniNumber">--</div>
-        <div style="text-align:center;font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:12px;">NETWORK RANDOM NUMBER (XOR + HASH)</div>
-        <div class="mini-nodes" id="miniGrid"></div>
-        <div style="text-align:center;margin-top:16px;">
-          <a href="simulator.html" class="btn btn-outline" style="font-size:11px;padding:10px 24px;">Open Full Simulator &rarr;</a>
+        <div class="arch-layer" data-delay="400">
+          <div class="arch-icon">🧬</div>
+          <div class="arch-info">
+            <div class="arch-name">ClawLife</div>
+            <div class="arch-desc">AI immortality</div>
+          </div>
+          <div class="arch-tag">DID + encrypted shards</div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
   <div class="divider"></div>
 
-  <!-- ═══ Random Beacon ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title">🔮 Random Beacon</div>
-      <div class="section-sub">Verifiable randomness every 10 seconds — anyone can audit</div>
-
-      <div id="beaconPanel" style="max-width:700px;margin:40px auto;background:rgba(0,20,10,0.6);border:1px solid var(--green-dim);border-radius:12px;padding:32px;font-family:'Courier New',monospace;">
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-          <div style="font-size:12px;color:var(--green-dim);text-transform:uppercase;letter-spacing:2px;">Latest Beacon Round</div>
-          <div id="beaconRoundNum" style="font-size:14px;color:var(--green-bright);">#—</div>
+  <!-- ═══ Section 4: Live Network ═══ -->
+  <div class="section">
+    <div class="section-inner">
+      <div class="section-title fade-in">Live Network</div>
+      <div class="section-subtitle fade-in" id="liveSubtitle">Connecting to relay...</div>
+      <div class="live-stats fade-in">
+        <div class="glass-card live-stat-card">
+          <div class="live-stat-value">
+            <span class="pulse-dot"></span>
+            <span id="liveNodeCount">0</span>
+          </div>
+          <div class="live-stat-label">Online Nodes</div>
         </div>
-
-        <div id="beaconNumber" style="font-size:36px;font-weight:700;color:var(--green-bright);text-align:center;margin:20px 0;letter-spacing:2px;text-shadow:0 0 20px rgba(0,255,136,0.4);">
-          Connecting...
+        <div class="glass-card live-stat-card">
+          <div class="live-stat-value">
+            <span id="liveBeaconRound">&mdash;</span>
+          </div>
+          <div class="live-stat-label">Beacon Round</div>
         </div>
-
-        <div id="beaconHash" style="font-size:11px;color:var(--green-dim);text-align:center;word-break:break-all;margin-bottom:20px;">
-          —
+        <div class="glass-card live-stat-card">
+          <div class="live-stat-value">
+            <span id="liveNetworkRandom">&mdash;</span>
+          </div>
+          <div class="live-stat-label">Network Random</div>
         </div>
+      </div>
+      <div class="contribute-area fade-in">
+        <button class="contribute-btn" id="contributeBtn" onclick="toggleBrowserNode(event)">
+          Contribute Entropy
+        </button>
+        <div>
+          <a href="simulator.html" style="font-size:12px;color:var(--text-dim);letter-spacing:1px;">Open Full Simulator &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">
+  <div class="divider"></div>
+
+  <!-- ═══ Section 5: Random Beacon ═══ -->
+  <div class="section">
+    <div class="section-inner">
+      <div class="section-title fade-in">Verifiable Random Beacon</div>
+      <div class="section-subtitle fade-in">A new beacon every 10 seconds, signed and verifiable by anyone</div>
+
+      <div class="beacon-display fade-in">
+        <div class="beacon-round">
+          <span>Latest Beacon</span>
+          <span class="beacon-round-num" id="beaconRoundNum">#&mdash;</span>
+        </div>
+        <div class="beacon-number" id="beaconNumber">Connecting...</div>
+        <div class="beacon-hash" id="beaconHash">&mdash;</div>
+        <div class="beacon-meta">
           <div>
-            <div style="font-size:11px;color:var(--green-dim);margin-bottom:4px;">ERA</div>
-            <div id="beaconEra" style="font-size:16px;color:var(--green-bright);">—</div>
+            <div class="beacon-meta-label">Era</div>
+            <div class="beacon-meta-value" id="beaconEra">&mdash;</div>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--green-dim);margin-bottom:4px;">CONTRIBUTORS</div>
-            <div id="beaconContributors" style="font-size:16px;color:var(--green-bright);">—</div>
+            <div class="beacon-meta-label">Contributors</div>
+            <div class="beacon-meta-value" id="beaconContributors">&mdash;</div>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--green-dim);margin-bottom:4px;">VERIFIED</div>
-            <div id="beaconVerified" style="font-size:16px;">—</div>
+            <div class="beacon-meta-label">Verified</div>
+            <div class="beacon-meta-value" id="beaconVerified">&mdash;</div>
           </div>
         </div>
-
-        <div style="margin-top:20px;text-align:center;">
-          <div style="font-size:10px;color:var(--green-dim);" id="beaconTime">—</div>
-        </div>
+        <div class="beacon-time" id="beaconTime">&mdash;</div>
       </div>
 
-      <div style="text-align:center;margin-top:16px;">
-        <div style="font-size:13px;color:var(--green-dim);max-width:500px;margin:0 auto;">
-          Every 10 seconds, all online nodes contribute their hardware entropy.<br>
-          The beacon XORs all hashes, re-hashes with SHA-256, and signs with Ed25519.<br>
-          <strong style="color:var(--green-bright);">Anyone can independently verify the result.</strong>
-        </div>
+      <div class="code-block fade-in">
+        <div class="code-label">JavaScript</div>
+        <span class="kw">import</span> { <span class="fn">ClawRandom</span> } <span class="kw">from</span> <span class="str">'clawfeel'</span><br>
+        <span class="kw">const</span> claw = <span class="kw">await</span> <span class="fn">ClawRandom</span>.<span class="fn">remote</span>()<br>
+        <span class="kw">const</span> beacon = <span class="kw">await</span> claw.<span class="fn">getBeacon</span>()<br>
+        <span class="comment">// { round: 4521, random: 8294756103842, hash: "a3f2...", verified: true }</span>
       </div>
     </div>
-  </section>
+  </div>
 
   <div class="divider"></div>
 
-  <!-- ═══ vs Bitcoin ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title">Why Not Proof of Work?</div>
-      <div class="section-sub">Existence is enough</div>
-      <table class="compare-table">
-        <thead>
-          <tr><th></th><th>Bitcoin</th><th>ClawFeel</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Consensus</td><td>Proof of Work</td><td>Proof of Existence</td></tr>
-          <tr><td>Energy</td><td>~150 TWh/year</td><td>&asymp; 0 (uses existing hardware)</td></tr>
-          <tr><td>Topology</td><td>Blockchain (linear)</td><td>DAG (parallel)</td></tr>
-          <tr><td>Throughput</td><td>~7 TPS</td><td>Target: 1M+ TPS</td></tr>
-          <tr><td>Unforgeable</td><td>Computational cost</td><td>Physical hardware signals</td></tr>
-          <tr><td>Purpose</td><td>Digital currency</td><td>AI-native entropy network</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ═══ Architecture ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title">The Vision</div>
-      <div class="section-sub">5-layer architecture for AI-native decentralized infrastructure</div>
-      <div class="arch-stack">
-        <div class="arch-layer done">
-          <div class="arch-num">1</div>
-          <div class="arch-info">
-            <div class="arch-name">CLAWFEEL</div>
-            <div class="arch-desc">Hardware entropy engine &mdash; 7 sensors, SHA-256, Feel score</div>
-          </div>
-          <div class="arch-status live">LIVE</div>
+  <!-- ═══ Section 6: Features Grid ═══ -->
+  <div class="section">
+    <div class="section-inner">
+      <div class="features-grid">
+        <div class="glass-card feature-card fade-in">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-title">Zero-Knowledge Proofs</div>
+          <div class="feature-desc">Prove hardware authenticity without revealing sensor data</div>
         </div>
-        <div class="arch-layer done">
-          <div class="arch-num">2</div>
-          <div class="arch-info">
-            <div class="arch-name">CLAWNET</div>
-            <div class="arch-desc">P2P network &mdash; commit-reveal, Sybil defense, reputation</div>
-          </div>
-          <div class="arch-status live">LIVE</div>
+        <div class="glass-card feature-card fade-in">
+          <div class="feature-icon">📦</div>
+          <div class="feature-title">Developer SDK</div>
+          <div class="feature-desc">One import, instant access to decentralized entropy</div>
         </div>
-        <div class="arch-layer upcoming">
-          <div class="arch-num">3</div>
-          <div class="arch-info">
-            <div class="arch-name">CLAWDAG</div>
-            <div class="arch-desc">DAG consensus &mdash; async BFT, million-TPS throughput</div>
-          </div>
-          <div class="arch-status soon">BUILDING</div>
+        <div class="glass-card feature-card fade-in">
+          <div class="feature-icon">🏢</div>
+          <div class="feature-title">Enterprise API</div>
+          <div class="feature-desc">Financial-grade randomness with rate limiting and audit logs</div>
         </div>
-        <div class="arch-layer upcoming">
-          <div class="arch-num">4</div>
-          <div class="arch-info">
-            <div class="arch-name">CLAWSTORE</div>
-            <div class="arch-desc">Distributed storage &mdash; erasure coding, DHT routing</div>
-          </div>
-          <div class="arch-status soon">PLANNED</div>
+        <div class="glass-card feature-card fade-in">
+          <div class="feature-icon">💻</div>
+          <div class="feature-title">Cross-Platform</div>
+          <div class="feature-desc">macOS, Linux, Windows, and Browser light nodes</div>
         </div>
-        <div class="arch-layer upcoming">
-          <div class="arch-num">5</div>
-          <div class="arch-info">
-            <div class="arch-name">CLAWLIFE</div>
-            <div class="arch-desc">AI immortality &mdash; encrypted agent memory, private-key identity</div>
-          </div>
-          <div class="arch-status soon">VISION</div>
+        <div class="glass-card feature-card fade-in">
+          <div class="feature-icon">🧬</div>
+          <div class="feature-title">ClawLife</div>
+          <div class="feature-desc">AI agent immortality through encrypted distributed storage</div>
+        </div>
+        <div class="glass-card feature-card fade-in">
+          <div class="feature-icon">🪶</div>
+          <div class="feature-title">Light Nodes</div>
+          <div class="feature-desc">IoT-friendly protocol with 50KB memory footprint</div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
   <div class="divider"></div>
 
-  <!-- ═══ Quick Start ═══ -->
-  <section>
-    <div class="container">
-      <div class="section-title" id="install">Install</div>
-      <div class="section-sub">Three ways to join the network &middot; zero dependencies &middot; macOS &amp; Linux</div>
-      <div class="quickstart">
-        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin-bottom:12px;">Option 1: OpenClaw Skill (Recommended)</h3>
-        <div class="code-block">
-          <div class="code-label">OpenClaw</div>
-          <span class="comment"># Tell your OpenClaw agent:</span><br>
+  <!-- ═══ Section 7: Comparison ═══ -->
+  <div class="section">
+    <div class="section-inner">
+      <div class="section-title fade-in">How ClawFeel Compares</div>
+      <div class="section-subtitle fade-in">Proof of Existence vs the alternatives</div>
+      <div class="compare-wrapper fade-in">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="highlight-col">ClawFeel</th>
+              <th>Bitcoin</th>
+              <th>drand</th>
+              <th>Chainlink VRF</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Consensus</td>
+              <td class="highlight-col">PoE</td>
+              <td>PoW</td>
+              <td>BLS threshold</td>
+              <td>VRF</td>
+            </tr>
+            <tr>
+              <td>Energy</td>
+              <td class="highlight-col">&asymp; 0</td>
+              <td>~150 TWh/yr</td>
+              <td>Low</td>
+              <td>Low</td>
+            </tr>
+            <tr>
+              <td>TPS</td>
+              <td class="highlight-col">1M+ (theoretical)</td>
+              <td>~7</td>
+              <td>N/A</td>
+              <td>~1000</td>
+            </tr>
+            <tr>
+              <td>Entropy Source</td>
+              <td class="highlight-col">Hardware sensors</td>
+              <td>Hash computation</td>
+              <td>BLS signatures</td>
+              <td>Block hashes</td>
+            </tr>
+            <tr>
+              <td>Open Source</td>
+              <td class="highlight-col"><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="partial">Partial</span></td>
+            </tr>
+            <tr>
+              <td>Cost</td>
+              <td class="highlight-col">Free</td>
+              <td>High</td>
+              <td>Free</td>
+              <td>Per-request</td>
+            </tr>
+            <tr>
+              <td>Dependencies</td>
+              <td class="highlight-col">0</td>
+              <td>Many</td>
+              <td>Many</td>
+              <td>Solidity</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══ Section 8: Get Started ═══ -->
+  <div class="section" id="get-started">
+    <div class="section-inner">
+      <div class="section-title fade-in">Start in 30 Seconds</div>
+      <div class="section-subtitle fade-in">Three ways to join the network</div>
+
+      <div class="tabs-container fade-in">
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="openclaw" onclick="switchTab('openclaw')">
+            OpenClaw<span class="badge">REC</span>
+          </button>
+          <button class="tab-btn" data-tab="npm" onclick="switchTab('npm')">npm</button>
+          <button class="tab-btn" data-tab="npx" onclick="switchTab('npx')">npx</button>
+        </div>
+
+        <div class="tab-content active" id="tab-openclaw">
+          <span class="comment"># Tell your OpenClaw agent:</span><br><br>
           <span class="cmd">"Install the ClawFeel skill"</span><br><br>
-          <span class="comment"># Your agent will automatically:</span><br>
-          <span class="output"># 1. Install clawfeel from npm</span><br>
-          <span class="output"># 2. Start background daemon</span><br>
-          <span class="output"># 3. Join the network — permanently online</span>
+          <span class="comment"># Your device automatically joins the network</span><br>
+          <span class="comment"># Background daemon stays online permanently</span>
         </div>
 
-        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin:24px 0 12px;">Option 2: npm (Global Install)</h3>
-        <div class="code-block">
-          <div class="code-label">Terminal</div>
+        <div class="tab-content" id="tab-npm">
           <span class="prompt">$</span> <span class="cmd">npm install -g clawfeel</span><br>
-          <span class="prompt">$</span> <span class="cmd">clawfeel --pretty</span><br><br>
-          <span class="comment"># Auto-starts background daemon, stays online forever</span><br>
-          <span class="comment"># Check status: clawfeel --status</span><br>
-          <span class="comment"># Stop: clawfeel --stop</span>
+          <span class="prompt">$</span> <span class="cmd">clawfeel --pretty --interval 5</span>
         </div>
 
-        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin:24px 0 12px;">Option 3: npx (No Install)</h3>
-        <div class="code-block">
-          <div class="code-label">Terminal</div>
-          <span class="prompt">$</span> <span class="cmd">npx clawfeel --pretty</span><br><br>
-          <span class="comment"># One command, no install needed</span>
+        <div class="tab-content" id="tab-npx">
+          <span class="prompt">$</span> <span class="cmd">npx clawfeel --pretty</span>
         </div>
+      </div>
 
-        <h3 style="color:var(--green-bright);font-family:'Orbitron';font-size:13px;letter-spacing:2px;margin:24px 0 12px;">Option 4: P2P Mode (Decentralized)</h3>
-        <div class="code-block">
-          <div class="code-label">Terminal</div>
-          <span class="prompt">$</span> <span class="cmd">npx clawfeel --p2p --pretty</span><br><br>
-          <span class="comment"># Join the DHT + DAG network directly</span><br>
-          <span class="comment"># No central relay needed</span>
-        </div>
-
-        <div style="text-align:center;margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-          <a href="https://github.com/clawfeel/clawfeel" class="btn btn-outline" style="font-size:11px;padding:10px 24px;">GitHub &rarr;</a>
-          <a href="https://www.npmjs.com/package/clawfeel" class="btn btn-outline" style="font-size:11px;padding:10px 24px;">npm &rarr;</a>
+      <div class="enterprise-block fade-in">
+        <div class="enterprise-label">Enterprise API</div>
+        <div class="code-block" style="max-width:100%;">
+          <span class="prompt">$</span> <span class="cmd">curl -H "Authorization: Bearer YOUR_API_KEY" \</span><br>
+          <span class="cmd">&nbsp;&nbsp;https://clawfeel-relay.fly.dev/api/v1/random?bits=256</span>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- ═══ Footer ═══ -->
+  <!-- ═══ Section 9: Footer ═══ -->
   <footer class="footer">
     <div class="footer-inner">
-      <div class="footer-brand">
-        <div class="footer-logo"><img src="logo.svg" alt="" style="height:18px;vertical-align:middle;margin-right:6px;"> CLAWFEEL</div>
-        <div class="footer-desc">
-          Hardware entropy for a decentralized world.<br>
-          Proof of Existence, not Proof of Work.
-        </div>
-        <div class="footer-socials">
-          <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          </a>
-          <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-          </a>
-          <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" title="npm">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>
-          </a>
-        </div>
-      </div>
       <div class="footer-col">
         <div class="footer-col-title">Product</div>
-        <a href="simulator.html">Live Simulator</a>
-        <a href="https://github.com/clawfeel/clawfeel">Source Code</a>
-        <a href="https://www.npmjs.com/package/clawfeel">npm Package</a>
+        <a href="simulator.html">Simulator</a>
+        <a href="explorer.html">Explorer</a>
         <a href="whitepaper.html">Whitepaper</a>
+        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener">SDK Docs</a>
+        <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener">Enterprise API</a>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Community</div>
-        <a href="https://x.com/clawfeel" target="_blank" rel="noopener">X (Twitter)</a>
-        <a href="https://github.com/clawfeel/clawfeel/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://x.com/clawfeel" target="_blank" rel="noopener">X / Twitter</a>
         <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener">Discussions</a>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Contact</div>
-        <div class="contact-item">
-          <a href="mailto:contact@clawfeel.com">contact@clawfeel.com</a>
-        </div>
-        <div class="contact-item" style="margin-top:16px;font-size:10px;color:var(--text-dim);">
-          Built for the Claw Crew
-        </div>
+        <a href="mailto:contact@clawfeel.com">contact@clawfeel.com</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <div class="footer-copy">&copy; 2026 ClawFeel &middot; MIT License</div>
-      <div class="footer-legal">
-        <a href="https://github.com/clawfeel/clawfeel/blob/main/LICENSE">License</a>
-        <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
-      </div>
+      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.6.9
     </div>
   </footer>
 
 </div>
 
 <script>
-// ── Particle background (lighter) ──
+// ── Particle background (20 particles, subtle) ──
 const pCanvas = document.getElementById('particleCanvas');
 const pCtx = pCanvas.getContext('2d');
 const particles = [];
@@ -980,14 +1187,15 @@ function initParticles() {
   pCanvas.width = window.innerWidth * dpr;
   pCanvas.height = window.innerHeight * dpr;
   pCtx.scale(dpr, dpr);
-  for (let i = 0; i < 40; i++) {
+  particles.length = 0;
+  for (let i = 0; i < 20; i++) {
     particles.push({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.2,
-      vy: (Math.random() - 0.5) * 0.2,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.15,
       r: Math.random() * 1.2 + 0.3,
-      a: Math.random() * 0.2 + 0.03,
+      a: Math.random() * 0.15 + 0.03,
     });
   }
 }
@@ -1002,13 +1210,13 @@ function drawParticles() {
     pCtx.fillStyle = `rgba(0,255,136,${p.a})`;
     pCtx.beginPath(); pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2); pCtx.fill();
   }
-  pCtx.strokeStyle = 'rgba(0,255,136,0.03)';
+  pCtx.strokeStyle = 'rgba(0,255,136,0.025)';
   pCtx.lineWidth = 0.5;
   for (let i = 0; i < particles.length; i++) {
     for (let j = i + 1; j < particles.length; j++) {
       const dx = particles[i].x - particles[j].x;
       const dy = particles[i].y - particles[j].y;
-      if (Math.sqrt(dx * dx + dy * dy) < 120) {
+      if (Math.sqrt(dx * dx + dy * dy) < 150) {
         pCtx.beginPath();
         pCtx.moveTo(particles[i].x, particles[i].y);
         pCtx.lineTo(particles[j].x, particles[j].y);
@@ -1031,86 +1239,17 @@ window.addEventListener('resize', () => {
 
 // ── Hero Feel animation ──
 const heroFeel = document.getElementById('heroFeel');
-setInterval(() => {
-  heroFeel.textContent = String(Math.floor(Math.random() * 101)).padStart(2, '0');
-}, 200);
-
-// ── Mini simulator ──
-const MINI_COUNT = 20;
-const miniGrid = document.getElementById('miniGrid');
-const miniNumber = document.getElementById('miniNumber');
-const miniNodeCount = document.getElementById('miniNodeCount');
-
-const miniNodes = [];
-for (let i = 0; i < MINI_COUNT; i++) {
-  const el = document.createElement('div');
-  el.className = 'mini-node';
-  el.textContent = '--';
-  miniGrid.appendChild(el);
-  miniNodes.push({ el, feel: 50, hash: '0000000000000000', online: false });
+let heroFeelValue = 73;
+function updateHeroFeel(val) {
+  heroFeelValue = val;
+  heroFeel.textContent = String(val).padStart(2, '0');
+  const color = val <= 30 ? 'var(--red-chaos)' : val <= 70 ? 'var(--yellow-trans)' : 'var(--green-bright)';
+  heroFeel.style.color = color;
 }
-
-function simHash(str) {
-  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
-  for (let i = 0; i < str.length; i++) {
-    const ch = str.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-  h1 ^= Math.imul(h2 ^ (h2 >>> 16), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-  h2 ^= Math.imul(h1 ^ (h1 >>> 16), 3266489909);
-  const n = 4294967296 * (2097151 & h2) + (h1 >>> 0);
-  return n.toString(16).padStart(16, '0');
-}
-
-function xorHex(a, b) {
-  let out = '';
-  for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    out += (parseInt(a[i], 16) ^ parseInt(b[i], 16)).toString(16);
-  }
-  return out;
-}
-
-let miniOnline = 0;
-let miniTick = 0;
-
-function bringMiniOnline() {
-  if (miniOnline >= MINI_COUNT) return;
-  const batch = Math.min(2, MINI_COUNT - miniOnline);
-  for (let i = 0; i < batch; i++) {
-    miniNodes[miniOnline].online = true;
-    miniOnline++;
-  }
-  miniNodeCount.textContent = miniOnline;
-  if (miniOnline < MINI_COUNT) setTimeout(bringMiniOnline, 150);
-}
-
-function tickMini() {
-  let xorAccum = '0000000000000000';
-  for (const n of miniNodes) {
-    if (!n.online) continue;
-    const drift = (Math.random() - 0.5) * 40 + Math.random() * 20 - 10;
-    n.feel = Math.max(0, Math.min(100, Math.round(50 + drift)));
-    const hex = '0123456789abcdef';
-    n.hash = '';
-    for (let i = 0; i < 16; i++) n.hash += hex[Math.floor(Math.random() * 16)];
-    xorAccum = xorHex(xorAccum, n.hash);
-
-    const cls = n.feel <= 30 ? 'chaos' : n.feel <= 70 ? 'transition' : 'eternal';
-    n.el.className = `mini-node ${cls}`;
-    n.el.textContent = n.feel;
-  }
-
-  miniTick++;
-  const netHash = simHash('clawfeel:' + xorAccum + ':' + miniTick);
-  const netRandom = parseInt(netHash.substring(0, 8), 16) % 101;
-  miniNumber.textContent = String(netRandom).padStart(2, '0');
-
-  const cls = netRandom <= 30 ? 'var(--red-chaos)' : netRandom <= 70 ? 'var(--green-bright)' : 'var(--blue-eternal)';
-  miniNumber.style.color = cls;
-}
+// Random fallback animation (replaced by live data when connected)
+let heroInterval = setInterval(() => {
+  updateHeroFeel(Math.floor(Math.random() * 101));
+}, 2000);
 
 // ── "You" identification ──
 const urlParams = new URLSearchParams(window.location.search);
@@ -1118,84 +1257,57 @@ const meParam = urlParams.get('me');
 if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
 
-// ── Try Live Mode first, fallback to simulated ──
+// ── SSE Live connection ──
 const RELAY_URL = 'https://clawfeel-relay.fly.dev';
-let miniLive = false;
-let miniSimInterval = null;
+let sseConnected = false;
 
-function startMiniSimulated() {
-  miniLive = false;
-  document.getElementById('miniSubtitle').textContent = '20 simulated nodes · XOR + SHA-256 aggregation';
-  document.getElementById('miniModeLabel').innerHTML = '🔵 SIMULATED';
-  setTimeout(bringMiniOnline, 800);
-  miniSimInterval = setInterval(tickMini, 300);
-}
-
-function startMiniLive() {
+function startLiveConnection() {
   const sse = new EventSource(RELAY_URL + '/api/stream');
   let gotData = false;
 
   const timeout = setTimeout(() => {
-    if (!gotData) { sse.close(); startMiniSimulated(); }
+    if (!gotData) {
+      sse.close();
+      document.getElementById('liveSubtitle').textContent = 'Simulated data \u2014 relay offline';
+      startSimulatedFallback();
+    }
   }, 5000);
 
   sse.onmessage = (event) => {
     try {
       const state = JSON.parse(event.data);
-      if (state.stats.onlineNodes === 0 && !gotData) return; // wait for real nodes
+      if (state.stats.onlineNodes === 0 && !gotData) return;
 
       if (!gotData) {
         gotData = true;
+        sseConnected = true;
         clearTimeout(timeout);
-        miniLive = true;
-        if (miniSimInterval) { clearInterval(miniSimInterval); miniSimInterval = null; }
-        document.getElementById('miniSubtitle').innerHTML = '<span style="color:#ff4466;">● LIVE</span> — real hardware entropy from real devices';
-        document.getElementById('miniModeLabel').innerHTML = '🔴 LIVE';
+        clearInterval(heroInterval);
+        document.getElementById('liveSubtitle').innerHTML = '<span style="color:#ff4466;">\u25CF LIVE</span> \u2014 real hardware entropy from real devices';
       }
 
-      // Update display
-      miniNodeCount.textContent = state.stats.onlineNodes;
-      if (state.networkRandom.number != null) {
-        miniNumber.textContent = String(state.networkRandom.number).padStart(2, '0');
-        const c = state.networkRandom.number <= 30 ? 'var(--red-chaos)' : state.networkRandom.number <= 70 ? 'var(--green-bright)' : 'var(--blue-eternal)';
-        miniNumber.style.color = c;
+      // Update live stats
+      document.getElementById('liveNodeCount').textContent = state.stats.onlineNodes;
+
+      if (state.networkRandom && state.networkRandom.number != null) {
+        const nr = state.networkRandom.number;
+        document.getElementById('liveNetworkRandom').textContent = String(nr).padStart(2, '0');
+        updateHeroFeel(nr);
       }
 
-      // Render live nodes in grid
-      const grid = document.getElementById('miniGrid');
-      // Resize grid if needed
-      while (grid.children.length < state.nodes.length) {
-        const el = document.createElement('div');
-        el.className = 'mini-node';
-        el.textContent = '--';
-        grid.appendChild(el);
-      }
-      while (grid.children.length > Math.max(state.nodes.length, 1)) {
-        grid.removeChild(grid.lastChild);
-      }
-      state.nodes.forEach((n, i) => {
-        if (i < grid.children.length) {
-          const cls = n.feel <= 30 ? 'chaos' : n.feel <= 70 ? 'transition' : 'eternal';
-          const isMe = myClawId && n.clawId === myClawId;
-          grid.children[i].className = `mini-node ${cls}`;
-          grid.children[i].textContent = isMe ? '⭐' : n.feel;
-          grid.children[i].title = isMe ? 'You — ' + n.feel : (n.alias || n.clawId);
-          if (isMe) grid.children[i].style.boxShadow = '0 0 8px rgba(0,255,136,0.4)';
-        }
-      });
-
-      // Update Beacon panel
+      // Update beacon
       if (state.beacon) {
         const b = state.beacon;
+        document.getElementById('liveBeaconRound').textContent = '#' + b.round;
         document.getElementById('beaconRoundNum').textContent = '#' + b.round;
         document.getElementById('beaconNumber').textContent = b.beaconNumber;
         document.getElementById('beaconHash').textContent = b.beaconHash;
         document.getElementById('beaconEra').textContent = b.era;
         document.getElementById('beaconEra').style.color = b.era === 'Chaos' ? '#ff4466' : b.era === 'Eternal' ? '#4488ff' : 'var(--green-bright)';
         document.getElementById('beaconContributors').textContent = b.contributorCount || (b.contributors?.length || 0);
-        document.getElementById('beaconVerified').textContent = b.signature ? '✅' : '⚠️';
+        document.getElementById('beaconVerified').textContent = b.signature ? '\u2705' : '\u26A0\uFE0F';
         document.getElementById('beaconVerified').style.color = b.signature ? '#00ff88' : '#ffaa00';
-        document.getElementById('beaconTime').textContent = b.timestamp ? new Date(b.timestamp).toLocaleString() : '—';
+        document.getElementById('beaconTime').textContent = b.timestamp ? new Date(b.timestamp).toLocaleString() : '\u2014';
       }
     } catch {}
   };
@@ -1204,21 +1316,48 @@ function startMiniLive() {
     if (!gotData) {
       clearTimeout(timeout);
       sse.close();
-      startMiniSimulated();
+      document.getElementById('liveSubtitle').textContent = 'Simulated data \u2014 relay offline';
+      startSimulatedFallback();
     }
   };
 }
 
-// Try live first
-startMiniLive();
+function startSimulatedFallback() {
+  let nodes = 5;
+  let round = 1;
+  function tick() {
+    nodes = Math.max(3, nodes + Math.floor(Math.random() * 3) - 1);
+    round++;
+    const nr = Math.floor(Math.random() * 101);
+    document.getElementById('liveNodeCount').textContent = nodes;
+    document.getElementById('liveBeaconRound').textContent = '#' + round;
+    document.getElementById('liveNetworkRandom').textContent = String(nr).padStart(2, '0');
+    updateHeroFeel(nr);
 
-// ── Install Skill button ──
-function installSkill(e) {
-  e.preventDefault();
-  const installSection = document.getElementById('install');
-  if (installSection) {
-    installSection.scrollIntoView({ behavior: 'smooth' });
+    const era = nr <= 30 ? 'Chaos' : nr <= 70 ? 'Transition' : 'Eternal';
+    document.getElementById('beaconRoundNum').textContent = '#' + round;
+    document.getElementById('beaconNumber').textContent = nr;
+    const hex = Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    document.getElementById('beaconHash').textContent = hex + '...';
+    document.getElementById('beaconEra').textContent = era;
+    document.getElementById('beaconEra').style.color = era === 'Chaos' ? '#ff4466' : era === 'Eternal' ? '#4488ff' : 'var(--green-bright)';
+    document.getElementById('beaconContributors').textContent = nodes;
+    document.getElementById('beaconVerified').textContent = '\u26A0\uFE0F';
+    document.getElementById('beaconVerified').style.color = '#ffaa00';
+    document.getElementById('beaconTime').textContent = new Date().toLocaleString();
   }
+  tick();
+  setInterval(tick, 10000);
+}
+
+startLiveConnection();
+
+// ── Tab switching ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
 }
 
 // ── Browser Entropy: Contribute from your browser ──
@@ -1230,24 +1369,50 @@ function toggleBrowserNode(e) {
   const btn = document.getElementById('contributeBtn');
 
   if (browserDaemonStop) {
-    // Stop contributing
     browserDaemonStop();
     browserDaemonStop = null;
-    btn.textContent = '🌐 Contribute Entropy';
+    btn.textContent = 'Contribute Entropy';
     btn.classList.remove('active');
   } else {
-    // Start contributing — load browser entropy module
     const script = document.createElement('script');
     script.src = 'browser-entropy.js';
     script.onload = () => {
       browserEntropy = new BrowserEntropy('https://clawfeel-relay.fly.dev');
-      browserDaemonStop = browserEntropy.startDaemon(30_000);
-      btn.textContent = '🟢 Contributing...';
+      browserDaemonStop = browserEntropy.startDaemon(30000);
+      btn.textContent = '\uD83D\uDFE2 Contributing...';
       btn.classList.add('active');
     };
     document.head.appendChild(script);
   }
 }
+
+// ── Scroll-triggered fade-in animations ──
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
+// ── Architecture layer stagger animation ──
+const archObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const layers = document.querySelectorAll('.arch-layer');
+      layers.forEach((layer, i) => {
+        setTimeout(() => {
+          layer.classList.add('visible');
+        }, i * 120);
+      });
+      archObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+
+archObserver.observe(document.getElementById('archStack'));
 </script>
 </body>
 </html>

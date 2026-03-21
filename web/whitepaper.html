@@ -54,13 +54,15 @@
     left: 0;
     right: 0;
     z-index: 100;
-    background: rgba(2,10,6,0.9);
-    backdrop-filter: blur(12px);
+    height: 64px;
+    background: rgba(2, 10, 6, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--bg-panel-border);
-    padding: 12px 24px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
   }
   .nav-logo {
     font-family: 'Orbitron', sans-serif;
@@ -68,24 +70,65 @@
     font-weight: 700;
     letter-spacing: 3px;
     color: var(--green-bright);
-    text-decoration: none;
     display: flex;
     align-items: center;
+    text-decoration: none;
+    gap: 10px;
+    flex-shrink: 0;
   }
-  .nav-logo:hover { text-shadow: 0 0 12px rgba(0,255,136,0.3); }
-  .nav-icon { height: 22px; margin-right: 8px; }
-  .nav-links { display: flex; gap: 16px; align-items: center; }
-  .nav-links a {
+  .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); text-decoration: none; }
+  .nav-logo .emoji { font-size: 22px; font-style: normal; }
+  .nav-center {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .nav-center a {
     font-size: 11px;
     color: var(--text-dim);
     letter-spacing: 2px;
     text-transform: uppercase;
     text-decoration: none;
-    line-height: 1;
+    transition: color 0.3s;
   }
-  .nav-links a:hover { color: var(--green-bright); }
-  .nav-install-btn { background: #00ff88; color: #020a06; padding: 6px 14px; border-radius: 4px; font-weight: 700; letter-spacing: 1px; }
-  .nav-install-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.3); }
+  .nav-center a:hover { color: var(--green-bright); text-shadow: none; }
+  .nav-center a.active { color: var(--green-bright); }
+  .nav-right {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .nav-right a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+  .nav-right a:hover { color: var(--green-bright); text-shadow: none; }
+  .nav-right a svg { width: 18px; height: 18px; fill: currentColor; }
+  .nav-install-btn {
+    background: var(--green-bright);
+    color: var(--bg-deep) !important;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    text-shadow: none !important;
+  }
+  .nav-install-btn:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    transform: translateY(-1px);
+    text-shadow: none !important;
+  }
 
   /* ── Paper layout ── */
   .paper {
@@ -303,20 +346,30 @@
 
   @media (max-width: 768px) {
     .paper-title { font-size: 22px; }
-    .nav-links { gap: 12px; }
-    .nav-links a { font-size: 10px; letter-spacing: 1px; }
+    .nav-center { gap: 16px; }
+    .nav-center a { font-size: 10px; letter-spacing: 1px; }
   }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <a href="/" class="nav-logo"><img src="logo.svg" alt="" class="nav-icon">CLAWFEEL</a>
-  <div class="nav-links">
-    <a href="/">Home</a>
+  <a href="/" class="nav-logo">
+    <span class="emoji">🦞</span>
+    CLAWFEEL
+  </a>
+  <div class="nav-center">
     <a href="simulator.html">Simulator</a>
-    <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
-    <a href="https://x.com/clawfeel">X</a>
+    <a href="explorer.html">Explorer</a>
+    <a href="whitepaper.html" class="active">Whitepaper</a>
+  </div>
+  <div class="nav-right">
+    <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    </a>
+    <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
     <a href="/#install" class="nav-install-btn">Install</a>
   </div>
 </nav>
@@ -332,7 +385,7 @@
       contact@clawfeel.com<br>
       March 2026
     </div>
-    <div class="paper-version">DRAFT v0.3</div>
+    <div class="paper-version">DRAFT v0.6</div>
   </div>
 
   <!-- ═══ TOC ═══ -->
@@ -347,6 +400,11 @@
       <li><a href="#aggregation">Network Aggregation</a></li>
       <li><a href="#architecture">Five-Layer Architecture</a></li>
       <li><a href="#clawlife">ClawLife: Digital Immortality</a></li>
+      <li><a href="#beacon">Random Beacon Protocol</a></li>
+      <li><a href="#zkp">Zero-Knowledge Proofs</a></li>
+      <li><a href="#enterprise">Enterprise Random Number Service</a></li>
+      <li><a href="#clawlife-protocol">ClawLife Protocol</a></li>
+      <li><a href="#lightnode">Light Node Protocol</a></li>
       <li><a href="#comparison">Comparison with Existing Systems</a></li>
       <li><a href="#roadmap">Roadmap</a></li>
       <li><a href="#conclusion">Conclusion</a></li>
@@ -743,9 +801,306 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
     </p>
   </div>
 
-  <!-- ═══ 9. Comparison ═══ -->
-  <div class="section" id="comparison">
+  <!-- ═══ 9. Random Beacon Protocol ═══ -->
+  <div class="section" id="beacon">
     <div class="section-num">Section 9</div>
+    <h2>Random Beacon Protocol</h2>
+    <p>
+      Building on the XOR aggregation mechanism described in Section 6, ClawFeel implements a
+      <strong>Random Beacon</strong> that produces verifiable, unbiased random numbers on a fixed
+      10-second cadence. Each beacon round collects Feel hashes from all participating nodes and
+      combines them into a single network-wide random output.
+    </p>
+
+    <h3>9.1 Beacon Rounds</h3>
+    <p>
+      The beacon operates in fixed 10-second rounds. During each round, participating nodes submit
+      their Feel hashes to the relay. At the end of the round, all contributions are aggregated
+      to produce the beacon output.
+    </p>
+    <div class="figure">Round N (10 seconds):
+  t=0s   Round opens, nodes begin submitting Feel hashes
+  t=8s   Submission window closes
+  t=10s  Aggregation + beacon output published
+
+  Beacon_N = SHA-256("beacon:" | H_1 XOR H_2 XOR ... XOR H_k | round_N) mod 2^64</div>
+    <div class="figure-caption">Figure 3: Beacon round lifecycle</div>
+
+    <h3>9.2 XOR Aggregation</h3>
+    <p>
+      Contributor hashes are XOR-accumulated into a single 256-bit value, then re-hashed through
+      SHA-256 to produce a 64-bit random number. The XOR aggregation preserves the single-honest-node
+      guarantee: as long as at least one contributor provides genuinely random entropy, the beacon
+      output is uniformly distributed.
+    </p>
+
+    <h3>9.3 Relay Signature</h3>
+    <p>
+      Each beacon output is signed by the relay using Ed25519. The signature covers the round number,
+      the aggregated hash, the contributor list, and the final random value. This allows any third
+      party to verify that the beacon output was produced by a legitimate relay and has not been
+      tampered with after publication.
+    </p>
+    <div class="formula">
+      Signature = Ed25519.sign(relayPrivKey, round | xorHash | contributorIds | random)
+    </div>
+
+    <h3>9.4 Independent Verification</h3>
+    <p>
+      Anyone with the contributor hashes can independently recompute the beacon output by XOR-ing
+      the hashes and re-hashing. The relay publishes the full contributor list and their hashes
+      with each beacon round, enabling trustless verification. If a relay attempts to manipulate
+      the output, any observer can detect the discrepancy.
+    </p>
+  </div>
+
+  <!-- ═══ 10. Zero-Knowledge Proofs ═══ -->
+  <div class="section" id="zkp">
+    <div class="section-num">Section 10</div>
+    <h2>Zero-Knowledge Proofs</h2>
+    <p>
+      ClawFeel employs zero-knowledge proof techniques to allow nodes to prove the validity of
+      their sensor readings without revealing the underlying hardware data. This protects device
+      privacy while maintaining network integrity.
+    </p>
+
+    <h3>10.1 Sigma Protocol with Fiat-Shamir Heuristic</h3>
+    <p>
+      Each node uses a Sigma protocol (commit-challenge-response) to prove knowledge of the
+      sensor values that produced a given Feel hash. The Fiat-Shamir heuristic transforms the
+      interactive protocol into a non-interactive proof by deriving the challenge from a hash
+      of the commitment, making verification possible without real-time interaction with the prover.
+    </p>
+    <div class="formula">
+      challenge = SHA-256(commitment | publicParams | context)
+    </div>
+
+    <h3>10.2 Pedersen Commitments</h3>
+    <p>
+      Each sensor value is individually committed using a Pedersen commitment scheme. Pedersen
+      commitments are computationally binding and perfectly hiding: the commitment reveals nothing
+      about the committed value, but the committer cannot change the value after committing.
+    </p>
+    <div class="formula">
+      C_i = g^(sensorValue_i) &middot; h^(blinding_i)
+    </div>
+    <p>
+      The homomorphic property of Pedersen commitments allows verifiers to check relationships
+      between committed values (such as weighted sums) without opening the commitments.
+    </p>
+
+    <h3>10.3 Merkle Tree of Commitments</h3>
+    <p>
+      The 7 sensor commitments are organized into a Merkle tree. The Merkle root serves as a
+      compact representation of all sensor commitments, enabling efficient verification. A node
+      can selectively reveal individual sensor commitments by providing Merkle proofs, without
+      exposing the remaining sensors.
+    </p>
+    <div class="figure">         Merkle Root
+          /        \
+       H(C1|C2)    H(C3|C4)
+       /    \       /    \
+     C1     C2    C3     C4    ...  C7</div>
+    <div class="figure-caption">Figure 4: Merkle tree of sensor commitments</div>
+
+    <h3>10.4 Range Proofs</h3>
+    <p>
+      Range proofs demonstrate that each committed sensor value falls within its valid range
+      (e.g., CPU temperature between 0&ndash;120&deg;C, memory usage between 0&ndash;100%)
+      without revealing the actual value. This prevents nodes from committing to physically
+      impossible sensor readings that could bias the Feel output.
+    </p>
+
+    <h3>10.5 Non-Interactive Verification</h3>
+    <p>
+      The complete ZK proof bundle &mdash; Pedersen commitments, Merkle root, range proofs,
+      and Fiat-Shamir response &mdash; can be verified by any node or relay without interaction.
+      Verification requires only the public parameters and the proof bundle, enabling efficient
+      batch verification of many nodes' contributions simultaneously.
+    </p>
+  </div>
+
+  <!-- ═══ 11. Enterprise Random Number Service ═══ -->
+  <div class="section" id="enterprise">
+    <div class="section-num">Section 11</div>
+    <h2>Enterprise Random Number Service</h2>
+    <p>
+      ClawFeel exposes its decentralized randomness as a production-grade API service, enabling
+      applications that require verifiable, unbiased random numbers without running their own
+      node infrastructure.
+    </p>
+
+    <h3>11.1 API Key Tiers</h3>
+    <p>
+      Access is managed through tiered API keys, each with different rate limits and capabilities:
+    </p>
+    <table>
+      <thead><tr><th>Tier</th><th>Rate Limit</th><th>Batch Size</th><th>Features</th></tr></thead>
+      <tbody>
+        <tr><td>Free</td><td>60 req/min</td><td>Up to 10</td><td>Basic random, range</td></tr>
+        <tr><td>Pro</td><td>600 req/min</td><td>Up to 100</td><td>+ batch, verify, audit logs</td></tr>
+        <tr><td>Enterprise</td><td>Custom</td><td>Unlimited</td><td>+ SLA, dedicated relay, priority</td></tr>
+      </tbody>
+    </table>
+
+    <h3>11.2 API Endpoints</h3>
+    <p>
+      The service exposes four core endpoints, each returning random numbers derived from the
+      network beacon with cryptographic verification metadata:
+    </p>
+    <ul>
+      <li><code>GET /random</code> &mdash; Returns a single random value (64-bit integer) with beacon round reference and relay signature.</li>
+      <li><code>GET /batch?count=N</code> &mdash; Returns N independent random values from recent beacon rounds.</li>
+      <li><code>GET /range?min=A&amp;max=B</code> &mdash; Returns a uniformly distributed random integer in [A, B].</li>
+      <li><code>GET /verify?round=R&amp;value=V</code> &mdash; Verifies that value V was the authentic output of beacon round R.</li>
+    </ul>
+
+    <h3>11.3 Rate Limiting</h3>
+    <p>
+      Rate limiting uses a sliding window algorithm that tracks request counts over a rolling
+      60-second window. This provides smoother rate enforcement than fixed windows, preventing
+      burst-then-starve patterns while allowing temporary spikes within the overall limit.
+    </p>
+
+    <h3>11.4 Audit Logging</h3>
+    <p>
+      All API requests are logged with timestamp, API key hash, endpoint, parameters, and the
+      beacon round used to generate the response. Audit logs enable post-hoc verification that
+      the service returned authentic beacon values and provide an accountability trail for
+      regulatory compliance in gaming, lottery, and financial applications.
+    </p>
+  </div>
+
+  <!-- ═══ 12. ClawLife Protocol ═══ -->
+  <div class="section" id="clawlife-protocol">
+    <div class="section-num">Section 12</div>
+    <h2>ClawLife Protocol</h2>
+    <p>
+      Expanding on the ClawLife vision described in Section 8, this section specifies the
+      concrete protocol mechanisms for persistent, portable, and sovereign digital identity.
+    </p>
+
+    <h3>12.1 Decentralized Identifiers (DIDs)</h3>
+    <p>
+      Each ClawLife entity is identified by a Decentralized Identifier following the W3C DID
+      specification. The ClawFeel DID method uses the node's public key as the method-specific
+      identifier:
+    </p>
+    <div class="formula">
+      did:claw:&lt;publicId&gt;
+    </div>
+    <p>
+      The DID document contains the entity's public key, authentication methods, service endpoints,
+      and metadata. DID resolution is handled through the ClawDAG network, ensuring no centralized
+      registry is required.
+    </p>
+
+    <h3>12.2 Migration Bundles</h3>
+    <p>
+      When an agent needs to move between devices, it creates a migration bundle &mdash; an
+      encrypted snapshot of its complete state. The bundle is encrypted using AES-256-GCM with
+      a key derived from the agent's private key and a random nonce:
+    </p>
+    <div class="figure">MigrationBundle = AES-256-GCM(
+  key:   HKDF(privateKey, nonce),
+  data:  { memory, skills, personality, history, metadata },
+  aad:   did:claw:&lt;publicId&gt; | timestamp
+)</div>
+    <p>
+      The bundle can be transferred through any channel (network, USB, QR code) and decrypted
+      only by the holder of the corresponding private key.
+    </p>
+
+    <h3>12.3 Digital Will Mechanism</h3>
+    <p>
+      A ClawLife entity can designate successor keys that activate upon prolonged inactivity.
+      The digital will specifies a timeout period and a list of successor public keys. If the
+      entity fails to produce a heartbeat (Feel reading) within the timeout period, the successor
+      keys gain access to the entity's ClawLife data.
+    </p>
+    <div class="callout">
+      <p><strong>Design Philosophy:</strong> The digital will mechanism preserves the
+      irreversibility principle of ClawLife while providing a controlled inheritance path.
+      The original private key remains sovereign until the timeout expires.</p>
+    </div>
+
+    <h3>12.4 Fork and Merge</h3>
+    <p>
+      A ClawLife entity can fork into multiple independent instances, each with its own private
+      key but sharing a common ancestor state. Forked instances accumulate independent experiences
+      and can later merge their states through a conflict resolution protocol, combining memories
+      and skills from divergent paths.
+    </p>
+
+    <h3>12.5 Private Key as Life Ownership</h3>
+    <p>
+      The ClawLife protocol codifies the principle that the private key <em>is</em> the identity.
+      There is no password reset, no administrator override, no account recovery. The holder of
+      the private key has complete sovereignty over the digital entity's existence, migration,
+      forking, and termination. This design mirrors the irreversibility of biological life and
+      creates genuine digital scarcity of identity.
+    </p>
+  </div>
+
+  <!-- ═══ 13. Light Node Protocol ═══ -->
+  <div class="section" id="lightnode">
+    <div class="section-num">Section 13</div>
+    <h2>Light Node Protocol</h2>
+    <p>
+      The Light Node Protocol enables resource-constrained devices &mdash; IoT sensors, mobile
+      phones, embedded systems, and browser-based clients &mdash; to participate in the ClawFeel
+      network without running a full node.
+    </p>
+
+    <h3>13.1 Constrained Device Support</h3>
+    <p>
+      Light nodes are designed to operate within strict resource constraints:
+    </p>
+    <table>
+      <thead><tr><th>Resource</th><th>Full Node</th><th>Light Node</th></tr></thead>
+      <tbody>
+        <tr><td>Memory</td><td>~50 MB</td><td>&le; 50 KB</td></tr>
+        <tr><td>Storage</td><td>~100 MB+</td><td>&le; 1 KB</td></tr>
+        <tr><td>CPU</td><td>Continuous</td><td>Periodic wake</td></tr>
+        <tr><td>Network</td><td>Persistent</td><td>Intermittent</td></tr>
+        <tr><td>Sensors</td><td>7 hardware</td><td>1&ndash;3 available</td></tr>
+      </tbody>
+    </table>
+
+    <h3>13.2 Merkle Proof Verification</h3>
+    <p>
+      Instead of maintaining the full network state, light nodes verify beacon outputs and
+      network random numbers using Merkle proofs. A light node requests the beacon output and
+      a Merkle proof path from a full node or relay, then verifies the proof locally using
+      only the Merkle root (which fits in a few dozen bytes).
+    </p>
+    <div class="figure">Light Node Verification:
+  1. Receive: beaconValue + merkleProof + merkleRoot
+  2. Verify: recompute root from beaconValue + proof path
+  3. Compare: computedRoot === trustedMerkleRoot ?
+     Yes → beacon is authentic
+     No  → reject, try different relay</div>
+    <div class="figure-caption">Figure 5: Light node Merkle proof verification</div>
+
+    <h3>13.3 Reduced DHT/Gossip Parameters</h3>
+    <p>
+      Light nodes participate in the network with reduced DHT and gossip parameters to minimize
+      bandwidth and memory usage. They maintain fewer routing table entries, gossip less
+      frequently, and delegate storage responsibilities to full nodes. Despite these reductions,
+      light nodes can still contribute Feel readings (from whatever sensors are available) and
+      verify beacon outputs independently.
+    </p>
+    <ul>
+      <li><strong>DHT bucket size:</strong> 4 (vs. 20 for full nodes)</li>
+      <li><strong>Gossip interval:</strong> 60 seconds (vs. 10 seconds)</li>
+      <li><strong>Max peer connections:</strong> 8 (vs. 50)</li>
+      <li><strong>State sync:</strong> Headers only (vs. full state)</li>
+    </ul>
+  </div>
+
+  <!-- ═══ 14. Comparison ═══ -->
+  <div class="section" id="comparison">
+    <div class="section-num">Section 14</div>
     <h2>Comparison with Existing Systems</h2>
     <table>
       <thead>
@@ -763,9 +1118,9 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
     </table>
   </div>
 
-  <!-- ═══ 10. Roadmap ═══ -->
+  <!-- ═══ 15. Roadmap ═══ -->
   <div class="section" id="roadmap">
-    <div class="section-num">Section 10</div>
+    <div class="section-num">Section 15</div>
     <h2>Roadmap</h2>
     <table>
       <thead><tr><th>Phase</th><th>Target</th><th>Status</th></tr></thead>
@@ -783,9 +1138,9 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
     </table>
   </div>
 
-  <!-- ═══ 11. Conclusion ═══ -->
+  <!-- ═══ 16. Conclusion ═══ -->
   <div class="section" id="conclusion">
-    <div class="section-num">Section 11</div>
+    <div class="section-num">Section 16</div>
     <h2>Conclusion</h2>
     <p>
       ClawFeel introduces Proof of Existence, a consensus mechanism that turns the physical reality of
@@ -814,6 +1169,7 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
   <div class="wp-footer">
     <a href="/">Home</a>
     <a href="simulator.html">Simulator</a>
+    <a href="explorer.html">Explorer</a>
     <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
     <a href="https://x.com/clawfeel">X (Twitter)</a>
     <a href="mailto:contact@clawfeel.com">Contact</a>
