@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawFeel Explorer — Transaction & Node Browser</title>
+<link rel="icon" href="logo.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --green-bright: #00ff88;
+    --green-mid: #00cc6a;
+    --green-dim: #00994d;
+    --green-dark: #003d1f;
+    --green-glow: rgba(0, 255, 136, 0.3);
+    --bg-deep: #020a06;
+    --bg-panel: rgba(0, 255, 136, 0.03);
+    --bg-panel-border: rgba(0, 255, 136, 0.12);
+    --text-dim: #447755;
+    --text-body: #88bbaa;
+    --red-chaos: #ff3344;
+    --yellow-trans: #ccff00;
+    --blue-eternal: #00ccff;
+    --orange-warn: #ff8800;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--green-bright);
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.012) 2px, rgba(0,255,136,0.012) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  a { color: var(--green-bright); text-decoration: none; transition: all 0.3s; }
+  a:hover { text-shadow: 0 0 12px var(--green-glow); }
+
+  /* ── Nav ── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(2,10,6,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--bg-panel-border);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 3px; color: var(--green-bright); text-decoration: none; display: flex; align-items: center; }
+  .nav-logo:hover { text-shadow: 0 0 12px var(--green-glow); }
+  .nav-icon { height: 22px; margin-right: 8px; }
+  .nav-links { display: flex; gap: 16px; align-items: center; }
+  .nav-links a { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; text-decoration: none; line-height: 1; }
+  .nav-links a:hover { color: var(--green-bright); }
+  .nav-links a.active { color: var(--green-bright); }
+  .nav-install-btn { background: var(--green-bright); color: #020a06; padding: 6px 14px; border-radius: 4px; font-weight: 700; letter-spacing: 1px; }
+  .nav-install-btn:hover { box-shadow: 0 0 15px rgba(0,255,136,0.3); }
+
+  /* ── Main content ── */
+  .content { position: relative; z-index: 1; padding-top: 70px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ── */
+  .page-header { text-align: center; padding: 30px 0 20px; }
+  .page-title { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 40px var(--green-glow); }
+  .page-subtitle { font-size: 11px; color: var(--text-dim); letter-spacing: 4px; margin-top: 8px; text-transform: uppercase; }
+
+  /* ── Search ── */
+  .search-bar {
+    max-width: 600px;
+    margin: 24px auto;
+    position: relative;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--bg-panel);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 4px;
+    padding: 12px 16px 12px 40px;
+    color: var(--green-bright);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    outline: none;
+    transition: all 0.3s;
+  }
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-input:focus { border-color: var(--green-mid); box-shadow: 0 0 20px rgba(0,255,136,0.1); }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  /* ── Overview cards ── */
+  .overview-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .overview-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .overview-card:hover { border-color: var(--green-dim); }
+  .overview-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    text-shadow: 0 0 20px var(--green-glow);
+  }
+  .overview-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--bg-panel-border);
+  }
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .section-count {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    color: var(--green-dim);
+  }
+
+  /* ── Transaction table ── */
+  .tx-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .tx-table th {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--bg-panel-border);
+  }
+  .tx-table td {
+    font-size: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0,255,136,0.05);
+    color: var(--text-body);
+  }
+  .tx-table tr { cursor: pointer; transition: all 0.2s; }
+  .tx-table tbody tr:hover { background: rgba(0,255,136,0.04); }
+
+  .tx-hash { font-family: 'JetBrains Mono', monospace; color: var(--green-mid); }
+  .tx-hash:hover { color: var(--green-bright); }
+
+  .era-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .era-badge.chaos { color: var(--red-chaos); background: rgba(255,51,68,0.1); border: 1px solid rgba(255,51,68,0.2); }
+  .era-badge.transition { color: var(--yellow-trans); background: rgba(204,255,0,0.08); border: 1px solid rgba(204,255,0,0.2); }
+  .era-badge.eternal { color: var(--blue-eternal); background: rgba(0,204,255,0.08); border: 1px solid rgba(0,204,255,0.2); }
+
+  .feel-value { font-family: 'Orbitron', sans-serif; font-weight: 700; }
+
+  /* ── Detail panel (overlay) ── */
+  .detail-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2,10,6,0.9);
+    z-index: 200;
+    overflow-y: auto;
+  }
+  .detail-overlay.active { display: flex; justify-content: center; align-items: flex-start; padding: 80px 24px 40px; }
+
+  .detail-panel {
+    background: var(--bg-deep);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 6px;
+    max-width: 700px;
+    width: 100%;
+    padding: 32px;
+    position: relative;
+  }
+  .detail-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 18px;
+    color: var(--text-dim);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    transition: color 0.2s;
+  }
+  .detail-close:hover { color: var(--green-bright); }
+
+  .detail-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+    color: var(--green-bright);
+  }
+
+  .detail-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,255,136,0.05);
+  }
+  .detail-label {
+    width: 140px;
+    flex-shrink: 0;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding-top: 2px;
+  }
+  .detail-value {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-body);
+    word-break: break-all;
+  }
+  .detail-value a { color: var(--green-mid); }
+  .detail-value a:hover { color: var(--green-bright); }
+
+  .verification-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .verification-badge.verified { color: var(--green-bright); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); }
+  .verification-badge.unverified { color: var(--orange-warn); background: rgba(255,136,0,0.1); border: 1px solid rgba(255,136,0,0.2); }
+
+  /* ── Node detail extras ── */
+  .node-status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .node-status.online { background: var(--green-bright); box-shadow: 0 0 8px var(--green-glow); }
+  .node-status.offline { background: var(--red-chaos); }
+
+  .reputation-bar {
+    display: inline-block;
+    width: 100px;
+    height: 6px;
+    background: rgba(0,255,136,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .reputation-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+
+  /* ── Loading ── */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--green-dim);
+    border-top-color: var(--green-bright);
+    border-radius: 50%;
+    margin-left: 8px;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    border-top: 1px solid var(--bg-panel-border);
+    margin-top: 60px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .page-title { font-size: 22px; letter-spacing: 3px; }
+    .overview-cards { grid-template-columns: 1fr; }
+    .overview-value { font-size: 28px; }
+    .tx-table { font-size: 11px; }
+    .tx-table th, .tx-table td { padding: 8px 6px; }
+    .detail-panel { padding: 20px; }
+    .detail-label { width: 100px; font-size: 9px; }
+    .detail-value { font-size: 12px; }
+    .nav-links { gap: 10px; }
+    .nav-links a { font-size: 10px; letter-spacing: 1px; }
+    .hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo"><img src="logo.svg" alt="" class="nav-icon">CLAWFEEL</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="simulator.html">Simulator</a>
+    <a href="explorer.html" class="active">Explorer</a>
+    <a href="whitepaper.html" class="hide-mobile">Whitepaper</a>
+    <a href="https://github.com/clawfeel/clawfeel" class="hide-mobile">GitHub</a>
+    <a href="/#install" class="nav-install-btn">Install</a>
+  </div>
+</nav>
+
+<div class="content">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-title">EXPLORER</div>
+      <div class="page-subtitle">Transaction & Node Browser</div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <span class="search-icon">&#x1F50D;</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search by tx hash (8+ chars) or node clawId / alias..." oninput="handleSearch()">
+    </div>
+
+    <!-- Overview cards -->
+    <div class="overview-cards">
+      <div class="overview-card">
+        <div class="overview-value" id="totalNodes">--</div>
+        <div class="overview-label">Online Nodes</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-value" id="totalTxs">--</div>
+        <div class="overview-label">Total Transactions</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-value" id="latestBeacon">--</div>
+        <div class="overview-label">Latest Beacon Round</div>
+      </div>
+    </div>
+
+    <!-- Tx list -->
+    <div class="section-header">
+      <div class="section-title">Recent Transactions</div>
+      <div class="section-count" id="txCount"></div>
+    </div>
+    <div id="txListContainer">
+      <div class="loading">Loading transactions</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">CLAWFEEL EXPLORER &mdash; Real-time network transparency</div>
+
+  </div>
+</div>
+
+<!-- Detail overlay -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-panel" id="detailPanel">
+    <button class="detail-close" onclick="closeDetail()">[X]</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+const RELAY = 'https://clawfeel-relay.fly.dev';
+let searchTimeout = null;
+
+// ── Helpers ──
+function shortHash(h) { return h ? h.substring(0, 12) + '...' : '--'; }
+function eraClass(era) { return (era || 'transition').toLowerCase().replace('chaos','chaos').replace('eternal','eternal').replace('transition','transition'); }
+function feelColor(feel) {
+  if (feel <= 30) return 'var(--red-chaos)';
+  if (feel <= 70) return 'var(--yellow-trans)';
+  return 'var(--blue-eternal)';
+}
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+// ── Load overview ──
+async function loadOverview() {
+  try {
+    const res = await fetch(RELAY + '/api/explorer/overview');
+    const d = await res.json();
+    document.getElementById('totalNodes').textContent = d.totalNodes ?? '--';
+    document.getElementById('totalTxs').textContent = d.totalTxs ?? '--';
+    document.getElementById('latestBeacon').textContent = d.latestBeacon != null ? '#' + d.latestBeacon : '--';
+  } catch {
+    // silent
+  }
+}
+
+// ── Load transactions ──
+async function loadTransactions(search) {
+  const container = document.getElementById('txListContainer');
+  const countEl = document.getElementById('txCount');
+  try {
+    let url = RELAY + '/api/explorer/txs?limit=50';
+    if (search) url += '&search=' + encodeURIComponent(search);
+    const res = await fetch(url);
+    const txs = await res.json();
+    countEl.textContent = txs.length + ' tx';
+
+    if (txs.length === 0) {
+      container.innerHTML = '<div class="empty-state">No transactions found</div>';
+      return;
+    }
+
+    let html = '<table class="tx-table"><thead><tr>';
+    html += '<th>Hash</th><th>Node</th><th>Feel</th><th>Era</th><th>Time</th>';
+    html += '</tr></thead><tbody>';
+
+    for (const tx of txs) {
+      const ec = eraClass(tx.era);
+      html += `<tr onclick="showTxDetail('${tx.hash}')">`;
+      html += `<td><span class="tx-hash">${shortHash(tx.hash)}</span></td>`;
+      html += `<td><a onclick="event.stopPropagation();showNodeDetail('${tx.clawId}')">${tx.alias || tx.clawId}</a></td>`;
+      html += `<td><span class="feel-value" style="color:${feelColor(tx.feel)}">${tx.feel}</span></td>`;
+      html += `<td><span class="era-badge ${ec}">${tx.era || '--'}</span></td>`;
+      html += `<td style="color:var(--text-dim);font-size:11px">${tx.timestamp ? timeAgo(tx.timestamp) : '--'}</td>`;
+      html += '</tr>';
+    }
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch {
+    container.innerHTML = '<div class="empty-state">Unable to connect to relay</div>';
+    countEl.textContent = '';
+  }
+}
+
+// ── Search handler ──
+function handleSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    const q = document.getElementById('searchInput').value.trim();
+    loadTransactions(q);
+  }, 300);
+}
+
+// ── Tx detail ──
+async function showTxDetail(hash) {
+  const overlay = document.getElementById('detailOverlay');
+  const content = document.getElementById('detailContent');
+  overlay.classList.add('active');
+  content.innerHTML = '<div class="loading">Loading transaction</div>';
+
+  try {
+    const res = await fetch(RELAY + '/api/explorer/tx/' + encodeURIComponent(hash));
+    if (!res.ok) throw new Error('not found');
+    const tx = await res.json();
+
+    const ec = eraClass(tx.era);
+    const verified = (tx.authenticity != null && tx.authenticity >= 5);
+    const badgeClass = verified ? 'verified' : 'unverified';
+    const badgeText = verified ? 'VERIFIED' : 'LOW AUTH';
+
+    let parentLinks = '--';
+    if (tx.prevHash && tx.prevHash !== '0000000000000000') {
+      parentLinks = `<a href="#" onclick="event.preventDefault();showTxDetail('${tx.prevHash}')">${tx.prevHash}</a>`;
+    }
+
+    content.innerHTML = `
+      <div class="detail-title">TRANSACTION DETAIL</div>
+      <div class="detail-row"><div class="detail-label">Hash</div><div class="detail-value">${tx.hash || '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Parent Hash</div><div class="detail-value">${parentLinks}</div></div>
+      <div class="detail-row"><div class="detail-label">Node</div><div class="detail-value"><a href="#" onclick="event.preventDefault();closeDetail();showNodeDetail('${tx.clawId}')">${tx.alias || tx.clawId}</a> (${tx.clawId})</div></div>
+      <div class="detail-row"><div class="detail-label">Feel</div><div class="detail-value"><span class="feel-value" style="color:${feelColor(tx.feel)}">${tx.feel}</span></div></div>
+      <div class="detail-row"><div class="detail-label">Era</div><div class="detail-value"><span class="era-badge ${ec}">${tx.era || '--'}</span></div></div>
+      <div class="detail-row"><div class="detail-label">Timestamp</div><div class="detail-value">${tx.timestamp || '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Sequence</div><div class="detail-value">${tx.seq ?? '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Authenticity</div><div class="detail-value">${tx.authenticity ?? '--'} / 7</div></div>
+      <div class="detail-row"><div class="detail-label">Entropy Quality</div><div class="detail-value">${tx.entropyQuality ?? '--'}%</div></div>
+      <div class="detail-row"><div class="detail-label">Sensor Flags</div><div class="detail-value" style="letter-spacing:3px">${tx.sensorFlags || '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Verification</div><div class="detail-value"><span class="verification-badge ${badgeClass}">${badgeText}</span></div></div>
+    `;
+  } catch {
+    content.innerHTML = '<div class="empty-state">Transaction not found</div>';
+  }
+}
+
+// ── Node detail ──
+async function showNodeDetail(id) {
+  const overlay = document.getElementById('detailOverlay');
+  const content = document.getElementById('detailContent');
+  overlay.classList.add('active');
+  content.innerHTML = '<div class="loading">Loading node</div>';
+
+  try {
+    const res = await fetch(RELAY + '/api/explorer/node/' + encodeURIComponent(id));
+    if (!res.ok) throw new Error('not found');
+    const node = await res.json();
+
+    const ec = eraClass(node.era);
+    const isOnline = node.online !== false;
+    const statusClass = isOnline ? 'online' : 'offline';
+    const statusText = isOnline ? 'Online' : 'Offline';
+    const rep = node.reputation ?? 50;
+    const repColor = rep >= 70 ? 'var(--green-bright)' : rep >= 40 ? 'var(--yellow-trans)' : 'var(--red-chaos)';
+
+    content.innerHTML = `
+      <div class="detail-title">NODE DETAIL</div>
+      <div class="detail-row"><div class="detail-label">Alias</div><div class="detail-value">${node.alias || '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Claw ID</div><div class="detail-value">${node.clawId || '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="node-status ${statusClass}"></span>${statusText}</div></div>
+      <div class="detail-row"><div class="detail-label">Type</div><div class="detail-value" style="text-transform:uppercase;letter-spacing:2px;font-size:11px">${node.type || 'node'}</div></div>
+      <div class="detail-row"><div class="detail-label">Feel</div><div class="detail-value"><span class="feel-value" style="color:${feelColor(node.feel)}">${node.feel ?? '--'}</span></div></div>
+      <div class="detail-row"><div class="detail-label">Era</div><div class="detail-value"><span class="era-badge ${ec}">${node.era || '--'}</span></div></div>
+      <div class="detail-row"><div class="detail-label">Entropy Quality</div><div class="detail-value">${node.entropyQuality ?? '--'}%</div></div>
+      <div class="detail-row"><div class="detail-label">Authenticity</div><div class="detail-value">${node.authenticity ?? '--'} / 7</div></div>
+      <div class="detail-row"><div class="detail-label">Reputation</div><div class="detail-value"><span class="reputation-bar"><span class="reputation-fill" style="width:${rep}%;background:${repColor}"></span></span> ${rep}</div></div>
+      <div class="detail-row"><div class="detail-label">Sensor Flags</div><div class="detail-value" style="letter-spacing:3px">${node.sensorFlags || '--'}</div></div>
+      <div class="detail-row"><div class="detail-label">Alerts</div><div class="detail-value" style="color:${node.alerts?.length ? 'var(--red-chaos)' : 'var(--text-dim)'}">${node.alerts?.length ? node.alerts.join(', ') : 'None'}</div></div>
+      <div class="detail-row"><div class="detail-label">Last Seen</div><div class="detail-value">${node.lastSeen ? timeAgo(new Date(node.lastSeen).toISOString()) : '--'}</div></div>
+    `;
+  } catch {
+    content.innerHTML = '<div class="empty-state">Node not found</div>';
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('active');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+// ── Init ──
+loadOverview();
+loadTransactions('');
+
+// Auto-refresh every 10s
+setInterval(() => {
+  loadOverview();
+  const q = document.getElementById('searchInput').value.trim();
+  loadTransactions(q);
+}, 10000);
+</script>
+
+</body>
+</html>

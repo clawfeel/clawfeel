@@ -37,6 +37,8 @@ const DATA_DIR = path.join(os.homedir(), ".clawfeel");
 const nodes = new Map();       // clawId → nodeState
 const sseClients = new Set();  // active SSE response objects
 const ipClawCount = new Map(); // ip → Set<clawId> (Sybil tracking)
+const txLog = [];              // recent tx reports (max 1000)
+const TX_LOG_MAX = 1000;
 
 const NODE_TIMEOUT_MS = 60_000;   // offline after 60s silence
 const RATE_LIMIT_MS = 800;        // min interval between reports per node
@@ -397,6 +399,26 @@ const server = createServer(async (req, res) => {
       }
       const ip = getClientIP(req);
       const result = updateNode(clawId, ip, body);
+
+      // Log transaction for explorer
+      if (result.ok) {
+        txLog.push({
+          hash: body.hash || "0000000000000000",
+          prevHash: body.prevHash || "0000000000000000",
+          clawId,
+          alias: body.alias || nodes.get(clawId)?.alias || "unknown",
+          feel: body.feel,
+          era: body.era || "Transition",
+          seq: body.seq || 0,
+          authenticity: body.authenticity ?? 7,
+          entropyQuality: body.entropyQuality ?? 80,
+          sensorFlags: body.sensorFlags || "1111111",
+          timestamp: body.timestamp || new Date().toISOString(),
+          type: body.type || "node",
+        });
+        if (txLog.length > TX_LOG_MAX) txLog.splice(0, txLog.length - TX_LOG_MAX);
+      }
+
       res.writeHead(result.ok ? 200 : 429, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ...result, peers: nodes.size }));
     } catch (err) {
@@ -509,6 +531,111 @@ const server = createServer(async (req, res) => {
       sseClients: sseClients.size,
       dhtPort: DHT_PORT,
       uptime: Math.round(process.uptime()),
+    }));
+    return;
+  }
+
+  // ── GET /api/explorer/overview ──
+  if (req.method === "GET" && path === "/api/explorer/overview") {
+    const onlineCount = [...nodes.values()].filter(
+      n => Date.now() - n.lastSeen < NODE_TIMEOUT_MS
+    ).length;
+    const latestBeacon = beaconManager.getLatest();
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      totalNodes: onlineCount,
+      totalTxs: txLog.length,
+      latestBeacon: latestBeacon ? latestBeacon.toJSON().round : null,
+    }));
+    return;
+  }
+
+  // ── GET /api/explorer/txs?search=&limit=50 ──
+  if (req.method === "GET" && path === "/api/explorer/txs") {
+    const search = url.searchParams.get("search") || "";
+    const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
+    let results = [...txLog].reverse(); // newest first
+    if (search.length > 0) {
+      const q = search.toLowerCase();
+      results = results.filter(tx =>
+        (tx.hash && tx.hash.toLowerCase().startsWith(q)) ||
+        (tx.clawId && tx.clawId.toLowerCase().includes(q)) ||
+        (tx.alias && tx.alias.toLowerCase().includes(q))
+      );
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(results.slice(0, limit)));
+    return;
+  }
+
+  // ── GET /api/explorer/tx/:hash ──
+  if (req.method === "GET" && path.startsWith("/api/explorer/tx/")) {
+    const hashPrefix = path.split("/api/explorer/tx/")[1];
+    if (!hashPrefix || hashPrefix.length < 8) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Hash prefix must be at least 8 characters" }));
+      return;
+    }
+    const prefix = hashPrefix.toLowerCase();
+    const tx = [...txLog].reverse().find(t => t.hash && t.hash.toLowerCase().startsWith(prefix));
+    if (!tx) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Transaction not found" }));
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(tx));
+    return;
+  }
+
+  // ── GET /api/explorer/node/:id ──
+  if (req.method === "GET" && path.startsWith("/api/explorer/node/")) {
+    const nodeId = decodeURIComponent(path.split("/api/explorer/node/")[1] || "");
+    if (!nodeId) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Missing node id" }));
+      return;
+    }
+    const q = nodeId.toLowerCase();
+    let found = null;
+    for (const [, n] of nodes) {
+      if (n.clawId.toLowerCase() === q || (n.alias && n.alias.toLowerCase() === q)) {
+        found = n;
+        break;
+      }
+    }
+    // Partial match fallback
+    if (!found) {
+      for (const [, n] of nodes) {
+        if (n.clawId.toLowerCase().includes(q) || (n.alias && n.alias.toLowerCase().includes(q))) {
+          found = n;
+          break;
+        }
+      }
+    }
+    if (!found) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Node not found" }));
+      return;
+    }
+    const isOnline = Date.now() - found.lastSeen < NODE_TIMEOUT_MS;
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      clawId: found.clawId,
+      alias: found.alias,
+      feel: found.feel,
+      era: found.era,
+      hash: found.hash,
+      authenticity: found.authenticity,
+      entropyQuality: found.entropyQuality,
+      reputation: Math.round(found.reputation),
+      seq: found.seq,
+      sensorFlags: found.sensorFlags,
+      alerts: found.alerts,
+      type: found.type || "node",
+      online: isOnline,
+      lastSeen: found.lastSeen,
+      firstSeen: found.firstSeen,
     }));
     return;
   }
