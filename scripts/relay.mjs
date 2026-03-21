@@ -10,20 +10,30 @@
 //  Usage:
 //    node relay.mjs                    # start on port 3415
 //    node relay.mjs --port 8080        # custom port
+//    node relay.mjs --admin-key KEY    # set admin API key
 //
 //  API:
 //    POST /api/report    — Claw nodes report their Feel
 //    GET  /api/network   — Current network state (JSON)
 //    GET  /api/stream    — Server-Sent Events (real-time)
 //    GET  /              — Health check / status
+//
+//  Enterprise API (requires API key):
+//    GET  /api/v1/random        — single random number
+//    GET  /api/v1/random/batch  — batch random numbers
+//    GET  /api/v1/random/range  — random integer in range
+//    GET  /api/v1/random/verify — verify a beacon round
+//    GET  /api/v1/status        — API usage stats
+//    GET  /api/v1/audit         — audit log (enterprise only)
 // ═══════════════════════════════════════════════════════════════════
 
 import { createServer } from "node:http";
-import { createHash, generateKeyPairSync } from "node:crypto";
+import { createHash, generateKeyPairSync, randomBytes } from "node:crypto";
 import { argv } from "node:process";
 import os from "node:os";
 import path from "node:path";
-import { BeaconManager } from "./beacon.mjs";
+import { BeaconManager, BeaconRound } from "./beacon.mjs";
+import { ClawZKP } from "./zkp.mjs";
 
 // ── Args ──
 const args = argv.slice(2);
@@ -31,6 +41,8 @@ const portIdx = args.indexOf("--port");
 const PORT = portIdx !== -1 && args[portIdx + 1] ? parseInt(args[portIdx + 1], 10) : 3415;
 const dhtPortIdx = args.indexOf("--dht-port");
 const DHT_PORT = dhtPortIdx !== -1 && args[dhtPortIdx + 1] ? parseInt(args[dhtPortIdx + 1], 10) : 31416;
+const adminKeyIdx = args.indexOf("--admin-key");
+const ADMIN_KEY = adminKeyIdx !== -1 && args[adminKeyIdx + 1] ? args[adminKeyIdx + 1] : null;
 const DATA_DIR = path.join(os.homedir(), ".clawfeel");
 
 // ── State ──
@@ -44,6 +56,130 @@ const NODE_TIMEOUT_MS = 60_000;   // offline after 60s silence
 const RATE_LIMIT_MS = 800;        // min interval between reports per node
 const SSE_INTERVAL_MS = 2_000;    // push updates every 2s
 const MAX_HISTORY = 20;           // readings history per node
+
+// ── Enterprise API: Key Management ──
+// {key, tier, rateLimit, requestCount, createdAt, windowStart, windowRequests}
+const apiKeys = new Map();
+
+const TIER_LIMITS = {
+  free:       100,    // 100 req/hour
+  pro:        10_000, // 10000 req/hour
+  enterprise: Infinity,
+};
+const RATE_WINDOW_MS = 3_600_000; // 1 hour sliding window
+
+function generateApiKey() {
+  return "cf_" + randomBytes(24).toString("hex"); // cf_ + 48 hex chars
+}
+
+function createApiKey(tier = "free") {
+  const key = generateApiKey();
+  apiKeys.set(key, {
+    key,
+    tier,
+    rateLimit: TIER_LIMITS[tier] || TIER_LIMITS.free,
+    requestCount: 0,
+    createdAt: Date.now(),
+    windowStart: Date.now(),
+    windowRequests: 0,
+  });
+  return key;
+}
+
+/**
+ * Validate API key from Authorization: Bearer <key> header.
+ * Enforces sliding window rate limit.
+ * Returns {ok, tier, remaining, resetAt} or {ok: false, error, status}.
+ */
+function validateApiKey(req) {
+  const authHeader = req.headers["authorization"] || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    return { ok: false, error: "Missing API key. Use Authorization: Bearer <key>", status: 401 };
+  }
+
+  const key = match[1].trim();
+  const entry = apiKeys.get(key);
+  if (!entry) {
+    return { ok: false, error: "Invalid API key", status: 401 };
+  }
+
+  const now = Date.now();
+
+  // Slide the window if expired
+  if (now - entry.windowStart >= RATE_WINDOW_MS) {
+    entry.windowStart = now;
+    entry.windowRequests = 0;
+  }
+
+  // Check rate limit
+  const remaining = entry.rateLimit - entry.windowRequests;
+  const resetAt = entry.windowStart + RATE_WINDOW_MS;
+
+  if (remaining <= 0) {
+    const retryAfter = Math.ceil((resetAt - now) / 1000);
+    return {
+      ok: false,
+      error: "Rate limit exceeded",
+      status: 429,
+      retryAfter,
+      remaining: 0,
+      resetAt,
+      tier: entry.tier,
+    };
+  }
+
+  // Consume one request
+  entry.windowRequests++;
+  entry.requestCount++;
+
+  return {
+    ok: true,
+    tier: entry.tier,
+    remaining: entry.rateLimit - entry.windowRequests,
+    resetAt,
+    key,
+  };
+}
+
+// Set rate limit headers on response
+function setRateLimitHeaders(res, auth) {
+  if (auth && auth.ok !== false) {
+    res.setHeader("X-RateLimit-Remaining", String(auth.remaining));
+    res.setHeader("X-RateLimit-Reset", String(Math.ceil(auth.resetAt / 1000)));
+  }
+}
+
+// ── Enterprise API: Audit Log ──
+const auditLog = [];
+const AUDIT_LOG_MAX = 500;
+
+function logAudit(apiKeyRaw, endpoint, params, responseHash) {
+  const masked = apiKeyRaw
+    ? apiKeyRaw.substring(0, 7) + "..." + apiKeyRaw.substring(apiKeyRaw.length - 4)
+    : "unknown";
+  auditLog.push({
+    timestamp: new Date().toISOString(),
+    apiKey: masked,
+    endpoint,
+    params,
+    responseHash,
+  });
+  if (auditLog.length > AUDIT_LOG_MAX) auditLog.splice(0, auditLog.length - AUDIT_LOG_MAX);
+}
+
+// Bootstrap admin key if provided via CLI
+if (ADMIN_KEY) {
+  apiKeys.set(ADMIN_KEY, {
+    key: ADMIN_KEY,
+    tier: "enterprise",
+    rateLimit: TIER_LIMITS.enterprise,
+    requestCount: 0,
+    createdAt: Date.now(),
+    windowStart: Date.now(),
+    windowRequests: 0,
+  });
+}
 
 // ── Hash utilities (same as simulator) ──
 function simHash(str) {
@@ -103,6 +239,7 @@ function updateNode(clawId, ip, data) {
       sensors: data.sensors || {},
       timestamp: data.timestamp || new Date().toISOString(),
       type: data.type || "node", // "node" (hardware) or "browser" (light)
+      zkpVerified: null,           // null = no proof, true = valid, false = invalid
     });
   }
 
@@ -276,6 +413,7 @@ function computeNetworkState() {
       sensorFlags: n.sensorFlags,
       alerts: n.alerts,
       lastSeen: n.lastSeen,
+      zkpVerified: n.zkpVerified,
     })),
   };
 }
@@ -328,11 +466,89 @@ setInterval(() => {
   }
 }, SSE_INTERVAL_MS);
 
+// ── Enterprise API: Entropy derivation helpers ──
+
+/**
+ * Derive N bits of entropy from a beacon hash using HKDF-like expansion.
+ * Each index produces independent entropy by hashing beacon+index.
+ * Returns a Buffer of ceil(bits/8) bytes.
+ */
+function deriveEntropy(beaconHash, bits, index) {
+  const bytesNeeded = Math.ceil(bits / 8);
+  const chunks = [];
+  let produced = 0;
+  let counter = 0;
+
+  while (produced < bytesNeeded) {
+    const h = createHash("sha256")
+      .update(`derive:${beaconHash}:${index}:${counter}`)
+      .digest();
+    chunks.push(h);
+    produced += h.length;
+    counter++;
+  }
+
+  return Buffer.concat(chunks).subarray(0, bytesNeeded);
+}
+
+/**
+ * Format entropy buffer into the requested format.
+ */
+function formatEntropy(buf, format) {
+  switch (format) {
+    case "base64":
+      return buf.toString("base64");
+    case "decimal":
+      // Return as BigInt decimal string
+      return BigInt("0x" + buf.toString("hex")).toString(10);
+    case "bytes":
+      return [...buf];
+    case "hex":
+    default:
+      return buf.toString("hex");
+  }
+}
+
+/**
+ * Rejection sampling for uniform integer in [min, max] (inclusive).
+ * Uses beacon hash as seed, expands via SHA-256 to avoid bias.
+ */
+function rejectionSample(beaconHash, min, max) {
+  const range = max - min + 1;
+
+  // Find the smallest power of 2 >= range
+  let bitsNeeded = 1;
+  while ((1 << bitsNeeded) < range && bitsNeeded < 53) bitsNeeded++;
+  const mask = (1 << bitsNeeded) - 1;
+
+  // Try up to 128 times (vanishingly unlikely to need even 10)
+  for (let attempt = 0; attempt < 128; attempt++) {
+    const h = createHash("sha256")
+      .update(`range:${beaconHash}:${min}:${max}:${attempt}`)
+      .digest();
+    const value = h.readUInt32BE(0) & mask;
+    if (value < range) {
+      return min + value;
+    }
+  }
+
+  // Fallback (should never reach here)
+  const h = createHash("sha256").update(`fallback:${beaconHash}`).digest();
+  return min + (h.readUInt32BE(0) % range);
+}
+
+/**
+ * Quick SHA-256 for audit response hashing.
+ */
+function sha256Quick(data) {
+  return createHash("sha256").update(data).digest("hex").substring(0, 16);
+}
+
 // ── CORS headers ──
 function setCORS(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Claw-Id");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Claw-Id, Authorization");
 }
 
 // ── Read request body ──
@@ -400,6 +616,34 @@ const server = createServer(async (req, res) => {
       const ip = getClientIP(req);
       const result = updateNode(clawId, ip, body);
 
+      // ── ZKP verification ──
+      if (result.ok && body.zkProof) {
+        const node = nodes.get(clawId);
+        if (node) {
+          try {
+            const zkResult = ClawZKP.verify(body.zkProof);
+            node.zkpVerified = zkResult.valid;
+            if (zkResult.valid) {
+              // Boost reputation by 10% for valid ZKP
+              node.reputation = Math.min(100, node.reputation * 1.1);
+            } else {
+              // Reduce reputation by 50% for invalid ZKP
+              node.reputation = Math.max(0, node.reputation * 0.5);
+              if (!node.alerts.includes("ZKP_INVALID")) {
+                node.alerts.push("ZKP_INVALID");
+              }
+            }
+          } catch {
+            // Malformed proof — treat as invalid
+            node.zkpVerified = false;
+            node.reputation = Math.max(0, node.reputation * 0.5);
+            if (!node.alerts.includes("ZKP_MALFORMED")) {
+              node.alerts.push("ZKP_MALFORMED");
+            }
+          }
+        }
+      }
+
       // Log transaction for explorer
       if (result.ok) {
         txLog.push({
@@ -415,6 +659,7 @@ const server = createServer(async (req, res) => {
           sensorFlags: body.sensorFlags || "1111111",
           timestamp: body.timestamp || new Date().toISOString(),
           type: body.type || "node",
+          zkpVerified: nodes.get(clawId)?.zkpVerified ?? null,
         });
         if (txLog.length > TX_LOG_MAX) txLog.splice(0, txLog.length - TX_LOG_MAX);
       }
@@ -640,14 +885,293 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  Enterprise Random Number API — /api/v1/*
+  //  All endpoints require API key via Authorization: Bearer <key>
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/random — single random number ──
+  if (req.method === "GET" && path === "/api/v1/random") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      const headers = { "Content-Type": "application/json" };
+      if (auth.retryAfter) headers["Retry-After"] = String(auth.retryAfter);
+      if (auth.remaining != null) {
+        headers["X-RateLimit-Remaining"] = String(auth.remaining);
+        headers["X-RateLimit-Reset"] = String(Math.ceil(auth.resetAt / 1000));
+      }
+      res.writeHead(auth.status, headers);
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    setRateLimitHeaders(res, auth);
+
+    const bits = Math.min(Math.max(parseInt(url.searchParams.get("bits") || "256", 10), 8), 4096);
+    const format = (url.searchParams.get("format") || "hex").toLowerCase();
+    const beacon = beaconManager.getLatest();
+
+    if (!beacon) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "No beacon rounds available yet" }));
+      return;
+    }
+
+    const raw = deriveEntropy(beacon.beaconHash, bits, 0);
+    const formatted = formatEntropy(raw, format);
+
+    const response = {
+      random: formatted,
+      bits,
+      format,
+      beacon_round: beacon.round,
+      contributors: beacon.contributorCount,
+      timestamp: beacon.timestamp,
+      signature: beacon.signature || null,
+    };
+    const responseStr = JSON.stringify(response);
+    logAudit(auth.key, "/api/v1/random", { bits, format }, sha256Quick(responseStr));
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(responseStr);
+    return;
+  }
+
+  // ── GET /api/v1/random/batch — batch random numbers ──
+  if (req.method === "GET" && path === "/api/v1/random/batch") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      const headers = { "Content-Type": "application/json" };
+      if (auth.retryAfter) headers["Retry-After"] = String(auth.retryAfter);
+      if (auth.remaining != null) {
+        headers["X-RateLimit-Remaining"] = String(auth.remaining);
+        headers["X-RateLimit-Reset"] = String(Math.ceil(auth.resetAt / 1000));
+      }
+      res.writeHead(auth.status, headers);
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    setRateLimitHeaders(res, auth);
+
+    const count = Math.min(Math.max(parseInt(url.searchParams.get("count") || "10", 10), 1), 100);
+    const bits = Math.min(Math.max(parseInt(url.searchParams.get("bits") || "256", 10), 8), 4096);
+    const format = (url.searchParams.get("format") || "hex").toLowerCase();
+    const beacon = beaconManager.getLatest();
+
+    if (!beacon) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "No beacon rounds available yet" }));
+      return;
+    }
+
+    const results = [];
+    for (let i = 0; i < count; i++) {
+      const raw = deriveEntropy(beacon.beaconHash, bits, i);
+      results.push(formatEntropy(raw, format));
+    }
+
+    const response = {
+      random: results,
+      count,
+      bits,
+      format,
+      beacon_round: beacon.round,
+      contributors: beacon.contributorCount,
+      timestamp: beacon.timestamp,
+    };
+    const responseStr = JSON.stringify(response);
+    logAudit(auth.key, "/api/v1/random/batch", { count, bits, format }, sha256Quick(responseStr));
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(responseStr);
+    return;
+  }
+
+  // ── GET /api/v1/random/range — random integer in range ──
+  if (req.method === "GET" && path === "/api/v1/random/range") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      const headers = { "Content-Type": "application/json" };
+      if (auth.retryAfter) headers["Retry-After"] = String(auth.retryAfter);
+      if (auth.remaining != null) {
+        headers["X-RateLimit-Remaining"] = String(auth.remaining);
+        headers["X-RateLimit-Reset"] = String(Math.ceil(auth.resetAt / 1000));
+      }
+      res.writeHead(auth.status, headers);
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    setRateLimitHeaders(res, auth);
+
+    const min = parseInt(url.searchParams.get("min") || "1", 10);
+    const max = parseInt(url.searchParams.get("max") || "100", 10);
+
+    if (isNaN(min) || isNaN(max) || min >= max) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid range: min must be less than max" }));
+      return;
+    }
+
+    const beacon = beaconManager.getLatest();
+    if (!beacon) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "No beacon rounds available yet" }));
+      return;
+    }
+
+    // Uniform distribution via rejection sampling
+    const value = rejectionSample(beacon.beaconHash, min, max);
+
+    const response = {
+      random: value,
+      min,
+      max,
+      beacon_round: beacon.round,
+      contributors: beacon.contributorCount,
+      timestamp: beacon.timestamp,
+    };
+    const responseStr = JSON.stringify(response);
+    logAudit(auth.key, "/api/v1/random/range", { min, max }, sha256Quick(responseStr));
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(responseStr);
+    return;
+  }
+
+  // ── GET /api/v1/random/verify — verify a beacon round ──
+  if (req.method === "GET" && path === "/api/v1/random/verify") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      const headers = { "Content-Type": "application/json" };
+      if (auth.retryAfter) headers["Retry-After"] = String(auth.retryAfter);
+      if (auth.remaining != null) {
+        headers["X-RateLimit-Remaining"] = String(auth.remaining);
+        headers["X-RateLimit-Reset"] = String(Math.ceil(auth.resetAt / 1000));
+      }
+      res.writeHead(auth.status, headers);
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    setRateLimitHeaders(res, auth);
+
+    const roundNum = parseInt(url.searchParams.get("round") || "0", 10);
+    if (!roundNum) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Missing required param: round" }));
+      return;
+    }
+
+    const beacon = beaconManager.getRound(roundNum);
+    if (!beacon) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: `Round ${roundNum} not found` }));
+      return;
+    }
+
+    // Recompute and verify
+    const recomputed = BeaconRound.recompute(beacon.contributors, beacon.round);
+    const verification = beacon.verify();
+
+    const response = {
+      round: beacon.toJSON(),
+      recomputed: {
+        xorAccum: recomputed.xorAccum,
+        beaconHash: recomputed.beaconHash,
+        beaconNumber: recomputed.beaconNumber,
+        era: recomputed.era,
+      },
+      verification: {
+        valid: verification.valid,
+        reason: verification.reason || null,
+        xorMatch: recomputed.xorAccum === beacon.xorAccum,
+        hashMatch: recomputed.beaconHash === beacon.beaconHash,
+        numberMatch: recomputed.beaconNumber === beacon.beaconNumber,
+      },
+    };
+    const responseStr = JSON.stringify(response);
+    logAudit(auth.key, "/api/v1/random/verify", { round: roundNum }, sha256Quick(responseStr));
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(responseStr);
+    return;
+  }
+
+  // ── GET /api/v1/status — API usage stats ──
+  if (req.method === "GET" && path === "/api/v1/status") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      const headers = { "Content-Type": "application/json" };
+      if (auth.retryAfter) headers["Retry-After"] = String(auth.retryAfter);
+      if (auth.remaining != null) {
+        headers["X-RateLimit-Remaining"] = String(auth.remaining);
+        headers["X-RateLimit-Reset"] = String(Math.ceil(auth.resetAt / 1000));
+      }
+      res.writeHead(auth.status, headers);
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    setRateLimitHeaders(res, auth);
+
+    const entry = apiKeys.get(auth.key);
+    const response = {
+      tier: auth.tier,
+      requestsUsed: entry.windowRequests,
+      requestsRemaining: auth.remaining,
+      resetAt: new Date(auth.resetAt).toISOString(),
+      totalRequests: entry.requestCount,
+      createdAt: new Date(entry.createdAt).toISOString(),
+    };
+    const responseStr = JSON.stringify(response);
+    logAudit(auth.key, "/api/v1/status", {}, sha256Quick(responseStr));
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(responseStr);
+    return;
+  }
+
+  // ── GET /api/v1/audit — audit log (enterprise tier only) ──
+  if (req.method === "GET" && path === "/api/v1/audit") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      const headers = { "Content-Type": "application/json" };
+      if (auth.retryAfter) headers["Retry-After"] = String(auth.retryAfter);
+      if (auth.remaining != null) {
+        headers["X-RateLimit-Remaining"] = String(auth.remaining);
+        headers["X-RateLimit-Reset"] = String(Math.ceil(auth.resetAt / 1000));
+      }
+      res.writeHead(auth.status, headers);
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    setRateLimitHeaders(res, auth);
+
+    if (auth.tier !== "enterprise") {
+      res.writeHead(403, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Audit log requires enterprise tier" }));
+      return;
+    }
+
+    const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50", 10), 1), 500);
+    const entries = auditLog.slice(-limit).reverse(); // newest first
+
+    const response = { entries, count: entries.length, total: auditLog.length };
+    logAudit(auth.key, "/api/v1/audit", { limit }, sha256Quick(JSON.stringify(response)));
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(response));
+    return;
+  }
+
   // 404
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: "Not found" }));
 });
 
+// ── Bootstrap free-tier API key on startup ──
+const freeBootstrapKey = createApiKey("free");
+
 server.listen(PORT, async () => {
   console.log("");
-  console.log("  ┌─ ClawFeel Relay v0.3.1 ──────────────────────┐");
+  console.log("  ┌─ ClawFeel Relay v0.4.0 ──────────────────────┐");
   console.log(`  │  HTTP on http://localhost:${PORT}               │`);
   console.log(`  │  DHT  on TCP :${DHT_PORT}                       │`);
   console.log("  │                                             │");
@@ -657,8 +1181,23 @@ server.listen(PORT, async () => {
   console.log("  │    GET  /api/stream    — SSE real-time feed │");
   console.log("  │    GET  /api/bootstrap — DHT peer list      │");
   console.log("  │                                             │");
+  console.log("  │  Enterprise API (Bearer token required):    │");
+  console.log("  │    GET  /api/v1/random        — random num  │");
+  console.log("  │    GET  /api/v1/random/batch  — batch       │");
+  console.log("  │    GET  /api/v1/random/range  — int range   │");
+  console.log("  │    GET  /api/v1/random/verify — verify      │");
+  console.log("  │    GET  /api/v1/status        — usage stats │");
+  console.log("  │    GET  /api/v1/audit         — audit log   │");
+  console.log("  │                                             │");
   console.log("  │  Waiting for Claws... 🦞                    │");
   console.log("  └─────────────────────────────────────────────┘");
+  console.log("");
+  console.log("  🔑 Free-tier API key (100 req/hour):");
+  console.log(`     ${freeBootstrapKey}`);
+  if (ADMIN_KEY) {
+    console.log("");
+    console.log("  🔐 Admin key (enterprise tier) loaded from --admin-key");
+  }
 
   // Start DHT node (bootstrap node for the P2P network)
   try {

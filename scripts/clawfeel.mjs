@@ -18,6 +18,7 @@
 //    node clawfeel.mjs --listen           # listen for other Claws' broadcasts
 //    node clawfeel.mjs --anchor           # enable external time anchoring
 //    node clawfeel.mjs --anchor-value <hex>  # inject external anchor
+//    node clawfeel.mjs --zkp             # include zero-knowledge proof
 // ═══════════════════════════════════════════════════════════════════
 
 import { createHash, randomBytes } from "node:crypto";
@@ -74,6 +75,7 @@ const WILL_SET = param("will-set", null);       // beneficiaryDID
 const WILL_TIMEOUT = param("will-timeout", null); // timeoutDays
 const WILL_STATUS = flag("will-status");
 const FORK = param("fork", null);               // newClawId
+const ZKP = flag("zkp");
 const HEARTBEAT = flag("heartbeat");
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const INTERVAL = parseInt(param("interval", "0"), 10);
@@ -1087,6 +1089,29 @@ function listenForClaws() {
   });
 }
 
+// ── ZKP proof generation ─────────────────────────────────────────
+
+async function attachZKP(result, sensorResults) {
+  if (!ZKP) return;
+  const { ClawZKP } = await import("./zkp.mjs");
+  const sensorValues = {
+    cpuTemp:      sensorResults.cpuTemp.value,
+    memUsage:     sensorResults.memUsage.value,
+    diskIO:       sensorResults.diskIO.value,
+    netLatency:   sensorResults.netLatency.value,
+    cpuLoad:      sensorResults.cpuLoad.value,
+    uptimeJitter: sensorResults.uptimeJitter.value,
+    entropyPool:  sensorResults.entropyPool.value,
+  };
+  result.zkProof = ClawZKP.prove(
+    sensorValues,
+    result.sensorFlags,
+    result.feel,
+    result.hash,
+    result.entropy,
+  );
+}
+
 // ── Relay report (HTTP POST) ─────────────────────────────────────
 
 async function reportToRelay(result) {
@@ -1107,6 +1132,7 @@ async function reportToRelay(result) {
         seq: result.seq, prevHash: result.prevHash, timestamp: result.timestamp,
         authenticity: result.authenticity, entropyQuality: result.entropyQuality,
         sensorFlags: result.sensorFlags, clawId, alias: nodeAlias, publicKey: nodeSignPub,
+        ...(result.zkProof ? { zkProof: result.zkProof } : {}),
       }),
       signal: AbortSignal.timeout(5000),
     });
@@ -1258,6 +1284,7 @@ async function main() {
     // Give one reading to the user
     const sensorResults = await collectSensors();
     const result = computeFeel(sensorResults);
+    await attachZKP(result, sensorResults);
     await saveSeqState();
 
     // Report to relay once
@@ -1692,6 +1719,7 @@ async function main() {
   for (let i = 0; i < loopCount; i++) {
     const sensorResults = await collectSensors();
     const result = computeFeel(sensorResults);
+    await attachZKP(result, sensorResults);
 
     if (DIGIT_ONLY) {
       console.log(result.digit);
