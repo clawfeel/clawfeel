@@ -66,6 +66,15 @@ const LIFE_RESTORE = param("life-restore", null);
 const LIFE_KEY = param("life-key", null);
 const LIFE_EXPORT = flag("life-export");
 const LIFE_STATUS = flag("life-status");
+const DID = flag("did");
+const MIGRATE_EXPORT = param("migrate-export", null);
+const MIGRATE_IMPORT = param("migrate-import", null);
+const MIGRATE_PASS = param("migrate-pass", null);
+const WILL_SET = param("will-set", null);       // beneficiaryDID
+const WILL_TIMEOUT = param("will-timeout", null); // timeoutDays
+const WILL_STATUS = flag("will-status");
+const FORK = param("fork", null);               // newClawId
+const HEARTBEAT = flag("heartbeat");
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
@@ -1344,7 +1353,9 @@ async function main() {
   }
 
   // ── ClawLife commands ──
-  if (LIFE_INIT || LIFE_SAVE || LIFE_RESTORE || LIFE_EXPORT || LIFE_STATUS) {
+  if (LIFE_INIT || LIFE_SAVE || LIFE_RESTORE || LIFE_EXPORT || LIFE_STATUS ||
+      DID || MIGRATE_EXPORT || MIGRATE_IMPORT || WILL_SET || WILL_STATUS ||
+      FORK || HEARTBEAT) {
     const { KademliaNode } = await import("./dht.mjs");
     const { FileStore } = await import("./store.mjs");
     const { ClawLife } = await import("./life.mjs");
@@ -1484,6 +1495,126 @@ async function main() {
       await dht.stop();
       return;
     }
+
+    // ── DID ──
+    if (DID) {
+      await life.initKey();
+      const did = life.getDID();
+      console.log("\n  🆔 ClawLife DID Document:\n");
+      console.log(JSON.stringify(did, null, 2));
+      console.log("");
+      await dht.stop();
+      return;
+    }
+
+    // ── Migration Export ──
+    if (MIGRATE_EXPORT) {
+      await life.initKey();
+      try {
+        const bundle = life.exportMigrationBundle(MIGRATE_EXPORT);
+        console.log("\n  📦 Migration Bundle (keep secret!):\n");
+        console.log(`  ${bundle}\n`);
+        console.log("  To import on another device:");
+        console.log(`  clawfeel --migrate-import <bundle> --migrate-pass <passphrase>\n`);
+      } catch (err) {
+        console.error(`  ❌ Export failed: ${err.message}`);
+      }
+      await dht.stop();
+      return;
+    }
+
+    // ── Migration Import ──
+    if (MIGRATE_IMPORT) {
+      const passphrase = MIGRATE_PASS;
+      if (!passphrase) {
+        console.error("  ❌ Missing --migrate-pass <passphrase>");
+        await dht.stop();
+        return;
+      }
+      try {
+        const { ClawLife: CL } = await import("./life.mjs");
+        const imported = await CL.importMigrationBundle(MIGRATE_IMPORT, passphrase, DATA_DIR);
+        console.log("\n  ✅ Migration bundle imported!");
+        console.log(`  🔑 Public ID: ${imported.publicId}`);
+        console.log(`  🆔 DID:       did:claw:${imported.publicId}`);
+        console.log(`  📁 Saved to:  ${DATA_DIR}/life.key\n`);
+      } catch (err) {
+        console.error(`  ❌ Import failed: ${err.message}`);
+      }
+      await dht.stop();
+      return;
+    }
+
+    // ── Will Set ──
+    if (WILL_SET) {
+      await life.initKey();
+      const timeoutDays = parseInt(WILL_TIMEOUT || "30", 10);
+      const message = param("will-message", null);
+      try {
+        const will = await life.setWill(WILL_SET, timeoutDays, message);
+        console.log("\n  📜 Will (遗嘱) set!");
+        console.log(`  🔑 Owner:       ${will.ownerDID}`);
+        console.log(`  🤝 Beneficiary: ${will.beneficiaryDID}`);
+        console.log(`  ⏱️  Timeout:     ${will.timeoutDays} days`);
+        if (will.message) console.log(`  💬 Message:     ${will.message}`);
+        console.log(`  📅 Created:     ${will.createdAt}\n`);
+      } catch (err) {
+        console.error(`  ❌ Will set failed: ${err.message}`);
+      }
+      await dht.stop();
+      return;
+    }
+
+    // ── Will Status ──
+    if (WILL_STATUS) {
+      await life.initKey();
+      const status = await life.checkWill();
+      if (!status.exists && !status.activated) {
+        console.log("\n  📜 No will set. Use --will-set <beneficiaryDID> --will-timeout <days>\n");
+      } else if (status.activated) {
+        console.log("\n  ⚠️  WILL ACTIVATED!");
+        console.log(`  🤝 Beneficiary: ${status.beneficiary}`);
+        if (status.message) console.log(`  💬 Message:     ${status.message}`);
+        console.log(`  📅 Expired at:  ${status.expiredAt}\n`);
+      } else {
+        console.log("\n  📜 Will Status:");
+        console.log(`  🤝 Beneficiary:    ${status.beneficiary}`);
+        console.log(`  ⏱️  Timeout:        ${status.timeoutDays} days`);
+        console.log(`  📅 Last active:    ${status.lastActive}`);
+        console.log(`  ⏳ Days remaining: ${status.daysRemaining}\n`);
+      }
+      await dht.stop();
+      return;
+    }
+
+    // ── Heartbeat ──
+    if (HEARTBEAT) {
+      await life.initKey();
+      const result = await life.heartbeat();
+      if (result.updated) {
+        console.log(`\n  💓 Heartbeat: ${result.lastActive}\n`);
+      } else {
+        console.log("\n  💓 Heartbeat: no will set (no-op)\n");
+      }
+      await dht.stop();
+      return;
+    }
+
+    // ── Fork ──
+    if (FORK) {
+      await life.initKey();
+      try {
+        const result = await life.fork(FORK);
+        console.log("\n  🔀 Identity forked!");
+        console.log(`  👤 Parent DID: ${result.parentDID}`);
+        console.log(`  👶 Child DID:  ${result.childDID}`);
+        console.log(`  📅 Forked at:  ${result.forkTimestamp}\n`);
+      } catch (err) {
+        console.error(`  ❌ Fork failed: ${err.message}`);
+      }
+      await dht.stop();
+      return;
+    }
   }
 
   if (LISTEN) {
@@ -1593,6 +1724,16 @@ async function main() {
 
     // Save sequence state after each reading
     await saveSeqState();
+
+    // Daemon heartbeat for will mechanism (every 10th iteration ≈ 5 minutes)
+    if (IS_DAEMON && i > 0 && i % 10 === 0) {
+      try {
+        const { ClawLife } = await import("./life.mjs");
+        const daemonLife = new ClawLife({ clawId: getClawId(), dataDir: DATA_DIR, fileStore: null });
+        await daemonLife.initKey();
+        await daemonLife.heartbeat();
+      } catch { /* will heartbeat is best-effort */ }
+    }
 
     // Periodic DAG prune
     if (gossipManager && i > 0 && i % 100 === 0) {
