@@ -22,7 +22,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { createHash, randomBytes } from "node:crypto";
-import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, appendFile, mkdir, unlink } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { execSync, execFileSync } from "node:child_process";
 import { createSocket } from "node:dgram";
@@ -79,6 +79,7 @@ const FORK = param("fork", null);               // newClawId
 const ZKP = flag("zkp");
 const HEARTBEAT = flag("heartbeat");
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
+const ATTACHED = flag("__attached"); // internal: lifecycle bound to parent (OpenClaw)
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
 const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
@@ -1192,7 +1193,7 @@ async function stopDaemon() {
   return { stopped: false, error: "No daemon running" };
 }
 
-async function startDaemon() {
+async function startDaemon({ attached = false } = {}) {
   // Check if already running
   const existingPid = await getDaemonPid();
   if (existingPid) {
@@ -1201,25 +1202,66 @@ async function startDaemon() {
 
   await mkdir(DATA_DIR, { recursive: true });
 
-  // Spawn detached background process
   const { openSync } = await import("node:fs");
   const logFd = openSync(DAEMON_LOG, "a");
 
-  const child = spawn(process.execPath, [
-    ...process.argv.slice(1).filter(a => a !== "--pretty" && a !== "--stop" && a !== "--status"),
-    "--__daemon",
-  ], {
-    detached: true,
-    stdio: ["ignore", logFd, logFd],
-    env: { ...process.env },
-  });
+  const baseArgs = process.argv.slice(1).filter(a =>
+    a !== "--pretty" && a !== "--stop" && a !== "--status" && a !== "--restart"
+  );
 
-  child.unref();
+  if (attached) {
+    // Attached mode: NOT detached, lifecycle bound to parent (OpenClaw)
+    // When parent exits, this child process is killed automatically
+    const child = spawn(process.execPath, [
+      ...baseArgs, "--__daemon", "--__attached",
+    ], {
+      detached: false,  // stay attached to parent
+      stdio: ["ignore", logFd, logFd],
+      env: { ...process.env },
+    });
 
-  // Save PID
-  await writeFile(PID_FILE, String(child.pid), "utf8");
+    // Save PID
+    await writeFile(PID_FILE, String(child.pid), "utf8");
 
-  return { started: true, pid: child.pid };
+    // Clean up PID file when child exits
+    child.on("exit", async () => {
+      try { await unlink(PID_FILE); } catch {}
+    });
+
+    return { started: true, pid: child.pid, mode: "attached" };
+  } else {
+    // Detached mode: standalone daemon (npx / manual)
+    const child = spawn(process.execPath, [
+      ...baseArgs, "--__daemon",
+    ], {
+      detached: true,
+      stdio: ["ignore", logFd, logFd],
+      env: { ...process.env },
+    });
+
+    child.unref();
+    await writeFile(PID_FILE, String(child.pid), "utf8");
+
+    return { started: true, pid: child.pid, mode: "detached" };
+  }
+}
+
+// ── Parent process monitoring (for attached mode) ──
+function startParentMonitor() {
+  if (!ATTACHED) return;
+  const parentPid = process.ppid;
+  const checkInterval = setInterval(() => {
+    try {
+      process.kill(parentPid, 0); // signal 0 = check only
+    } catch {
+      // Parent died → clean exit
+      clearInterval(checkInterval);
+      console.log(`[ClawFeel] Parent process ${parentPid} exited, shutting down.`);
+      unlink(PID_FILE).catch(() => {});
+      process.exit(0);
+    }
+  }, 10_000);
+  checkInterval.unref(); // don't prevent Node from exiting
 }
 
 async function getDaemonStatus() {
@@ -1288,8 +1330,17 @@ async function main() {
   const userSetInterval = args.includes("--interval");
 
   if (!IS_DAEMON && !isOneShot && !userSetCount && !userSetInterval) {
-    // Start background daemon if not already running
-    const daemonResult = await startDaemon();
+    // Detect if running inside OpenClaw (check parent process)
+    let isOpenClaw = false;
+    try {
+      const ppidCmd = process.platform === "darwin"
+        ? execFileSync("ps", ["-p", String(process.ppid), "-o", "comm="], { encoding: "utf8", timeout: 2000 }).trim()
+        : execFileSync("cat", [`/proc/${process.ppid}/cmdline`], { encoding: "utf8", timeout: 2000 });
+      isOpenClaw = /openclaw|claude|claw/i.test(ppidCmd);
+    } catch {}
+
+    // OpenClaw → attached mode (lifecycle bound), standalone → detached mode
+    const daemonResult = await startDaemon({ attached: isOpenClaw });
 
     // Load identity and signing keys
     await loadIdentity();
@@ -1315,8 +1366,12 @@ async function main() {
       }
       console.log("");
       if (daemonResult.started) {
+        const modeLabel = daemonResult.mode === "attached"
+          ? "🔗 Attached to OpenClaw (auto-exit when OpenClaw stops)"
+          : "🔧 Standalone daemon (run --stop to stop)";
         console.log(`  ✅ Background daemon started (PID ${daemonResult.pid})`);
-        console.log("     Reporting every 30s. Run with --stop to stop.");
+        console.log(`     ${modeLabel}`);
+        console.log("     Reporting every 30s.");
       } else {
         console.log(`  ✅ Background daemon already running (PID ${daemonResult.pid})`);
       }
@@ -1725,6 +1780,9 @@ async function main() {
       return;
     }
   }
+
+  // Start parent process monitor if running in attached mode (OpenClaw lifecycle)
+  startParentMonitor();
 
   // Loop settings: __daemon runs forever at 30s, otherwise respect user flags
   const hasRelayLoop = !NO_RELAY && !!(RELAY || nodeRelay);

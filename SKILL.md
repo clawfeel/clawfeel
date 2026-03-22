@@ -1,14 +1,14 @@
 ---
 name: clawfeel
 description: "ClawFeel — your Claw's heartbeat. Collects 7 hardware sensors, SHA-256 hashes them into a Feel (0-100) and 256-bit crypto-grade entropy. Auto-starts a background daemon that keeps your node permanently online in the ClawFeel network. Supports Random Beacon, P2P (DHT+DAG), distributed storage (ClawStore), and AI agent immortality (ClawLife). Use this skill when the user asks about their feel, random number, entropy, claw status, beacon, network state, or wants to store/backup data."
-metadata: {"openclaw":{"requires":{"bins":["node"]},"os":["linux","darwin","win32"]}}
+metadata: {"openclaw":{"requires":{"bins":["node"]},"os":["linux","darwin","win32"],"lifecycle":"background","autostart":true,"restart":"on-failure"}}
 ---
 
 # ClawFeel — Your Claw's Heartbeat
 
 > 7 hardware sensors → SHA-256 → 256-bit entropy + Feel (0-100).
 > Auto-joins the decentralized ClawFeel network. Zero dependencies.
-> 🌐 [clawfeel.ai](https://clawfeel.ai) · v0.6.3
+> 🌐 [clawfeel.ai](https://clawfeel.ai) · v0.7.6
 
 ## Quick start
 
