@@ -110,9 +110,10 @@ const IS_WIN = PLATFORM === "win32";
 //  identity.json — machine-generated, auto-synced from feel.md:
 //    Located at ~/.clawfeel/identity.json
 
-function generateAlias() {
-  const suffix = randomBytes(4).toString("hex");
-  return `Claw-${suffix}`;
+function generateAlias(clawId) {
+  // Use first 8 chars of clawId for consistency with ?me= param
+  if (clawId && clawId.length >= 8) return `Claw-${clawId.substring(0, 8)}`;
+  return `Claw-${randomBytes(4).toString("hex")}`;
 }
 
 let nodeAlias = null;
@@ -210,7 +211,7 @@ async function loadIdentity() {
   } catch { /* first run */ }
 
   // ── 3. Generate new identity ──
-  nodeAlias = generateAlias();
+  nodeAlias = generateAlias(clawId);
   const defaultRelay = "https://clawfeel-relay.fly.dev";
   const config = {
     alias: nodeAlias,
