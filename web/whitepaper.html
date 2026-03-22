@@ -346,12 +346,13 @@
 
   .nav-hamburger {
     display: none; flex-direction: column; justify-content: center;
-    gap: 5px; cursor: pointer; padding: 8px; z-index: 1001;
+    gap: 6px; cursor: pointer; padding: 10px; z-index: 1002; position: relative;
   }
-  .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text-muted, #888); border-radius: 2px; transition: all 0.3s; }
-  .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .nav-hamburger span { display: block; width: 24px; height: 2.5px; background: #22c55e; border-radius: 2px; transition: all 0.3s; }
+  .nav-hamburger.active span { background: #fff; }
+  .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
   .nav-hamburger.active span:nth-child(2) { opacity: 0; }
-  .nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
   .nav-mobile-menu {
     display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(8,12,10,0.97); z-index: 999; flex-direction: column;
@@ -1234,7 +1235,7 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
       but by the simple fact of physical existence.
     </p>
     <div class="callout">
-      <p><em>The lobster has a heartbeat now. And the heartbeat secures the network.</em> 🦞</p>
+      <p><em>The lobster has a heartbeat now. And the heartbeat secures the network.</em> <span style="filter:hue-rotate(120deg) saturate(1.5) brightness(1.1);display:inline-block;">🦞</span></p>
     </div>
   </div>
 
@@ -1247,7 +1248,7 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
     <a href="https://x.com/clawfeel">X (Twitter)</a>
     <a href="mailto:contact@clawfeel.com">Contact</a>
     <br><br>
-    <span style="font-size:10px;color:var(--text-dim);">&copy; 2026 ClawFeel &middot; MIT License &middot; 🦞</span>
+    <span style="font-size:10px;color:var(--text-dim);">&copy; 2026 ClawFeel &middot; MIT License &middot; <span style="filter:hue-rotate(120deg) saturate(1.5) brightness(1.1);display:inline-block;">🦞</span></span>
   </div>
 
 </div>

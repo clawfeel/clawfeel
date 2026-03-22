@@ -321,12 +321,13 @@
   /* ── Hamburger menu ── */
   .nav-hamburger {
     display: none; flex-direction: column; justify-content: center;
-    gap: 5px; cursor: pointer; padding: 8px; z-index: 1001;
+    gap: 6px; cursor: pointer; padding: 10px; z-index: 1002; position: relative;
   }
-  .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text-muted); border-radius: 2px; transition: all 0.3s; }
-  .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .nav-hamburger span { display: block; width: 24px; height: 2.5px; background: #22c55e; border-radius: 2px; transition: all 0.3s; }
+  .nav-hamburger.active span { background: #fff; }
+  .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
   .nav-hamburger.active span:nth-child(2) { opacity: 0; }
-  .nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
   .nav-mobile-menu {
     display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(8,12,10,0.97); z-index: 999; flex-direction: column;

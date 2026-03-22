@@ -204,6 +204,7 @@
     margin-bottom: 24px;
     position: relative;
     z-index: 1;
+    filter: hue-rotate(120deg) saturate(1.5) brightness(1.1);
   }
   .hero-logo-text {
     font-family: 'Orbitron', sans-serif;
@@ -370,6 +371,7 @@
   .arch-icon {
     font-size: 28px;
     text-align: center;
+    filter: hue-rotate(120deg) saturate(1.5) brightness(1.1);
   }
   .arch-info {}
   .arch-name {
@@ -775,22 +777,24 @@
     display: none;
     flex-direction: column;
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
     cursor: pointer;
-    padding: 8px;
-    z-index: 1001;
+    padding: 10px;
+    z-index: 1002;
+    position: relative;
   }
   .nav-hamburger span {
     display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--text-muted);
+    width: 24px;
+    height: 2.5px;
+    background: #22c55e;
     border-radius: 2px;
     transition: all 0.3s ease;
   }
-  .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .nav-hamburger.active span { background: #fff; }
+  .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
   .nav-hamburger.active span:nth-child(2) { opacity: 0; }
-  .nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
   .nav-mobile-menu {
     display: none;
     position: fixed;

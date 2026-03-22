@@ -34,6 +34,14 @@ import os from "node:os";
 import path from "node:path";
 import { BeaconManager, BeaconRound } from "./beacon.mjs";
 import { ClawZKP } from "./zkp.mjs";
+import { readFileSync } from "node:fs";
+
+// Read version from package.json
+let PKG_VERSION = "0.7.5";
+try {
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  PKG_VERSION = pkg.version;
+} catch { /* fallback */ }
 
 // ── Args ──
 const args = argv.slice(2);
@@ -754,7 +762,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       service: "ClawFeel Relay",
-      version: "0.3.1",
+      version: PKG_VERSION,
       dhtPort: DHT_PORT,
       peers: peerList,
       peerCount: peerList.length,
@@ -770,7 +778,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       service: "ClawFeel Relay",
-      version: "0.3.1",
+      version: PKG_VERSION,
       status: "online",
       nodes: onlineCount,
       sseClients: sseClients.size,
