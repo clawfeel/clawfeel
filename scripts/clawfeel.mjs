@@ -23,6 +23,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { execSync, execFileSync } from "node:child_process";
 import { createSocket } from "node:dgram";
 import os from "node:os";
@@ -827,6 +828,19 @@ async function showHistory(count) {
 // ── Network broadcast (UDP) — with Commit-Reveal ────────────────
 
 function getClawId() {
+  // Priority: identity.json > feel.md > computed from hardware
+  try {
+    const idPath = path.join(os.homedir(), ".clawfeel", "identity.json");
+    const data = JSON.parse(readFileSync(idPath, "utf8"));
+    if (data.clawId) return data.clawId;
+  } catch {}
+  try {
+    const feelPath = path.join(os.homedir(), ".openclaw", "feel.md");
+    const content = readFileSync(feelPath, "utf8");
+    const m = content.match(/^clawId:\s*(.+)/m);
+    if (m) return m[1].trim();
+  } catch {}
+  // Fallback: compute from hardware
   const interfaces = os.networkInterfaces();
   const macs = Object.values(interfaces)
     .flat()
