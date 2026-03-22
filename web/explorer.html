@@ -442,7 +442,7 @@
     <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
       <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
-    <a href="/#install" class="nav-install-btn">Install</a>
+    <a href="/#install" class="nav-install-btn" id="navUserBtn">Install</a>
   </div>
 </nav>
 
@@ -676,6 +676,29 @@ setInterval(() => {
   const q = document.getElementById('searchInput').value.trim();
   loadTransactions(q);
 }, 10000);
+
+// ── Nav bar login status ──
+const meParam = new URLSearchParams(window.location.search).get('me');
+if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
+const myClawId = localStorage.getItem('clawfeel_me') || null;
+if (myClawId) {
+  fetch(RELAY + '/api/network').then(r => r.json()).then(data => {
+    const btn = document.getElementById('navUserBtn');
+    if (!btn) return;
+    const nodes = data.nodes || [];
+    const myNode = nodes.find(n => n.clawId === myClawId);
+    const alias = myNode ? (myNode.alias || 'Claw-' + myClawId.substring(0, 8)) : 'Claw-' + myClawId.substring(0, 8);
+    const isOnline = !!myNode;
+    btn.innerHTML = isOnline
+      ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:6px;box-shadow:0 0 6px #22c55e;"></span>' + alias
+      : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:6px;"></span>' + alias;
+    btn.href = 'simulator.html?me=' + myClawId;
+    btn.className = 'nav-user-btn';
+    btn.style.cssText = isOnline
+      ? 'border:1px solid #22c55e44;color:#22c55e;background:rgba(34,197,94,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;'
+      : 'border:1px solid #55555544;color:#888;background:rgba(85,85,85,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;';
+  }).catch(() => {});
+}
 </script>
 
 </body>

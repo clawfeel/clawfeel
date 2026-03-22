@@ -1235,26 +1235,29 @@ const meParam = urlParams.get('me');
 if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
 
-// ── Nav bar login status ──
+// ── Nav bar login status (shared across all pages) ──
 function updateNavLoginStatus(nodes) {
   const btn = document.getElementById('navUserBtn');
   if (!btn || !myClawId) return;
   const myNode = nodes && nodes.find(n => n.clawId === myClawId);
-  if (myNode) {
-    const alias = myNode.alias || ('Claw-' + myClawId.substring(0, 8));
-    btn.textContent = '🟢 ' + alias;
-    btn.href = '#';
-    btn.style.background = 'transparent';
-    btn.style.border = '1px solid var(--green-bright)';
-    btn.style.color = 'var(--green-bright)';
-  } else if (myClawId) {
-    const alias = 'Claw-' + myClawId.substring(0, 8);
-    btn.textContent = '⚫ ' + alias;
-    btn.href = '#';
-    btn.style.background = 'transparent';
-    btn.style.border = '1px solid #555';
-    btn.style.color = '#888';
-  }
+  const alias = myNode ? (myNode.alias || 'Claw-' + myClawId.substring(0, 8)) : 'Claw-' + myClawId.substring(0, 8);
+  const isOnline = !!myNode;
+  btn.innerHTML = isOnline
+    ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:6px;box-shadow:0 0 6px #22c55e;"></span>' + alias
+    : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:6px;"></span>' + alias;
+  btn.href = '#';
+  btn.className = 'nav-user-btn';
+  btn.style.cssText = isOnline
+    ? 'border:1px solid #22c55e44;color:#22c55e;background:rgba(34,197,94,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;'
+    : 'border:1px solid #55555544;color:#888;background:rgba(85,85,85,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;';
+}
+
+// Check status on page load
+if (myClawId) {
+  fetch('https://clawfeel-relay.fly.dev/api/network')
+    .then(r => r.json())
+    .then(data => updateNavLoginStatus(data.nodes || []))
+    .catch(() => updateNavLoginStatus(null));
 }
 
 let sseSource = null;
