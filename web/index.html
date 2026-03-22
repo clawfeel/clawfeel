@@ -812,7 +812,7 @@
     <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
       <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
-    <a href="#get-started" class="nav-install-btn">Install</a>
+    <a href="#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
   </div>
 </nav>
 
@@ -1257,6 +1257,36 @@ const meParam = urlParams.get('me');
 if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
 
+// ── Nav bar login status ──
+function updateNavLoginStatus(nodes) {
+  const btn = document.getElementById('navUserBtn');
+  if (!btn || !myClawId) return;
+  const myNode = nodes && nodes.find(n => n.clawId === myClawId);
+  if (myNode) {
+    const alias = myNode.alias || ('Claw-' + myClawId.substring(0, 8));
+    btn.textContent = '🟢 ' + alias;
+    btn.href = 'simulator.html?me=' + myClawId;
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid var(--green-bright)';
+    btn.style.color = 'var(--green-bright)';
+  } else if (myClawId) {
+    const alias = 'Claw-' + myClawId.substring(0, 8);
+    btn.textContent = '⚫ ' + alias;
+    btn.href = 'simulator.html?me=' + myClawId;
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid #555';
+    btn.style.color = '#888';
+  }
+}
+
+// Check status on page load
+if (myClawId) {
+  fetch('https://clawfeel-relay.fly.dev/api/network')
+    .then(r => r.json())
+    .then(data => updateNavLoginStatus(data.nodes || []))
+    .catch(() => updateNavLoginStatus(null));
+}
+
 // ── SSE Live connection ──
 const RELAY_URL = 'https://clawfeel-relay.fly.dev';
 let sseConnected = false;
@@ -1285,6 +1315,9 @@ function startLiveConnection() {
         clearInterval(heroInterval);
         document.getElementById('liveSubtitle').innerHTML = '<span style="color:#ff4466;">\u25CF LIVE</span> \u2014 real hardware entropy from real devices';
       }
+
+      // Update nav login status with live data
+      if (state.nodes) updateNavLoginStatus(state.nodes);
 
       // Update live stats
       document.getElementById('liveNodeCount').textContent = state.stats.onlineNodes;

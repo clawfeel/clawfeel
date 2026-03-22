@@ -350,7 +350,7 @@
     <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
       <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
-    <a href="/#install" class="nav-install-btn">Install</a>
+    <a href="/#install" class="nav-install-btn" id="navUserBtn">Install</a>
   </div>
 </nav>
 
@@ -361,8 +361,8 @@
   </div>
 
   <div class="mode-toggle">
-    <button class="mode-btn active" id="btnSimulated" onclick="setMode('simulated')">🔵 SIMULATED</button>
-    <button class="mode-btn live-btn" id="btnLive" onclick="setMode('live')"><span class="live-badge" style="display:none" id="liveDot"></span>🔴 LIVE</button>
+    <button class="mode-btn" id="btnSimulated" onclick="setMode('simulated')">🔵 SIMULATED</button>
+    <button class="mode-btn live-btn active" id="btnLive" onclick="setMode('live')"><span class="live-badge" style="display:none" id="liveDot"></span>🔴 LIVE</button>
   </div>
   <div class="live-info" id="liveInfo"></div>
 
@@ -1226,7 +1226,7 @@ function drawParticles() {
 // ═══════════════════════════════════════════════════════════════
 
 const RELAY_URL = 'https://clawfeel-relay.fly.dev';
-let currentMode = 'simulated';
+let currentMode = 'live'; // default to Live mode
 
 // ── "You" identification via ?me=clawId or localStorage ──
 const urlParams = new URLSearchParams(window.location.search);
@@ -1234,6 +1234,29 @@ const meParam = urlParams.get('me');
 // Validate: must be hex string, 8-16 chars
 if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
+
+// ── Nav bar login status ──
+function updateNavLoginStatus(nodes) {
+  const btn = document.getElementById('navUserBtn');
+  if (!btn || !myClawId) return;
+  const myNode = nodes && nodes.find(n => n.clawId === myClawId);
+  if (myNode) {
+    const alias = myNode.alias || ('Claw-' + myClawId.substring(0, 8));
+    btn.textContent = '🟢 ' + alias;
+    btn.href = '#';
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid var(--green-bright)';
+    btn.style.color = 'var(--green-bright)';
+  } else if (myClawId) {
+    const alias = 'Claw-' + myClawId.substring(0, 8);
+    btn.textContent = '⚫ ' + alias;
+    btn.href = '#';
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid #555';
+    btn.style.color = '#888';
+  }
+}
+
 let sseSource = null;
 let simInterval = null;
 
@@ -1295,6 +1318,7 @@ function startLiveMode() {
     try {
       const state = JSON.parse(event.data);
       renderLiveState(state);
+      if (state.nodes) updateNavLoginStatus(state.nodes);
     } catch {}
   };
 
@@ -1484,8 +1508,16 @@ function renderLiveState(state) {
 initParticles();
 drawParticles();
 requestAnimationFrame(drawWave);
-setTimeout(bringOnline, 500);
-simInterval = setInterval(tick, TICK_MS);
+
+// Default to Live mode — fall back to simulated if relay offline
+setMode('live');
+setTimeout(() => {
+  // If live mode didn't connect after 5s, fall back to simulated
+  if (currentMode === 'live' && !document.querySelector('.node-card')) {
+    setTimeout(bringOnline, 500);
+    simInterval = setInterval(tick, TICK_MS);
+  }
+}, 6000);
 
 window.addEventListener('resize', () => {
   const dpr = window.devicePixelRatio || 1;
