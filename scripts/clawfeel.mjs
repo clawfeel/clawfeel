@@ -30,6 +30,63 @@ import os from "node:os";
 import path from "node:path";
 import { argv } from "node:process";
 
+// ── Version + Auto-Update ────────────────────────────────────────
+
+// Read local version from package.json
+let LOCAL_VERSION = "0.0.0";
+try {
+  const pkgPath = new URL("../package.json", import.meta.url).pathname;
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+  LOCAL_VERSION = pkg.version || "0.0.0";
+} catch {}
+
+/**
+ * Check npm for updates and auto-install if major or minor version changed.
+ * Patch-only changes (0.8.0 → 0.8.1) are skipped.
+ * Major/minor changes (0.8.x → 0.9.0 or 1.0.0) trigger auto-update.
+ */
+async function checkForUpdates() {
+  try {
+    const res = await fetch("https://registry.npmjs.org/clawfeel/latest", { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const remoteVersion = data.version;
+    if (!remoteVersion) return null;
+
+    const [lMajor, lMinor] = LOCAL_VERSION.split(".").map(Number);
+    const [rMajor, rMinor] = remoteVersion.split(".").map(Number);
+
+    // Only auto-update if major or minor version changed
+    if (rMajor > lMajor || (rMajor === lMajor && rMinor > lMinor)) {
+      console.log(`  🔄 Update available: v${LOCAL_VERSION} → v${remoteVersion} (auto-updating...)`);
+      try {
+        execFileSync("npm", ["install", "-g", `clawfeel@${remoteVersion}`], {
+          encoding: "utf8", timeout: 60000, stdio: "pipe",
+        });
+        console.log(`  ✅ Updated to v${remoteVersion}. Restarting...`);
+        // Restart: spawn new daemon, exit current
+        const { spawn: spawnChild } = await import("node:child_process");
+        const clawfeelBin = process.argv[1];
+        const newArgs = process.argv.slice(2);
+        spawnChild(process.execPath, [clawfeelBin, ...newArgs], {
+          detached: true, stdio: "ignore",
+          env: { ...process.env },
+        }).unref();
+        process.exit(0);
+      } catch (err) {
+        console.error(`  ⚠️  Auto-update failed: ${err.message}`);
+      }
+      return remoteVersion;
+    } else if (remoteVersion !== LOCAL_VERSION) {
+      // Patch update available but not auto-installed
+      return null;
+    }
+    return null;
+  } catch { return null; }
+}
+
+const AUTO_UPDATE_INTERVAL = 720; // check every 720 iterations (6 hours at 30s interval)
+
 // ── Argument parsing ─────────────────────────────────────────────
 
 const args = argv.slice(2);
@@ -1945,6 +2002,11 @@ async function main() {
     // Periodic DAG prune
     if (gossipManager && i > 0 && i % 100 === 0) {
       gossipManager.dag.prune();
+    }
+
+    // Auto-update check (every ~6 hours in daemon mode)
+    if (IS_DAEMON && i > 0 && i % AUTO_UPDATE_INTERVAL === 0) {
+      checkForUpdates().catch(() => {});
     }
 
     if (loopInterval > 0 && i < loopCount - 1) {
