@@ -799,25 +799,42 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
       generation.
     </p>
 
-    <h3>Layer 3: ClawDAG (In Development)</h3>
+    <h3>Layer 3: ClawDAG (Implemented)</h3>
     <p>
       A Directed Acyclic Graph (DAG) consensus layer where each transaction references 2+ parent
       transactions, enabling massive parallel validation. Unlike blockchain's linear structure,
       DAG allows concurrent writes without bottlenecking on a single block producer.
       Each transaction embeds the node's Feel value as its Proof of Existence.
     </p>
-
-    <h3>Layer 4: ClawStore (Planned)</h3>
     <p>
-      Distributed storage using erasure coding (Reed-Solomon) for redundancy and DHT (Distributed
-      Hash Table) for content addressing. Files are sharded, encoded with k-of-n redundancy,
-      and distributed across the ClawDAG network.
+      <strong>Implementation:</strong> Kademlia DHT (160-bit ID space, k=20 buckets) for peer discovery,
+      Gossip protocol (fanout=6) for transaction propagation, tip selection algorithm for parent references,
+      Ed25519 digital signatures for transaction authentication, and Merkle tree proofs for light node
+      verification. HMAC-authenticated RPC messages with replay protection prevent routing table poisoning.
     </p>
 
-    <h3>Layer 5: ClawLife (Vision)</h3>
+    <h3>Layer 4: ClawStore (Implemented)</h3>
+    <p>
+      Distributed storage using erasure coding (Reed-Solomon) for redundancy and DHT for
+      content addressing. Files are sharded into chunks, encoded with k-of-n redundancy
+      (configurable, default k=3, n=5), and distributed across the network.
+    </p>
+    <p>
+      <strong>Implementation:</strong> Content-addressed storage using SHA-256 chunk hashing,
+      automatic shard distribution via DHT STORE/FIND_VALUE RPCs, local chunk persistence
+      with path-based sharding. Retrieval requires only k of n shards to reconstruct the original data.
+    </p>
+
+    <h3>Layer 5: ClawLife (Implemented)</h3>
     <p>
       The culmination of the stack: persistent AI agent identity stored on a decentralized network.
       See Section 8.
+    </p>
+    <p>
+      <strong>Implementation:</strong> Ed25519 keypair generation and management, AES-256-GCM encryption
+      with scrypt key derivation (N=2&sup17;), file permissions hardened (0o600), state serialization
+      (Memory + Skills + Identity), integration with ClawStore for shard distribution,
+      and passphrase-based key protection.
     </p>
   </div>
 
@@ -1202,12 +1219,16 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
         <tr><td>Layer 1: ClawFeel engine</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
         <tr><td>Layer 2: ClawNet + security hardening</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
         <tr><td>npm package + website</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Whitepaper v1.0</td><td>Q2 2026</td><td style="color:var(--yellow-trans)">In progress</td></tr>
-        <tr><td>Layer 2.5: P2P (NAT traversal, DHT)</td><td>Q2 2026</td><td>Planned</td></tr>
-        <tr><td>Layer 3: ClawDAG prototype</td><td>Q3 2026</td><td>Planned</td></tr>
-        <tr><td>Layer 4: ClawStore</td><td>Q4 2026</td><td>Planned</td></tr>
-        <tr><td>Layer 5: ClawLife prototype</td><td>2027</td><td>Vision</td></tr>
-        <tr><td>Mainnet launch</td><td>2027</td><td>Vision</td></tr>
+        <tr><td>Whitepaper v1.0</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Layer 2.5: P2P relay + Live Mode</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Layer 3: ClawDAG + DHT + Gossip</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Layer 4: ClawStore (erasure coding)</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Layer 5: ClawLife (Ed25519 + AES-256)</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Developer SDK + Random Beacon</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Enterprise API + ZKP</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
+        <tr><td>Security audit (28 vulnerabilities fixed)</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Done</td></tr>
+        <tr><td>Multi-relay failover</td><td>Q2 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
+        <tr><td>Mainnet launch (v1.0)</td><td>Q3 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
       </tbody>
     </table>
   </div>

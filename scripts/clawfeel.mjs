@@ -21,7 +21,7 @@
 //    node clawfeel.mjs --zkp             # include zero-knowledge proof
 // ═══════════════════════════════════════════════════════════════════
 
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { readFile, writeFile, appendFile, mkdir, unlink } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { execSync, execFileSync } from "node:child_process";
@@ -46,7 +46,8 @@ const HISTORY = flag("history");
 const BROADCAST = flag("broadcast");
 const LISTEN = flag("listen");
 const ANCHOR = flag("anchor");
-const ANCHOR_VALUE = param("anchor-value", null);
+const _rawAnchorValue = param("anchor-value", null);
+const ANCHOR_VALUE = _rawAnchorValue && /^[0-9a-f]+$/i.test(_rawAnchorValue) ? _rawAnchorValue : null;
 const RELAY = param("relay", null);
 const ALIAS = param("alias", null);
 const P2P = flag("p2p");
@@ -763,10 +764,22 @@ function prettyPrint(result) {
 
 // ── History ───────────────────────────────────────────────────────
 
+const MAX_HISTORY_LINES = 10_000; // ~3MB max
+
 async function saveReading(result) {
   await mkdir(DATA_DIR, { recursive: true });
   const line = JSON.stringify(result) + "\n";
   await appendFile(HISTORY_FILE, line, "utf8");
+
+  // Rotate: keep only last MAX_HISTORY_LINES entries
+  try {
+    const raw = await readFile(HISTORY_FILE, "utf8");
+    const lines = raw.trim().split("\n").filter(Boolean);
+    if (lines.length > MAX_HISTORY_LINES) {
+      const trimmed = lines.slice(-MAX_HISTORY_LINES).join("\n") + "\n";
+      await writeFile(HISTORY_FILE, trimmed, "utf8");
+    }
+  } catch { /* ignore rotation errors */ }
 }
 
 async function showHistory(count) {
@@ -858,7 +871,13 @@ function getClawId() {
  * 2. Wait 2 seconds for other commitments
  * 3. Send reveal = { feel, nonce }
  */
+let lastBroadcastTime = 0;
+const MIN_BROADCAST_INTERVAL_MS = 5000; // max 1 broadcast per 5s
+
 function broadcastFeel(result) {
+  const now = Date.now();
+  if (now - lastBroadcastTime < MIN_BROADCAST_INTERVAL_MS) return; // rate limit
+  lastBroadcastTime = now;
   const clawId = getClawId();
   const nonce = randomBytes(16).toString("hex");
   const commitment = createHash("sha256")
@@ -1037,7 +1056,9 @@ function listenForClaws() {
           const expected = createHash("sha256")
             .update(`${data.feel}|${data.nonce}`)
             .digest("hex").substring(0, 16);
-          commitValid = expected === pending.commitment ? "✅" : "❌ MISMATCH";
+          try {
+            commitValid = timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(pending.commitment, "hex")) ? "✅" : "❌ MISMATCH";
+          } catch { commitValid = "❌ MISMATCH"; }
           pendingCommits.delete(data.clawId);
 
           if (commitValid === "❌ MISMATCH") {
@@ -1217,7 +1238,7 @@ async function startDaemon({ attached = false } = {}) {
     ], {
       detached: false,  // stay attached to parent
       stdio: ["ignore", logFd, logFd],
-      env: { ...process.env },
+      env: { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: process.env.NODE_ENV || "production" },
     });
 
     // Save PID
@@ -1236,7 +1257,7 @@ async function startDaemon({ attached = false } = {}) {
     ], {
       detached: true,
       stdio: ["ignore", logFd, logFd],
-      env: { ...process.env },
+      env: { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: process.env.NODE_ENV || "production" },
     });
 
     child.unref();

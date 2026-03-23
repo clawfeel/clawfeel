@@ -1,6 +1,6 @@
 {
   "name": "clawfeel",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "Your Claw's Heartbeat — hardware-entropy random number generator with security hardening",
   "type": "module",
   "main": "./scripts/sdk.mjs",

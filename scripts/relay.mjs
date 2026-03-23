@@ -781,9 +781,6 @@ const server = createServer(async (req, res) => {
       version: PKG_VERSION,
       status: "online",
       nodes: onlineCount,
-      sseClients: sseClients.size,
-      dhtPort: DHT_PORT,
-      uptime: Math.round(process.uptime()),
     }));
     return;
   }

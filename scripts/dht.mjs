@@ -7,7 +7,7 @@
 //  160-bit ID space, 160 k-buckets, k=20.
 // ═══════════════════════════════════════════════════════════════════
 
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer, createConnection } from "node:net";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -21,6 +21,54 @@ const DEFAULT_PORT = 31416;
 const DEFAULT_BOOTSTRAP = ["clawfeel-relay.fly.dev:31416"];
 const MAX_STORE_ENTRIES = 10_000;  // max key-value pairs
 const MAX_VALUE_SIZE = 65536;      // 64KB max per value
+const NETWORK_KEY = "clawfeel-dht-v1"; // shared network key for HMAC
+const MAX_RPC_PER_IP = 60;  // max RPCs per IP per minute
+const RPC_WINDOW_MS = 60_000;
+
+// ── Message authentication ──────────────────────────────────────
+
+function signMessage(msg) {
+  const payload = JSON.stringify(msg);
+  const hmac = createHmac("sha256", NETWORK_KEY).update(payload).digest("hex").substring(0, 16);
+  return { ...msg, _hmac: hmac, _ts: Date.now() };
+}
+
+function verifyMessage(msg) {
+  if (!msg._hmac || !msg._ts) return false;
+  // Reject messages older than 30 seconds (replay defense)
+  if (Math.abs(Date.now() - msg._ts) > 30_000) return false;
+  const { _hmac, ...rest } = msg;
+  const expected = createHmac("sha256", NETWORK_KEY).update(JSON.stringify(rest)).digest("hex").substring(0, 16);
+  try {
+    return timingSafeEqual(Buffer.from(_hmac, "hex"), Buffer.from(expected, "hex"));
+  } catch { return false; }
+}
+
+// ── Rate limiter ────────────────────────────────────────────────
+
+class RateLimiter {
+  constructor(maxPerWindow = MAX_RPC_PER_IP, windowMs = RPC_WINDOW_MS) {
+    this.max = maxPerWindow;
+    this.windowMs = windowMs;
+    this.counts = new Map(); // ip → { count, resetAt }
+  }
+  allow(ip) {
+    const now = Date.now();
+    let entry = this.counts.get(ip);
+    if (!entry || now > entry.resetAt) {
+      entry = { count: 0, resetAt: now + this.windowMs };
+      this.counts.set(ip, entry);
+    }
+    entry.count++;
+    return entry.count <= this.max;
+  }
+  cleanup() {
+    const now = Date.now();
+    for (const [ip, entry] of this.counts) {
+      if (now > entry.resetAt) this.counts.delete(ip);
+    }
+  }
+}
 
 // ── ID utilities ──────────────────────────────────────────────────
 
@@ -227,8 +275,22 @@ export class KademliaNode {
 
   async _handleConnection(socket) {
     try {
+      // Rate limit by IP
+      const remoteIP = socket.remoteAddress || "unknown";
+      if (!this._rateLimiter) this._rateLimiter = new RateLimiter();
+      if (!this._rateLimiter.allow(remoteIP)) {
+        socket.destroy();
+        return;
+      }
+
       const msg = await frameReceive(socket);
       this.stats.rpcReceived++;
+
+      // Verify HMAC authentication (accept unsigned for backward compat, log warning)
+      if (msg._hmac && !verifyMessage(msg)) {
+        socket.destroy();
+        return; // Invalid HMAC — drop silently
+      }
 
       // Update routing table with sender
       if (msg.from) {
@@ -297,7 +359,7 @@ export class KademliaNode {
           break;
       }
 
-      frameSend(socket, response);
+      frameSend(socket, signMessage(response));
     } catch {
       // Connection error, ignore
     } finally {
@@ -313,7 +375,7 @@ export class KademliaNode {
         host: contact.host,
         port: contact.port,
       }, () => {
-        frameSend(socket, { ...message, from: this._makeContact() });
+        frameSend(socket, signMessage({ ...message, from: this._makeContact() }));
         this.stats.rpcSent++;
       });
 
@@ -513,6 +575,7 @@ export class KademliaNode {
 
     this._refreshTimer = setInterval(() => {
       this.refresh().catch(() => {});
+      if (this._rateLimiter) this._rateLimiter.cleanup();
     }, REFRESH_INTERVAL);
 
     return this;

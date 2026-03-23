@@ -8,7 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { createHash } from "node:crypto";
-import { readFile, appendFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { ed25519Sign, ed25519Verify } from "./life.mjs";
 
@@ -339,6 +339,13 @@ export class DAGStore {
     try {
       await mkdir(this.dataDir, { recursive: true });
       await appendFile(this.dagFile, JSON.stringify(tx.toJSON()) + "\n", "utf8");
+      // Rotate: compact file if too large (keep last maxTransactions entries)
+      const raw = await readFile(this.dagFile, "utf8");
+      const lines = raw.trim().split("\n").filter(Boolean);
+      if (lines.length > this.maxTransactions * 2) {
+        const trimmed = lines.slice(-this.maxTransactions).join("\n") + "\n";
+        await writeFile(this.dagFile, trimmed, "utf8");
+      }
     } catch { /* ignore save errors */ }
   }
 
