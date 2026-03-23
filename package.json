@@ -1,6 +1,6 @@
 {
   "name": "clawfeel",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "Your Claw's Heartbeat — hardware-entropy random number generator with security hardening",
   "type": "module",
   "main": "./scripts/sdk.mjs",
@@ -12,6 +12,7 @@
     "clawfeel": "./scripts/clawfeel.mjs"
   },
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
     "start": "node scripts/clawfeel.mjs",
     "feel": "node scripts/clawfeel.mjs --pretty",
     "digit": "node scripts/clawfeel.mjs --digit-only",
