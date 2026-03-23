@@ -92,6 +92,7 @@
     transition: color 0.3s;
   }
   .nav-center a:hover { color: var(--green-bright); text-shadow: none; }
+  .nav-center a.active { color: var(--green-bright); }
   .nav-right {
     display: flex;
     gap: 16px;
@@ -864,9 +865,11 @@
     CLAWFEEL
   </a>
   <div class="nav-center">
+    <a href="/" class="active">Home</a>
     <a href="simulator.html">Simulator</a>
     <a href="explorer.html">Explorer</a>
     <a href="whitepaper.html">Whitepaper</a>
+    <a href="enterprise.html">Enterprise</a>
   </div>
   <div class="nav-right">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
@@ -882,10 +885,11 @@
   </div>
 </nav>
 <div class="nav-mobile-menu" id="navMobileMenu">
-  <a href="/" onclick="closeMobileMenu()">Home</a>
+  <a href="/" onclick="closeMobileMenu()" style="color:var(--green-bright)">Home</a>
   <a href="simulator.html">Simulator</a>
   <a href="explorer.html">Explorer</a>
   <a href="whitepaper.html">Whitepaper</a>
+  <a href="enterprise.html">Enterprise</a>
   <a href="#get-started" onclick="closeMobileMenu()">Install</a>
   <div class="mobile-social">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">

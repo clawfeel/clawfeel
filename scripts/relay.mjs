@@ -35,6 +35,7 @@ import path from "node:path";
 import { BeaconManager, BeaconRound } from "./beacon.mjs";
 import { ClawZKP } from "./zkp.mjs";
 import { readFileSync } from "node:fs";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 
 // Read version from package.json
 let PKG_VERSION = "0.7.5";
@@ -66,8 +67,9 @@ const SSE_INTERVAL_MS = 2_000;    // push updates every 2s
 const MAX_HISTORY = 20;           // readings history per node
 
 // ── Enterprise API: Key Management ──
-// {key, tier, rateLimit, requestCount, createdAt, windowStart, windowRequests}
+// {key, tier, rateLimit, requestCount, createdAt, windowStart, windowRequests, email, name}
 const apiKeys = new Map();
+const API_KEYS_FILE = path.join(DATA_DIR, "api-keys.json");
 
 const TIER_LIMITS = {
   free:       100,    // 100 req/hour
@@ -80,7 +82,33 @@ function generateApiKey() {
   return "cf_" + randomBytes(24).toString("hex"); // cf_ + 48 hex chars
 }
 
-function createApiKey(tier = "free") {
+// Load persisted API keys from disk
+async function loadApiKeys() {
+  try {
+    const data = await readFile(API_KEYS_FILE, "utf8");
+    const keys = JSON.parse(data);
+    for (const entry of keys) {
+      entry.windowStart = Date.now();
+      entry.windowRequests = 0;
+      apiKeys.set(entry.key, entry);
+    }
+  } catch {}
+}
+
+// Save API keys to disk
+async function saveApiKeys() {
+  try {
+    await mkdir(DATA_DIR, { recursive: true });
+    const entries = [...apiKeys.values()].map(e => ({
+      key: e.key, tier: e.tier, rateLimit: e.rateLimit,
+      requestCount: e.requestCount, createdAt: e.createdAt,
+      email: e.email || null, name: e.name || null,
+    }));
+    await writeFile(API_KEYS_FILE, JSON.stringify(entries, null, 2), "utf8");
+  } catch {}
+}
+
+function createApiKey(tier = "free", { email, name } = {}) {
   const key = generateApiKey();
   apiKeys.set(key, {
     key,
@@ -90,7 +118,10 @@ function createApiKey(tier = "free") {
     createdAt: Date.now(),
     windowStart: Date.now(),
     windowRequests: 0,
+    email: email || null,
+    name: name || null,
   });
+  saveApiKeys().catch(() => {}); // async persist
   return key;
 }
 
@@ -458,6 +489,7 @@ const beaconManager = new BeaconManager({
   signPub: relaySignPub,
 });
 beaconManager.init().catch(() => {});
+loadApiKeys().catch(() => {});
 
 setInterval(() => {
   broadcastSSE();
@@ -891,6 +923,76 @@ const server = createServer(async (req, res) => {
   }
 
   // ═══════════════════════════════════════════════════════════════
+  //  Self-Service API Key Management — /api/v1/keys/*
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── POST /api/v1/keys/register — get a free API key ──
+  if (req.method === "POST" && path === "/api/v1/keys/register") {
+    try {
+      const body = await readBody(req);
+      const email = typeof body.email === "string" ? body.email.trim().substring(0, 100) : null;
+      const name = typeof body.name === "string" ? body.name.trim().substring(0, 50) : null;
+
+      // Rate limit: max 5 keys per IP per hour
+      const ip = getClientIP(req);
+      const recentKeys = [...apiKeys.values()].filter(k =>
+        k.ip === ip && Date.now() - k.createdAt < 3_600_000
+      );
+      if (recentKeys.length >= 5) {
+        res.writeHead(429, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Too many registrations. Try again later." }));
+        return;
+      }
+
+      const key = createApiKey("free", { email, name });
+      // Store IP for rate limiting (not persisted to disk)
+      apiKeys.get(key).ip = ip;
+
+      res.writeHead(201, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        apiKey: key,
+        tier: "free",
+        rateLimit: TIER_LIMITS.free,
+        rateLimitWindow: "1 hour",
+        docs: "https://clawfeel.ai/explorer.html#api",
+        endpoints: {
+          random: "GET /api/v1/random?bits=256&format=hex",
+          batch: "GET /api/v1/random/batch?count=10&bits=64",
+          range: "GET /api/v1/random/range?min=1&max=100",
+          verify: "GET /api/v1/random/verify?round=42",
+          status: "GET /api/v1/status",
+        },
+        example: `curl -H "Authorization: Bearer ${key}" https://clawfeel-relay.fly.dev/api/v1/random`,
+      }));
+    } catch {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid request body" }));
+    }
+    return;
+  }
+
+  // ── GET /api/v1/keys/info — check your key status ──
+  if (req.method === "GET" && path === "/api/v1/keys/info") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) {
+      res.writeHead(auth.status, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: auth.error }));
+      return;
+    }
+    const entry = apiKeys.get(auth.key);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      tier: entry.tier,
+      rateLimit: entry.rateLimit,
+      remaining: auth.remaining,
+      resetAt: new Date(auth.resetAt).toISOString(),
+      totalRequests: entry.requestCount,
+      createdAt: new Date(entry.createdAt).toISOString(),
+    }));
+    return;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   //  Enterprise Random Number API — /api/v1/*
   //  All endpoints require API key via Authorization: Bearer <key>
   // ═══════════════════════════════════════════════════════════════
@@ -1171,14 +1273,49 @@ const server = createServer(async (req, res) => {
   res.end(JSON.stringify({ error: "Not found" }));
 });
 
-// ── Bootstrap free-tier API key on startup ──
-const freeBootstrapKey = createApiKey("free");
+// ── Exportable start function for embedded mode ──
+export async function startRelay({ port, embedded = false } = {}) {
+  const listenPort = port || PORT;
+  return new Promise((resolve) => {
+    server.listen(listenPort, async () => {
+      if (!embedded) {
+        _printBanner(listenPort);
+      }
+      // Start DHT
+      try {
+        const { KademliaNode } = await import("./dht.mjs");
+        const dht = new KademliaNode({
+          clawId: "relay-bootstrap",
+          host: "0.0.0.0",
+          port: DHT_PORT,
+          bootstrapNodes: [],
+          dataDir: DATA_DIR,
+        });
+        await dht.start();
+        if (!embedded) console.log(`  🌐 DHT bootstrap node running on :${dht.port}\n`);
+      } catch (err) {
+        if (!embedded) console.log(`  ⚠️  DHT failed to start: ${err.message}`);
+      }
+      resolve({ port: listenPort });
+    });
+  });
+}
 
-server.listen(PORT, async () => {
+// ── Auto-start when run directly (not imported) ──
+const isDirectRun = process.argv[1] && (
+  process.argv[1].endsWith("relay.mjs") ||
+  process.argv[1].includes("relay.mjs")
+);
+
+if (isDirectRun) {
+  const freeBootstrapKey = createApiKey("free");
+  _startDirect(freeBootstrapKey);
+}
+
+function _printBanner(port) {
   console.log("");
-  console.log("  ┌─ ClawFeel Relay v0.4.0 ──────────────────────┐");
-  console.log(`  │  HTTP on http://localhost:${PORT}               │`);
-  console.log(`  │  DHT  on TCP :${DHT_PORT}                       │`);
+  console.log("  ┌─ ClawFeel Relay ─────────────────────────────┐");
+  console.log(`  │  HTTP on http://localhost:${port}               │`);
   console.log("  │                                             │");
   console.log("  │  Endpoints:                                 │");
   console.log("  │    POST /api/report    — node reports Feel  │");
@@ -1186,39 +1323,20 @@ server.listen(PORT, async () => {
   console.log("  │    GET  /api/stream    — SSE real-time feed │");
   console.log("  │    GET  /api/bootstrap — DHT peer list      │");
   console.log("  │                                             │");
-  console.log("  │  Enterprise API (Bearer token required):    │");
-  console.log("  │    GET  /api/v1/random        — random num  │");
-  console.log("  │    GET  /api/v1/random/batch  — batch       │");
-  console.log("  │    GET  /api/v1/random/range  — int range   │");
-  console.log("  │    GET  /api/v1/random/verify — verify      │");
-  console.log("  │    GET  /api/v1/status        — usage stats │");
-  console.log("  │    GET  /api/v1/audit         — audit log   │");
-  console.log("  │                                             │");
   console.log("  │  Waiting for Claws... 🦞                    │");
   console.log("  └─────────────────────────────────────────────┘");
   console.log("");
-  console.log("  🔑 Free-tier API key (100 req/hour):");
-  console.log(`     ${freeBootstrapKey}`);
-  if (ADMIN_KEY) {
+}
+
+function _startDirect(freeBootstrapKey) {
+  startRelay({ port: PORT }).then(({ port }) => {
+    _printBanner(port);
+    console.log("  🔑 Free-tier API key (100 req/hour):");
+    console.log(`     ${freeBootstrapKey}`);
+    if (ADMIN_KEY) {
+      console.log("");
+      console.log("  🔐 Admin key (enterprise tier) loaded from --admin-key");
+    }
     console.log("");
-    console.log("  🔐 Admin key (enterprise tier) loaded from --admin-key");
-  }
-
-  // Start DHT node (bootstrap node for the P2P network)
-  try {
-    const { KademliaNode } = await import("./dht.mjs");
-    const dht = new KademliaNode({
-      clawId: "relay-bootstrap",
-      host: "0.0.0.0",
-      port: DHT_PORT,
-      bootstrapNodes: [],
-      dataDir: DATA_DIR,
-    });
-    await dht.start();
-    console.log(`  🌐 DHT bootstrap node running on :${dht.port}`);
-  } catch (err) {
-    console.log(`  ⚠️  DHT failed to start: ${err.message}`);
-  }
-
-  console.log("");
-});
+  });
+}

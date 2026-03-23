@@ -53,6 +53,9 @@ const ALIAS = param("alias", null);
 const P2P = flag("p2p");
 const LIGHT_MODE = flag("light");
 const NO_RELAY = flag("no-relay");
+const FULL_NODE = flag("full-node");
+const RELAY_ONLY = flag("relay-only");
+const RELAY_PORT = parseInt(param("relay-port", "8080"), 10);
 const DHT_PORT = parseInt(param("dht-port", "31416"), 10);
 const BOOTSTRAP = param("bootstrap", null);
 const DAG_STATUS = flag("dag-status");
@@ -1178,11 +1181,65 @@ async function reportToRelay(result) {
       console.log(`  📡 Relay: ${data.ok ? "✅" : "❌"} ${data.peers || 0} peers online`);
       console.log(`  🌐 Live:  https://clawfeel.ai/simulator.html?me=${clawId}`);
     }
+    // Auto-open browser on first successful report to register clawId
+    if (data.ok) autoOpenBrowser(clawId);
   } catch (err) {
     if (PRETTY) {
       console.log(`  📡 Relay: ⚠️ ${err.message}`);
     }
   }
+}
+
+// ── Device detection (desktop vs mobile/IoT) ───────────────────
+function isDesktop() {
+  const p = process.platform;
+  // darwin (macOS), win32 (Windows), linux with enough memory = desktop
+  if (p === "darwin" || p === "win32") return true;
+  // Linux: check if it has enough RAM (>1GB = likely desktop/server)
+  try {
+    const totalMem = os.totalmem();
+    return totalMem > 1_073_741_824; // 1GB
+  } catch { return false; }
+}
+
+// ── Start embedded relay for full-node mode ─────────────────────
+async function startEmbeddedRelay(port) {
+  try {
+    const relayModule = await import("./relay.mjs");
+    if (relayModule.startRelay) {
+      await relayModule.startRelay({ port, embedded: true });
+      return true;
+    }
+    // Fallback: spawn relay as child process
+    const { spawn: spawnChild } = await import("node:child_process");
+    const relayPath = new URL("./relay.mjs", import.meta.url).pathname;
+    const child = spawnChild(process.execPath, [relayPath, "--port", String(port)], {
+      detached: false,
+      stdio: "ignore",
+      env: { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: "production" },
+    });
+    child.unref();
+    return true;
+  } catch (err) {
+    console.error(`  ⚠️  Failed to start embedded relay: ${err.message}`);
+    return false;
+  }
+}
+
+// ── Auto-open browser to register clawId in localStorage ────────
+let browserOpened = false;
+async function autoOpenBrowser(clawId) {
+  if (browserOpened) return;
+  browserOpened = true;
+  const url = `https://clawfeel.ai/?me=${clawId}`;
+  try {
+    const { platform } = await import("node:os");
+    const { exec } = await import("node:child_process");
+    const cmd = platform() === "darwin" ? `open "${url}"`
+      : platform() === "win32" ? `start "${url}"`
+      : `xdg-open "${url}" 2>/dev/null`;
+    exec(cmd);
+  } catch { /* ignore if browser can't open */ }
 }
 
 // ── Daemon management ────────────────────────────────────────────
@@ -1350,6 +1407,16 @@ async function main() {
   const userSetCount = args.includes("--count");
   const userSetInterval = args.includes("--interval");
 
+  // ── Relay-only mode: just run the relay server ──
+  if (RELAY_ONLY) {
+    if (PRETTY) console.log("🌐 Starting ClawFeel Relay (relay-only mode)...");
+    await startEmbeddedRelay(RELAY_PORT);
+    if (PRETTY) console.log(`  ✅ Relay listening on port ${RELAY_PORT}`);
+    // Keep process alive
+    await new Promise(() => {});
+    return;
+  }
+
   if (!IS_DAEMON && !isOneShot && !userSetCount && !userSetInterval) {
     // Detect if running inside OpenClaw (check parent process)
     let isOpenClaw = false;
@@ -1360,8 +1427,18 @@ async function main() {
       isOpenClaw = /openclaw|claude|claw/i.test(ppidCmd);
     } catch {}
 
+    // Determine node mode: desktop → full node, mobile/IoT → light node
+    const autoFullNode = !LIGHT_MODE && !NO_RELAY && isDesktop();
+    const runFullNode = FULL_NODE || autoFullNode;
+
     // OpenClaw → attached mode (lifecycle bound), standalone → detached mode
     const daemonResult = await startDaemon({ attached: isOpenClaw });
+
+    // Start embedded relay if full-node mode
+    let relayStarted = false;
+    if (runFullNode) {
+      relayStarted = await startEmbeddedRelay(RELAY_PORT);
+    }
 
     // Load identity and signing keys
     await loadIdentity();
@@ -1386,6 +1463,14 @@ async function main() {
         console.log(`  🌐 Live:  https://clawfeel.ai/simulator.html?me=${clawId}`);
       }
       console.log("");
+
+      // Node mode display
+      const nodeMode = runFullNode ? "🖥️  Full Node (relay + sensor)" : "📱 Light Node (sensor only)";
+      console.log(`  ${nodeMode}`);
+      if (relayStarted) {
+        console.log(`  📡 Embedded relay on port ${RELAY_PORT}`);
+      }
+
       if (daemonResult.started) {
         const modeLabel = daemonResult.mode === "attached"
           ? "🔗 Attached to OpenClaw (auto-exit when OpenClaw stops)"
