@@ -10,13 +10,13 @@
  *   5. Hardware concurrency (CPU core count)
  *
  * Usage:
- *   const entropy = new BrowserEntropy('https://clawfeel-relay.fly.dev');
+ *   const entropy = new BrowserEntropy('https://api.clawfeel.ai');
  *   const result = await entropy.computeFeel();
  *   await entropy.reportToRelay();
  */
 
 class BrowserEntropy {
-  constructor(relayUrl = 'https://clawfeel-relay.fly.dev') {
+  constructor(relayUrl = 'https://api.clawfeel.ai') {
     this.relayUrl = relayUrl.replace(/\/+$/, '');
     this.clawId = this._getOrCreateId();
     this.seq = 0;

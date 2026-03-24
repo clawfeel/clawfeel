@@ -9,7 +9,7 @@ import urllib.request
 import urllib.error
 from typing import Optional, List, Dict, Any
 
-DEFAULT_RELAY = "https://clawfeel-relay.fly.dev"
+DEFAULT_RELAY = "https://api.clawfeel.ai"
 
 
 class ClawRandom:

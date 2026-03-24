@@ -48,7 +48,7 @@ async function drawWinners(count = 3) {
 
   console.log("");
   console.log("✅ Verify: anyone can recompute using beacon round #" + beacon.round);
-  console.log(`   curl https://clawfeel-relay.fly.dev/api/v1/random/verify?round=${beacon.round}`);
+  console.log(`   curl https://api.clawfeel.ai/api/v1/random/verify?round=${beacon.round}`);
 }
 
 drawWinners(3).catch(console.error);

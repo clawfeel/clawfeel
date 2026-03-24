@@ -158,7 +158,7 @@ ClawFeel auto-starts a background daemon on first run:
 User config at `~/.openclaw/feel.md`:
 ```yaml
 alias: MyClaw
-relay: https://clawfeel-relay.fly.dev
+relay: https://api.clawfeel.ai
 clawId: 3eda7c810253
 ```
 

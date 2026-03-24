@@ -425,7 +425,7 @@ const meParam = new URLSearchParams(window.location.search).get('me');
 if (meParam && /^[0-9a-f]{8,16}$/i.test(meParam)) localStorage.setItem('clawfeel_me', meParam);
 const myClawId = localStorage.getItem('clawfeel_me') || null;
 if (myClawId) {
-  fetch('https://clawfeel-relay.fly.dev/api/network').then(r => r.json()).then(data => {
+  fetch('https://api.clawfeel.ai/api/network').then(r => r.json()).then(data => {
     const btn = document.getElementById('navUserBtn');
     if (!btn) return;
     const nodes = data.nodes || [];
@@ -1159,7 +1159,7 @@ Verification: SHA-256(feel | nonce) === commitment ?
     <h3>10.3 Embedded Relay</h3>
     <p>
       Each full node includes an embedded HTTP relay server that exposes the same API as the
-      central relay (<code>clawfeel-relay.fly.dev</code>). This means the network does not depend
+      central relay (<code>api.clawfeel.ai</code>). This means the network does not depend
       on any single relay &mdash; if the central relay goes offline, nodes can discover and connect
       to peer relays through the DHT. The embedded relay supports:
     </p>
@@ -1433,7 +1433,7 @@ console.log(result.quality);    // 87 (entropy quality 0-100)
 // Remote mode — consume from relay
 import { createClient } from 'clawfeel';
 
-const client = createClient('https://clawfeel-relay.fly.dev');
+const client = createClient('https://api.clawfeel.ai');
 client.on('beacon', (beacon) =&gt; {
   console.log(beacon.networkFeel);  // network-aggregated Feel
   console.log(beacon.random);       // verifiable random number
@@ -1457,7 +1457,7 @@ print(f"Random: {result.random}")
 # Remote mode
 from clawfeel import ClawFeelClient
 
-client = ClawFeelClient("https://clawfeel-relay.fly.dev")
+client = ClawFeelClient("https://api.clawfeel.ai")
 for beacon in client.stream():
     print(f"Round {beacon.round}: Feel={beacon.network_feel}")
     <div class="figure-caption">Figure 8: Python SDK usage</div></div>

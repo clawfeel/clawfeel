@@ -1290,7 +1290,7 @@ function drawParticles() {
 //  LIVE MODE — Connect to real relay via SSE
 // ═══════════════════════════════════════════════════════════════
 
-const RELAY_URL = 'https://clawfeel-relay.fly.dev';
+const RELAY_URL = 'https://api.clawfeel.ai';
 let currentMode = 'live'; // default to Live mode
 
 // ── "You" identification via ?me=clawId or localStorage ──
@@ -1331,7 +1331,7 @@ function updateNavLoginStatus(nodes) {
 
 // Check status on page load
 if (myClawId) {
-  fetch('https://clawfeel-relay.fly.dev/api/network')
+  fetch('https://api.clawfeel.ai/api/network')
     .then(r => r.json())
     .then(data => updateNavLoginStatus(data.nodes || []))
     .catch(() => updateNavLoginStatus(null));

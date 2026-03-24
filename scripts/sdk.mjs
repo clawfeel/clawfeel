@@ -117,7 +117,7 @@ class ClawRandom {
    * @param {number} timeout - Request timeout in ms (default: 10000)
    * @returns {Promise<ClawRandom>}
    */
-  static async remote(url = "https://clawfeel-relay.fly.dev", timeout = 10_000) {
+  static async remote(url = "https://api.clawfeel.ai", timeout = 10_000) {
     return new ClawRandom(new RemoteProvider(url, timeout), "remote");
   }
 

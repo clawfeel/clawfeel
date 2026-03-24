@@ -1279,7 +1279,7 @@
         <a href="demo.html" data-i18n="nav-demo">Demo</a>
         <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
         <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" data-i18n="footer-sdk-docs">SDK Docs</a>
-        <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener" data-i18n="footer-enterprise-api">Enterprise API</a>
+        <a href="https://api.clawfeel.ai/api/v1/random" target="_blank" rel="noopener" data-i18n="footer-enterprise-api">Enterprise API</a>
       </div>
       <div class="footer-col">
         <div class="footer-col-title" data-i18n="footer-community">Community</div>
@@ -1412,14 +1412,14 @@ function updateNavLoginStatus(nodes) {
 
 // Check status on page load
 if (myClawId) {
-  fetch('https://clawfeel-relay.fly.dev/api/network')
+  fetch('https://api.clawfeel.ai/api/network')
     .then(r => r.json())
     .then(data => updateNavLoginStatus(data.nodes || []))
     .catch(() => updateNavLoginStatus(null));
 }
 
 // ── SSE Live connection ──
-const RELAY_URL = 'https://clawfeel-relay.fly.dev';
+const RELAY_URL = 'https://api.clawfeel.ai';
 let sseConnected = false;
 
 function startLiveConnection() {
@@ -1553,7 +1553,7 @@ function toggleBrowserNode(e) {
     const script = document.createElement('script');
     script.src = 'browser-entropy.js';
     script.onload = () => {
-      browserEntropy = new BrowserEntropy('https://clawfeel-relay.fly.dev');
+      browserEntropy = new BrowserEntropy('https://api.clawfeel.ai');
       browserDaemonStop = browserEntropy.startDaemon(30000);
       btn.textContent = '\uD83D\uDFE2 Contributing...';
       btn.classList.add('active');

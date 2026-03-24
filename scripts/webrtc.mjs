@@ -9,7 +9,7 @@
 
 import { randomBytes } from "node:crypto";
 
-const DEFAULT_RELAY_WS = "wss://clawfeel-relay.fly.dev/ws/signal";
+const DEFAULT_RELAY_WS = "wss://api.clawfeel.ai/ws/signal";
 
 /**
  * SignalingClient — Node.js side WebSocket client for P2P signaling.
@@ -189,7 +189,7 @@ export class SignalingClient {
 export const BROWSER_P2P_SCRIPT = `
 class BrowserP2PManager {
   constructor({ relayWsUrl, clawId }) {
-    this.relayWsUrl = relayWsUrl || 'wss://clawfeel-relay.fly.dev/ws/signal';
+    this.relayWsUrl = relayWsUrl || 'wss://api.clawfeel.ai/ws/signal';
     this.clawId = clawId;
     this.ws = null;
     this.peers = new Map(); // clawId → { pc, dc }

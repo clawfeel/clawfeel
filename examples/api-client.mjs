@@ -11,7 +11,7 @@
  * Usage: node examples/api-client.mjs
  */
 
-const RELAY = "https://clawfeel-relay.fly.dev";
+const RELAY = "https://api.clawfeel.ai";
 
 async function apiDemo() {
   console.log("🏢 ClawFeel Enterprise API Demo");

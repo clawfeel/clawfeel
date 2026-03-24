@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <span class="logo">CF</span>
+    <span class="title">ClawFeel</span>
+    <span class="status-dot" id="statusDot"></span>
+  </div>
+
+  <div class="card">
+    <div class="feel-display">
+      <div class="feel-value" id="feelValue">--</div>
+      <div class="feel-era" id="feelEra">Waiting...</div>
+    </div>
+    <div class="feel-hash" id="feelHash">--</div>
+  </div>
+
+  <div class="card toggle-row">
+    <span class="toggle-label">Contributing Entropy</span>
+    <label class="switch">
+      <input type="checkbox" id="toggleContrib">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="card stats">
+    <div class="stat"><span class="stat-label">Claw ID</span><span class="stat-value" id="clawId">--</span></div>
+    <div class="stat"><span class="stat-label">Uptime</span><span class="stat-value" id="uptime">--</span></div>
+    <div class="stat"><span class="stat-label">Contributions</span><span class="stat-value" id="contributions">0</span></div>
+    <div class="stat"><span class="stat-label">Network Peers</span><span class="stat-value" id="peers">--</span></div>
+  </div>
+
+  <a id="dashboardLink" class="btn" target="_blank">View Dashboard</a>
+
+  <div class="footer">clawfeel.ai &middot; v0.11.0</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

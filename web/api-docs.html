@@ -395,7 +395,7 @@
 
   <div class="base-url-box">
     <span class="base-url-label">Base URL</span>
-    <code class="base-url-value">https://clawfeel-relay.fly.dev</code>
+    <code class="base-url-value">https://api.clawfeel.ai</code>
   </div>
 
   <!-- ═══════════════════════════════════════════════════ -->
@@ -442,7 +442,7 @@
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl -X POST https://clawfeel-relay.fly.dev/api/report \
+      <div class="code-body">curl -X POST https://api.clawfeel.ai/api/report \
   -H "Content-Type: application/json" \
   -H "X-Claw-Id: Claw-a1b2c3d4" \
   -d '{
@@ -489,7 +489,7 @@
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/network</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/network</div>
     </div>
 
     <div class="code-block">
@@ -539,7 +539,7 @@
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl -N https://clawfeel-relay.fly.dev/api/stream</div>
+      <div class="code-body">curl -N https://api.clawfeel.ai/api/stream</div>
     </div>
 
     <div class="code-block">
@@ -559,7 +559,7 @@ data: {"timestamp":"2026-03-23T12:00:02.000Z","tick":1025,"stats":{...},"nodes":
         <span class="code-label">JavaScript Usage</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">const es = new EventSource("https://clawfeel-relay.fly.dev/api/stream");
+      <div class="code-body">const es = new EventSource("https://api.clawfeel.ai/api/stream");
 es.onmessage = (e) => {
   const state = JSON.parse(e.data);
   console.log("Nodes online:", state.stats.onlineNodes);
@@ -585,7 +585,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/bootstrap</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/bootstrap</div>
     </div>
 
     <div class="code-block">
@@ -631,7 +631,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/beacon/latest</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/beacon/latest</div>
     </div>
 
     <div class="code-block">
@@ -677,7 +677,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/beacon/42</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/beacon/42</div>
     </div>
 
     <div class="code-block">
@@ -719,7 +719,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl "https://clawfeel-relay.fly.dev/api/beacons?from=1&to=10"</div>
+      <div class="code-body">curl "https://api.clawfeel.ai/api/beacons?from=1&to=10"</div>
     </div>
 
     <div class="code-block">
@@ -762,7 +762,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl "https://clawfeel-relay.fly.dev/api/explorer/txs?search=Claw&limit=10"</div>
+      <div class="code-body">curl "https://api.clawfeel.ai/api/explorer/txs?search=Claw&limit=10"</div>
     </div>
 
     <div class="code-block">
@@ -811,7 +811,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/explorer/tx/a3f8c1d2</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/explorer/tx/a3f8c1d2</div>
     </div>
 
     <div class="code-block">
@@ -856,7 +856,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/explorer/node/Claw-a1b2c3d4</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/explorer/node/Claw-a1b2c3d4</div>
     </div>
 
     <div class="code-block">
@@ -899,7 +899,7 @@ es.onmessage = (e) => {
         <span class="code-label">Example Request</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl https://clawfeel-relay.fly.dev/api/explorer/overview</div>
+      <div class="code-body">curl https://api.clawfeel.ai/api/explorer/overview</div>
     </div>
 
     <div class="code-block">
@@ -928,7 +928,7 @@ es.onmessage = (e) => {
         <span class="code-label">Register for API Key</span>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <div class="code-body">curl -X POST https://clawfeel-relay.fly.dev/api/v1/keys/register \
+      <div class="code-body">curl -X POST https://api.clawfeel.ai/api/v1/keys/register \
   -H "Content-Type: application/json" \
   -d '{"email": "you@example.com", "name": "Your Name"}'</div>
     </div>
@@ -965,7 +965,7 @@ es.onmessage = (e) => {
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
       <div class="code-body">curl -H "Authorization: Bearer cf_your_api_key_here" \
-  "https://clawfeel-relay.fly.dev/api/v1/random?bits=256&format=hex"</div>
+  "https://api.clawfeel.ai/api/v1/random?bits=256&format=hex"</div>
     </div>
 
     <div class="code-block">
@@ -1017,7 +1017,7 @@ es.onmessage = (e) => {
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
       <div class="code-body">curl -H "Authorization: Bearer cf_your_api_key_here" \
-  "https://clawfeel-relay.fly.dev/api/v1/random/batch?count=5&bits=64&format=hex"</div>
+  "https://api.clawfeel.ai/api/v1/random/batch?count=5&bits=64&format=hex"</div>
     </div>
 
     <div class="code-block">
@@ -1074,7 +1074,7 @@ es.onmessage = (e) => {
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
       <div class="code-body">curl -H "Authorization: Bearer cf_your_api_key_here" \
-  "https://clawfeel-relay.fly.dev/api/v1/random/range?min=1&max=100"</div>
+  "https://api.clawfeel.ai/api/v1/random/range?min=1&max=100"</div>
     </div>
 
     <div class="code-block">
@@ -1123,7 +1123,7 @@ es.onmessage = (e) => {
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
       <div class="code-body">curl -H "Authorization: Bearer cf_your_api_key_here" \
-  "https://clawfeel-relay.fly.dev/api/v1/random/verify?round=42"</div>
+  "https://api.clawfeel.ai/api/v1/random/verify?round=42"</div>
     </div>
 
     <div class="code-block">
@@ -1174,7 +1174,7 @@ es.onmessage = (e) => {
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
       <div class="code-body">curl -H "Authorization: Bearer cf_your_api_key_here" \
-  https://clawfeel-relay.fly.dev/api/v1/status</div>
+  https://api.clawfeel.ai/api/v1/status</div>
     </div>
 
     <div class="code-block">
@@ -1238,7 +1238,7 @@ function copyCode(btn) {
 }
 
 // ── Try it live ──
-const BASE = 'https://clawfeel-relay.fly.dev';
+const BASE = 'https://api.clawfeel.ai';
 
 async function tryEndpoint(btn, path) {
   btn.disabled = true;

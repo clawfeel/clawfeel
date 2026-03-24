@@ -139,6 +139,7 @@ const WILL_STATUS = flag("will-status");
 const FORK = param("fork", null);               // newClawId
 const ZKP = flag("zkp");
 const HEARTBEAT = flag("heartbeat");
+const AGENT_DECIDE = param("agent-decide", null);
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const ATTACHED = flag("__attached"); // internal: lifecycle bound to parent (OpenClaw)
 const NO_DAEMON = flag("no-daemon"); // run in foreground (for Docker/containers)
@@ -196,7 +197,7 @@ const FEEL_MD_PATHS = [
  * Parse feel.md frontmatter-style config.
  * Format:
  *   alias: MyClaw
- *   relay: https://clawfeel-relay.fly.dev
+ *   relay: https://api.clawfeel.ai
  *   clawId: 3eda7c810253
  */
 function parseFeelMd(content) {
@@ -224,7 +225,7 @@ function generateFeelMd(config) {
 
 alias: ${config.alias}
 clawId: ${config.clawId}
-relay: ${config.relay || "https://clawfeel-relay.fly.dev"}
+relay: ${config.relay || "https://api.clawfeel.ai"}
 createdAt: ${config.createdAt}
 `;
 }
@@ -276,7 +277,7 @@ async function loadIdentity() {
 
   // ── 3. Generate new identity ──
   nodeAlias = generateAlias(clawId);
-  const defaultRelay = "https://clawfeel-relay.fly.dev";
+  const defaultRelay = "https://api.clawfeel.ai";
   const config = {
     alias: nodeAlias,
     clawId,
@@ -1214,7 +1215,7 @@ async function attachZKP(result, sensorResults) {
 
 // Multi-relay endpoints for redundancy
 const RELAY_ENDPOINTS = [
-  "https://clawfeel-relay.fly.dev",
+  "https://api.clawfeel.ai",
 ];
 
 async function reportToRelay(result) {
@@ -1517,9 +1518,32 @@ async function main() {
     return;
   }
 
+  // ── Agent decide: quick one-shot decision ──
+  if (AGENT_DECIDE) {
+    const { ClawAgent } = await import("./agent.mjs");
+    const agent = new ClawAgent({ mode: "fast" });
+    const options = AGENT_DECIDE.split(",").map(s => s.trim()).filter(Boolean);
+    if (options.length < 2) {
+      console.error("Error: --agent-decide requires at least 2 comma-separated options");
+      process.exit(1);
+    }
+    const result = await agent.decide(options);
+    agent.stop();
+    if (PRETTY) {
+      console.log(`\n  🎲 Agent Decision`);
+      console.log(`  Options: ${options.join(", ")}`);
+      console.log(`  Choice:  ${result.choice} (index ${result.index})`);
+      console.log(`  Entropy: ${result.entropy}`);
+      console.log(`  Mode:    ${result.proof.mode}\n`);
+    } else {
+      console.log(JSON.stringify(result));
+    }
+    return;
+  }
+
   // ── Auto-daemon: if not already a daemon and not a one-shot command,
   //    start a background daemon and return one reading to the user ──
-  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS || STORE_FILE || GET_FILE || STORE_LIST || LIFE_INIT || LIFE_SAVE || LIFE_RESTORE || LIFE_EXPORT || LIFE_STATUS;
+  const isOneShot = DIGIT_ONLY || HISTORY || LISTEN || DAG_STATUS || STORE_FILE || GET_FILE || STORE_LIST || LIFE_INIT || LIFE_SAVE || LIFE_RESTORE || LIFE_EXPORT || LIFE_STATUS || AGENT_DECIDE;
   const userSetCount = args.includes("--count");
   const userSetInterval = args.includes("--interval");
 
@@ -1619,7 +1643,7 @@ async function main() {
       clawId: getClawId(),
       host: "0.0.0.0",
       port: DHT_PORT,
-      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"] : ["clawfeel-relay.fly.dev:31416"],
+      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "api.clawfeel.ai:31416"] : ["api.clawfeel.ai:31416"],
       dataDir: DATA_DIR,
     });
     await dht.start();
@@ -1688,7 +1712,7 @@ async function main() {
       clawId,
       host: "0.0.0.0",
       port: DHT_PORT,
-      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"] : ["clawfeel-relay.fly.dev:31416"],
+      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "api.clawfeel.ai:31416"] : ["api.clawfeel.ai:31416"],
       dataDir: DATA_DIR,
     });
     await dht.start();
@@ -1974,11 +1998,11 @@ async function main() {
 
       // Enhanced bootstrap: fetch online peers from relay API
       const bootstrapList = BOOTSTRAP
-        ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"]
-        : ["clawfeel-relay.fly.dev:31416"];
+        ? [BOOTSTRAP, "api.clawfeel.ai:31416"]
+        : ["api.clawfeel.ai:31416"];
 
       try {
-        const relayUrl = RELAY || nodeRelay || "https://clawfeel-relay.fly.dev";
+        const relayUrl = RELAY || nodeRelay || "https://api.clawfeel.ai";
         const bsRes = await fetch(relayUrl.replace(/\/$/, "") + "/api/bootstrap", {
           signal: AbortSignal.timeout(5000),
         });

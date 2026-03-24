@@ -491,7 +491,7 @@
         <button class="code-copy" onclick="copyCode('tab-fast')">Copy</button>
 <span class="code-comment"># Fast Mode — instant random number (&lt;50ms)</span>
 <span class="code-keyword">curl</span> -H <span class="code-string">"Authorization: Bearer YOUR_KEY"</span> \
-  <span class="code-string">https://clawfeel-relay.fly.dev/api/v1/random?bits=256</span>
+  <span class="code-string">https://api.clawfeel.ai/api/v1/random?bits=256</span>
 
 <span class="code-comment"># Response:</span>
 {
@@ -510,13 +510,13 @@
 <span class="code-keyword">curl</span> -X POST -H <span class="code-string">"Authorization: Bearer YOUR_KEY"</span> \
   -H <span class="code-string">"Content-Type: application/json"</span> \
   -d <span class="code-string">'{"purpose": "lottery-draw-2026"}'</span> \
-  <span class="code-string">https://clawfeel-relay.fly.dev/api/v1/random/commit</span>
+  <span class="code-string">https://api.clawfeel.ai/api/v1/random/commit</span>
 
 <span class="code-comment"># Response: {"commit_id": "c8a3f...", "reveal_after": "2026-03-24T..."}</span>
 
 <span class="code-comment"># Step 2: Reveal after next beacon round</span>
 <span class="code-keyword">curl</span> -H <span class="code-string">"Authorization: Bearer YOUR_KEY"</span> \
-  <span class="code-string">https://clawfeel-relay.fly.dev/api/v1/random/reveal?commit_id=c8a3f...</span>
+  <span class="code-string">https://api.clawfeel.ai/api/v1/random/reveal?commit_id=c8a3f...</span>
 
 <span class="code-comment"># Response: verifiable result tied to future beacon</span>
 {
@@ -533,7 +533,7 @@
 <span class="code-keyword">import</span> { createHmac } <span class="code-keyword">from</span> <span class="code-string">'crypto'</span>;
 
 <span class="code-comment">// Step 1: Sync beacon seed once</span>
-<span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-func">fetch</span>(<span class="code-string">'https://clawfeel-relay.fly.dev/api/v1/seed'</span>, {
+<span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-func">fetch</span>(<span class="code-string">'https://api.clawfeel.ai/api/v1/seed'</span>, {
   headers: { <span class="code-string">'Authorization'</span>: <span class="code-string">'Bearer YOUR_KEY'</span> }
 });
 <span class="code-keyword">const</span> { seed } = <span class="code-keyword">await</span> res.<span class="code-func">json</span>();
@@ -611,13 +611,13 @@
       </div>
       <div class="code-block">
 <span class="code-comment"># 1. Get your free API key</span>
-curl -X POST https://clawfeel-relay.fly.dev/api/v1/keys/register \
+curl -X POST https://api.clawfeel.ai/api/v1/keys/register \
   -H "Content-Type: application/json" \
   -d '{"email": "you@company.com"}'
 
 <span class="code-comment"># 2. Fetch a 256-bit random number</span>
 curl -H "Authorization: Bearer <span class="code-string">YOUR_KEY</span>" \
-  https://clawfeel-relay.fly.dev/api/v1/random?bits=256
+  https://api.clawfeel.ai/api/v1/random?bits=256
 
 <span class="code-comment"># Response:</span>
 {
@@ -630,7 +630,7 @@ curl -H "Authorization: Bearer <span class="code-string">YOUR_KEY</span>" \
 
 <span class="code-comment"># 3. Verify any round independently</span>
 curl -H "Authorization: Bearer <span class="code-string">YOUR_KEY</span>" \
-  https://clawfeel-relay.fly.dev/api/v1/random/verify?round=4271
+  https://api.clawfeel.ai/api/v1/random/verify?round=4271
       </div>
     </div>
   </div>
@@ -725,7 +725,7 @@ async function registerKey() {
   const btn = document.getElementById('freeKeyBtn');
   btn.textContent = 'Registering...';
   try {
-    const res = await fetch('https://clawfeel-relay.fly.dev/api/v1/keys/register', {
+    const res = await fetch('https://api.clawfeel.ai/api/v1/keys/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Website Signup' }),
@@ -783,7 +783,7 @@ async function demoFast(btn) {
   try {
     const t0 = performance.now();
     // Use public beacon endpoint (no API key required)
-    const res = await fetch('https://clawfeel-relay.fly.dev/api/beacon/latest');
+    const res = await fetch('https://api.clawfeel.ai/api/beacon/latest');
     const data = await res.json();
     const ms = Math.round(performance.now() - t0);
     // Derive entropy from beacon hash + timestamp for uniqueness
