@@ -166,7 +166,13 @@
       "Bash(fly regions:*)",
       "Bash(fly scale:*)",
       "Bash(fly status:*)",
-      "Bash(fly machine:*)"
+      "Bash(fly machine:*)",
+      "Bash(fly logs:*)",
+      "Bash(for f:*)",
+      "Bash(echo \"=== $f nav-center links ===\")",
+      "Bash(curl -s https://clawfeel-relay.fly.dev/api/v1/random?bits=64)",
+      "Bash(curl -s \"https://clawfeel-relay.fly.dev/health\")",
+      "Bash(do sed:*)"
     ]
   }
 }

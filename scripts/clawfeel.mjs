@@ -1936,6 +1936,13 @@ async function main() {
   // Start local identity server (localhost:31415) for browser auto-detection
   await startLocalIdentityServer();
 
+  // ── Full-node mode: start embedded relay ──
+  if (FULL_NODE) {
+    const relayOk = await startEmbeddedRelay(RELAY_PORT);
+    if (relayOk) console.log(`  🖥️  Full node: relay on port ${RELAY_PORT}`);
+    else console.log(`  ⚠️  Full node: relay failed to start`);
+  }
+
   // ── P2P mode: start DHT + DAG + Gossip ──
   let gossipManager = null;
   if (P2P) {

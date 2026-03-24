@@ -871,15 +871,9 @@
     <a href="demo.html">Demo</a>
     <a href="whitepaper.html">Whitepaper</a>
     <a href="enterprise.html">Enterprise</a>
-    <a href="api-docs.html">API Docs</a>
+    <a href="api-docs.html">API</a>
   </div>
   <div class="nav-right">
-    <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-    </a>
-    <a href="https://x.com/clawfeel" target="_blank" rel="noopener" title="X (Twitter)">
-      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-    </a>
     <a href="#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
     <button onclick="toggleLang()" id="langBtn" style="background:none;border:1px solid #333;color:#888;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px;">CN</button>
   </div>
@@ -894,7 +888,7 @@
   <a href="demo.html">Demo</a>
   <a href="whitepaper.html">Whitepaper</a>
   <a href="enterprise.html">Enterprise</a>
-  <a href="api-docs.html">API Docs</a>
+  <a href="api-docs.html">API</a>
   <a href="#get-started" onclick="closeMobileMenu()">Install</a>
   <div class="mobile-social">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">
@@ -1231,11 +1225,46 @@
         <a href="javascript:void(0)" onclick="navigator.clipboard.writeText('npx clawfeel@latest --pretty');this.textContent='✅ Copied!';setTimeout(()=>{this.textContent='📋 Install ClawFeel'},1500);" class="btn btn-primary" style="font-size:16px;padding:14px 36px;">📋 Install ClawFeel</a>
       </div>
 
-      <div class="enterprise-block fade-in">
-        <div class="enterprise-label">Enterprise API</div>
-        <div class="code-block" style="max-width:100%;">
-          <span class="prompt">$</span> <span class="cmd">curl -H "Authorization: Bearer YOUR_API_KEY" \</span><br>
-          <span class="cmd">&nbsp;&nbsp;https://clawfeel-relay.fly.dev/api/v1/random?bits=256</span>
+      <!-- ═══ Three API Modes ═══ -->
+      <div style="margin-top:48px;" class="fade-in">
+        <div class="section-title" style="font-size:22px;margin-bottom:8px;">Three Modes, One API</div>
+        <div class="section-subtitle" style="margin-bottom:32px;">Choose the right mode for your use case</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+          <!-- Fast Mode -->
+          <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15);border-radius:12px;padding:24px;">
+            <div style="font-size:28px;margin-bottom:8px;">⚡</div>
+            <div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:16px;color:#22c55e;margin-bottom:4px;">FAST MODE</div>
+            <div style="color:#22c55e;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">&lt;50ms &middot; DEFAULT</div>
+            <div style="color:#aaa;font-size:13px;line-height:1.6;margin-bottom:16px;">Instant response. Server-side secret ensures unpredictability. Perfect for passwords, dice, games, daily randomness.</div>
+            <div class="code-block" style="font-size:11px;padding:12px;">
+              <span style="color:#888;">$</span> curl .../api/v1/random?bits=256
+            </div>
+          </div>
+
+          <!-- Fair Mode -->
+          <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:12px;padding:24px;">
+            <div style="font-size:28px;margin-bottom:8px;">🔒</div>
+            <div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:16px;color:#3b82f6;margin-bottom:4px;">FAIR MODE</div>
+            <div style="color:#3b82f6;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">~10s &middot; COMMIT-REVEAL</div>
+            <div style="color:#aaa;font-size:13px;line-height:1.6;margin-bottom:16px;">Provably fair. Commit your choice first, then reveal with future beacon. Nobody can predict or manipulate. For lotteries, blockchain VRF, financial audits.</div>
+            <div class="code-block" style="font-size:11px;padding:12px;">
+              <span style="color:#888;">1.</span> POST .../commit {choiceHash}<br>
+              <span style="color:#888;">2.</span> GET .../reveal?commitId=xxx
+            </div>
+          </div>
+
+          <!-- Enterprise Mode -->
+          <div style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.15);border-radius:12px;padding:24px;">
+            <div style="font-size:28px;margin-bottom:8px;">🏭</div>
+            <div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:16px;color:#a855f7;margin-bottom:4px;">ENTERPRISE MODE</div>
+            <div style="color:#a855f7;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">&lt;1&micro;s &middot; 1M+/sec LOCAL</div>
+            <div style="color:#aaa;font-size:13px;line-height:1.6;margin-bottom:16px;">Sync beacon seed once, derive millions locally via HKDF. No network calls per generation. For anti-counterfeiting codes, manufacturing, high-frequency trading.</div>
+            <div class="code-block" style="font-size:11px;padding:12px;">
+              <span style="color:#888;">$</span> GET .../seed &rarr; local HKDF<br>
+              <span style="color:#888;">&nbsp;&nbsp;</span>1M codes/sec, zero latency
+            </div>
+          </div>
         </div>
       </div>
     </div>

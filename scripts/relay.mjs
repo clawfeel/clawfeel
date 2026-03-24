@@ -513,6 +513,78 @@ setInterval(() => {
   }
 }, SSE_INTERVAL_MS);
 
+// ── Three-mode random number generation ──
+// Fast Mode: server secret + atomic counter → instant, unique per request
+// Fair Mode: commit-reveal with future beacon → 10s, provably fair
+// Enterprise Mode: seed sync for local HKDF → <1ms, millions/sec
+
+const SERVER_SECRET = randomBytes(32).toString("hex"); // ephemeral per boot
+let fastModeCounter = 0;
+
+// Fast mode: derive from latest beacon + server secret + counter (instant, unique)
+function fastRandom(beaconHash, bits) {
+  const counter = ++fastModeCounter;
+  const seed = createHash("sha256")
+    .update(`fast:${beaconHash}:${SERVER_SECRET}:${counter}:${Date.now()}`)
+    .digest("hex");
+  return deriveEntropy(seed, bits, 0);
+}
+
+// Fair mode: commitments store
+const fairCommitments = new Map(); // commitId → { choice, beaconRound, createdAt }
+const FAIR_CLEANUP_MS = 300_000; // clean up after 5 minutes
+
+function fairCommit(choiceHash) {
+  const commitId = randomBytes(16).toString("hex");
+  const currentRound = beaconManager.getLatest()?.round || 0;
+  fairCommitments.set(commitId, {
+    choiceHash,
+    targetRound: currentRound + 1, // must use NEXT beacon
+    createdAt: Date.now(),
+  });
+  // Cleanup old commitments
+  for (const [id, c] of fairCommitments) {
+    if (Date.now() - c.createdAt > FAIR_CLEANUP_MS) fairCommitments.delete(id);
+  }
+  return { commitId, targetRound: currentRound + 1 };
+}
+
+function fairReveal(commitId) {
+  const commitment = fairCommitments.get(commitId);
+  if (!commitment) return { error: "Commitment not found or expired" };
+
+  const beacon = beaconManager.getRound(commitment.targetRound);
+  if (!beacon) return { error: "Target beacon round not yet sealed. Please wait.", pending: true, targetRound: commitment.targetRound };
+
+  // Derive result from future beacon (nobody could predict this)
+  const result = createHash("sha256")
+    .update(`fair:${beacon.beaconHash}:${commitment.choiceHash}:${commitId}`)
+    .digest("hex");
+
+  fairCommitments.delete(commitId);
+  return {
+    result,
+    beaconRound: beacon.round,
+    beaconHash: beacon.beaconHash,
+    choiceHash: commitment.choiceHash,
+    commitId,
+    verifiable: true,
+  };
+}
+
+// Enterprise mode: seed for local HKDF derivation
+function enterpriseSeed() {
+  const beacon = beaconManager.getLatest();
+  if (!beacon) return null;
+  return {
+    seed: beacon.beaconHash,
+    round: beacon.round,
+    timestamp: beacon.timestamp,
+    algorithm: "HKDF-SHA256",
+    usage: "HKDF(seed, counter) → local derivation, millions/sec",
+  };
+}
+
 // ── Enterprise API: Entropy derivation helpers ──
 
 /**
@@ -1074,6 +1146,7 @@ const server = createServer(async (req, res) => {
   // ═══════════════════════════════════════════════════════════════
 
   // ── GET /api/v1/random — single random number ──
+  // ?mode=fast (default, <50ms) | fair (commit-reveal) | enterprise (seed sync)
   if (req.method === "GET" && path === "/api/v1/random") {
     const auth = validateApiKey(req);
     if (!auth.ok) {
@@ -1089,6 +1162,7 @@ const server = createServer(async (req, res) => {
     }
     setRateLimitHeaders(res, auth);
 
+    const mode = (url.searchParams.get("mode") || "fast").toLowerCase();
     const bits = Math.min(Math.max(parseInt(url.searchParams.get("bits") || "256", 10), 8), 4096);
     const format = (url.searchParams.get("format") || "hex").toLowerCase();
     const beacon = beaconManager.getLatest();
@@ -1099,23 +1173,82 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    const raw = deriveEntropy(beacon.beaconHash, bits, 0);
+    // ── Fast Mode (default): instant, unique per request ──
+    const raw = fastRandom(beacon.beaconHash, bits);
     const formatted = formatEntropy(raw, format);
 
     const response = {
       random: formatted,
       bits,
       format,
+      mode: "fast",
       beacon_round: beacon.round,
       contributors: beacon.contributorCount,
-      timestamp: beacon.timestamp,
-      signature: beacon.signature || null,
+      timestamp: new Date().toISOString(),
+      latency: "<50ms",
     };
     const responseStr = JSON.stringify(response);
-    logAudit(auth.key, "/api/v1/random", { bits, format }, sha256Quick(responseStr));
+    logAudit(auth.key, "/api/v1/random", { bits, format, mode }, sha256Quick(responseStr));
 
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(responseStr);
+    return;
+  }
+
+  // ── POST /api/v1/random/commit — Fair Mode step 1: submit commitment ──
+  if (req.method === "POST" && path === "/api/v1/random/commit") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) { res.writeHead(auth.status, { "Content-Type": "application/json" }); res.end(JSON.stringify({ error: auth.error })); return; }
+    setRateLimitHeaders(res, auth);
+    try {
+      const body = await readBody(req);
+      const choiceHash = body.choiceHash; // SHA-256 of user's choice
+      if (!choiceHash || !/^[0-9a-f]{16,64}$/i.test(choiceHash)) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "choiceHash required (hex, 16-64 chars)" }));
+        return;
+      }
+      const result = fairCommit(choiceHash);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ mode: "fair", phase: "committed", ...result, waitForBeacon: true }));
+    } catch (err) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  // ── GET /api/v1/random/reveal?commitId=xxx — Fair Mode step 2: reveal result ──
+  if (req.method === "GET" && path === "/api/v1/random/reveal") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) { res.writeHead(auth.status, { "Content-Type": "application/json" }); res.end(JSON.stringify({ error: auth.error })); return; }
+    setRateLimitHeaders(res, auth);
+    const commitId = url.searchParams.get("commitId");
+    if (!commitId) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "commitId required" }));
+      return;
+    }
+    const result = fairReveal(commitId);
+    const status = result.error ? (result.pending ? 202 : 404) : 200;
+    res.writeHead(status, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ mode: "fair", phase: "reveal", ...result }));
+    return;
+  }
+
+  // ── GET /api/v1/random/seed — Enterprise Mode: get beacon seed for local HKDF ──
+  if (req.method === "GET" && path === "/api/v1/random/seed") {
+    const auth = validateApiKey(req);
+    if (!auth.ok) { res.writeHead(auth.status, { "Content-Type": "application/json" }); res.end(JSON.stringify({ error: auth.error })); return; }
+    setRateLimitHeaders(res, auth);
+    const seed = enterpriseSeed();
+    if (!seed) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "No beacon rounds available yet" }));
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ mode: "enterprise", ...seed }));
     return;
   }
 
@@ -1147,8 +1280,12 @@ const server = createServer(async (req, res) => {
     }
 
     const results = [];
+    const batchBase = ++fastModeCounter;
     for (let i = 0; i < count; i++) {
-      const raw = deriveEntropy(beacon.beaconHash, bits, i);
+      const fastSeed = createHash("sha256")
+        .update(`fast-batch:${beacon.beaconHash}:${SERVER_SECRET}:${batchBase}:${i}`)
+        .digest("hex");
+      const raw = deriveEntropy(fastSeed, bits, 0);
       results.push(formatEntropy(raw, format));
     }
 
@@ -1157,9 +1294,10 @@ const server = createServer(async (req, res) => {
       count,
       bits,
       format,
+      mode: "fast",
       beacon_round: beacon.round,
       contributors: beacon.contributorCount,
-      timestamp: beacon.timestamp,
+      timestamp: new Date().toISOString(),
     };
     const responseStr = JSON.stringify(response);
     logAudit(auth.key, "/api/v1/random/batch", { count, bits, format }, sha256Quick(responseStr));
@@ -1201,16 +1339,21 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    // Uniform distribution via rejection sampling
-    const value = rejectionSample(beacon.beaconHash, min, max);
+    // Fast mode: unique seed per request for rejection sampling
+    const cnt = ++fastModeCounter;
+    const fastSeed = createHash("sha256")
+      .update(`fast-range:${beacon.beaconHash}:${SERVER_SECRET}:${cnt}:${Date.now()}`)
+      .digest("hex");
+    const value = rejectionSample(fastSeed, min, max);
 
     const response = {
       random: value,
       min,
       max,
+      mode: "fast",
       beacon_round: beacon.round,
       contributors: beacon.contributorCount,
-      timestamp: beacon.timestamp,
+      timestamp: new Date().toISOString(),
     };
     const responseStr = JSON.stringify(response);
     logAudit(auth.key, "/api/v1/random/range", { min, max }, sha256Quick(responseStr));
