@@ -190,6 +190,16 @@ export class KademliaNode {
     // TCP server
     this._server = null;
 
+    // UDP transport
+    this._udpSocket = null;
+    this.udpPort = port + 1; // default: TCP+1
+
+    // NAT info (populated by probeNAT)
+    this.natType = "unknown";
+    this.publicIP = null;
+    this.publicPort = null;
+    this.connectStrategy = "direct"; // "direct" | "hole-punch" | "relay-only"
+
     // External RPC handler (for gossip messages)
     this._externalHandler = null;
 
@@ -197,7 +207,7 @@ export class KademliaNode {
     this._refreshTimer = null;
 
     // Stats
-    this.stats = { rpcSent: 0, rpcReceived: 0, peers: 0 };
+    this.stats = { rpcSent: 0, rpcReceived: 0, peers: 0, contacts: 0 };
   }
 
   // ── Contact object ──
@@ -207,6 +217,10 @@ export class KademliaNode {
       clawId: this.clawId,
       host: this.host,
       port: this.port,
+      udpPort: this.udpPort,
+      natType: this.natType,
+      publicIP: this.publicIP,
+      publicPort: this.publicPort,
     };
   }
 
@@ -371,6 +385,35 @@ export class KademliaNode {
             }
             this.store.set(msg.key, msg.value);
             response = { id: msg.id, type: "STORED", from: this._makeContact() };
+          }
+          break;
+        }
+
+        case "PUNCH_REQ": {
+          // Forward punch request to target node if we know them
+          const target = this.findClosest(msg.target, 1)[0];
+          if (target && target.dhtId === msg.target) {
+            // Forward via TCP to the target
+            try {
+              await this.sendRpc(target, msg);
+            } catch {}
+          }
+          response = { id: msg.id, type: "PUNCH_FWD", from: this._makeContact() };
+          break;
+        }
+
+        case "PEER_EXCHANGE": {
+          // Proactive peer list sharing
+          const myPeers = this.findClosest(this.dhtId, 20).map(c => ({
+            dhtId: c.dhtId, clawId: c.clawId, host: c.host, port: c.port,
+            udpPort: c.udpPort, publicIP: c.publicIP, natType: c.natType,
+          }));
+          response = { id: msg.id, type: "PEER_EXCHANGE_RES", from: this._makeContact(), peers: myPeers };
+          // Also add sender's peers to our routing table
+          if (msg.peers && Array.isArray(msg.peers)) {
+            for (const p of msg.peers.slice(0, 20)) {
+              if (p.dhtId && p.host && p.port) this.updateContact(p);
+            }
           }
           break;
         }
@@ -598,19 +641,169 @@ export class KademliaNode {
 
   async start() {
     await this._startServer();
+    await this._startUdpServer();
+    await this._probeNAT();
     await this.bootstrap();
+
+    // Update stats with contact count
+    this.stats.contacts = this.buckets.reduce((n, b) => n + b.length, 0);
 
     this._refreshTimer = setInterval(() => {
       this.refresh().catch(() => {});
       if (this._rateLimiter) this._rateLimiter.cleanup();
+      this.stats.contacts = this.buckets.reduce((n, b) => n + b.length, 0);
     }, REFRESH_INTERVAL);
 
     return this;
   }
 
+  // ── NAT Detection ──
+  async _probeNAT() {
+    try {
+      const { detectNATType } = await import("./stun.mjs");
+      const result = await detectNATType({ localPort: this.udpPort });
+      if (result) {
+        this.natType = result.natType || "unknown";
+        this.publicIP = result.publicIP || null;
+        this.publicPort = result.publicPort || null;
+        this.connectStrategy = result.connectStrategy || "relay-only";
+      }
+    } catch {
+      this.natType = "error";
+      this.connectStrategy = "relay-only";
+    }
+  }
+
+  // ── UDP Transport ──
+  async _startUdpServer() {
+    try {
+      const { createSocket } = await import("node:dgram");
+      this._udpSocket = createSocket("udp4");
+
+      this._udpSocket.on("message", (buf, rinfo) => {
+        try {
+          const decrypted = decrypt(buf);
+          if (!decrypted) return;
+          const msg = JSON.parse(decrypted);
+          if (!verifyHMAC(msg)) return;
+
+          // Handle punch probes
+          if (msg.type === "PUNCH_PROBE") {
+            const response = JSON.stringify(signHMAC({ type: "PUNCH_ACK", from: this._makeContact() }));
+            const encrypted = encrypt(response);
+            this._udpSocket.send(encrypted, rinfo.port, rinfo.address);
+            return;
+          }
+
+          // Handle regular RPC over UDP
+          this._handleRpc(msg, (response) => {
+            const resStr = JSON.stringify(signHMAC(response));
+            const encrypted = encrypt(resStr);
+            this._udpSocket.send(encrypted, rinfo.port, rinfo.address);
+          });
+        } catch {}
+      });
+
+      this._udpSocket.bind(this.udpPort, () => {
+        this.udpPort = this._udpSocket.address().port;
+      });
+    } catch {
+      // UDP not available, TCP only
+      this._udpSocket = null;
+    }
+  }
+
+  // ── Send RPC over UDP (fast path) ──
+  sendRpcUdp(contact, message, timeout = 5000) {
+    if (!this._udpSocket || !contact.udpPort) return Promise.reject(new Error("No UDP"));
+
+    return new Promise((resolve, reject) => {
+      const host = contact.publicIP || contact.host;
+      const port = contact.publicPort || contact.udpPort;
+      const signed = signHMAC({ ...message, from: this._makeContact() });
+      const encrypted = encrypt(JSON.stringify(signed));
+
+      const timer = setTimeout(() => reject(new Error("UDP timeout")), timeout);
+
+      const handler = (buf) => {
+        try {
+          const decrypted = decrypt(buf);
+          if (!decrypted) return;
+          const resp = JSON.parse(decrypted);
+          if (resp.id === message.id) {
+            clearTimeout(timer);
+            this._udpSocket.removeListener("message", handler);
+            resolve(resp);
+          }
+        } catch {}
+      };
+
+      this._udpSocket.on("message", handler);
+      this._udpSocket.send(encrypted, port, host, (err) => {
+        if (err) { clearTimeout(timer); reject(err); }
+      });
+    });
+  }
+
+  // ── UDP Hole-Punching ──
+  async holePunch(targetContact, rendezvousContact) {
+    if (!this._udpSocket || !targetContact.publicIP) {
+      throw new Error("Cannot hole-punch: no UDP or no public address");
+    }
+
+    // Send punch request via rendezvous (TCP/relay)
+    try {
+      await this.sendRpc(rendezvousContact, signHMAC({
+        id: randomBytes(4).toString("hex"),
+        type: "PUNCH_REQ",
+        from: this._makeContact(),
+        target: targetContact.dhtId,
+        targetAddr: { host: targetContact.publicIP, port: targetContact.publicPort || targetContact.udpPort },
+      }));
+    } catch {}
+
+    // Send 3 UDP probes to target's public address
+    const probeMsg = encrypt(JSON.stringify(signHMAC({
+      type: "PUNCH_PROBE",
+      from: this._makeContact(),
+    })));
+
+    const targetHost = targetContact.publicIP;
+    const targetPort = targetContact.publicPort || targetContact.udpPort;
+
+    for (let i = 0; i < 3; i++) {
+      this._udpSocket.send(probeMsg, targetPort, targetHost);
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    // Wait for PUNCH_ACK (5s timeout)
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this._udpSocket.removeListener("message", handler);
+        reject(new Error("Hole-punch timeout"));
+      }, 5000);
+
+      const handler = (buf, rinfo) => {
+        try {
+          const decrypted = decrypt(buf);
+          if (!decrypted) return;
+          const msg = JSON.parse(decrypted);
+          if (msg.type === "PUNCH_ACK" && rinfo.address === targetHost) {
+            clearTimeout(timer);
+            this._udpSocket.removeListener("message", handler);
+            resolve({ host: rinfo.address, port: rinfo.port });
+          }
+        } catch {}
+      };
+
+      this._udpSocket.on("message", handler);
+    });
+  }
+
   async stop() {
     if (this._refreshTimer) clearInterval(this._refreshTimer);
     if (this._server) this._server.close();
+    if (this._udpSocket) try { this._udpSocket.close(); } catch {}
     await this.saveRoutingTable();
   }
 }

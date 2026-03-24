@@ -2051,7 +2051,12 @@ async function main() {
   // Loop settings: __daemon runs forever at 30s, otherwise respect user flags
   const hasRelayLoop = !NO_RELAY && !!(RELAY || nodeRelay);
   const loopCount = IS_DAEMON ? Infinity : COUNT;
-  const loopInterval = IS_DAEMON ? 30 : (INTERVAL > 0 ? INTERVAL : (P2P ? 10 : 0));
+  const loopInterval = IS_DAEMON ? 30 : (INTERVAL > 0 ? INTERVAL : (enableP2P ? 10 : 0));
+
+  // Relay health tracking
+  let relayFailCount = 0;
+  const RELAY_FAIL_THRESHOLD = 3; // switch to P2P-only after 3 consecutive failures
+  let relayHealthy = true;
 
   for (let i = 0; i < loopCount; i++) {
     const sensorResults = await collectSensors();
@@ -2074,8 +2079,26 @@ async function main() {
       broadcastFeel(result);
     }
 
-    if (hasRelayLoop) {
-      await reportToRelay(result);
+    if (hasRelayLoop && relayHealthy) {
+      try {
+        await reportToRelay(result);
+        relayFailCount = 0;
+        relayHealthy = true;
+      } catch {
+        relayFailCount++;
+        if (relayFailCount >= RELAY_FAIL_THRESHOLD) {
+          relayHealthy = false;
+          if (PRETTY) console.log(`  ⚠️  Relay unreachable (${relayFailCount}x) — P2P only mode`);
+        }
+      }
+    } else if (hasRelayLoop && !relayHealthy && i % 20 === 0) {
+      // Periodically try to reconnect relay (every ~10min at 30s interval)
+      try {
+        await reportToRelay(result);
+        relayFailCount = 0;
+        relayHealthy = true;
+        if (PRETTY) console.log(`  ✅ Relay reconnected!`);
+      } catch { /* still down */ }
     }
 
     // P2P: create DAG transaction and gossip

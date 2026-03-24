@@ -1534,6 +1534,176 @@ const server = createServer(async (req, res) => {
   res.end(JSON.stringify({ error: "Not found" }));
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// WebSocket Signaling Server (RFC 6455 minimal implementation)
+// For P2P signaling: SDP offer/answer exchange, ICE candidates, punch requests
+// ═══════════════════════════════════════════════════════════════════
+
+const wsClients = new Map(); // clawId → { socket, clawId, joinedAt }
+
+function wsAcceptKey(clientKey) {
+  const GUID = "258EAFA5-E914-47DA-95CA-5AB5DC11D65B";
+  return createHash("sha1").update(clientKey + GUID).digest("base64");
+}
+
+function wsFrameText(text) {
+  const payload = Buffer.from(text, "utf8");
+  const len = payload.length;
+  let header;
+  if (len < 126) {
+    header = Buffer.alloc(2);
+    header[0] = 0x81; // FIN + text opcode
+    header[1] = len;
+  } else if (len < 65536) {
+    header = Buffer.alloc(4);
+    header[0] = 0x81;
+    header[1] = 126;
+    header.writeUInt16BE(len, 2);
+  } else {
+    header = Buffer.alloc(10);
+    header[0] = 0x81;
+    header[1] = 127;
+    header.writeBigUInt64BE(BigInt(len), 2);
+  }
+  return Buffer.concat([header, payload]);
+}
+
+function wsParseFrame(buf) {
+  if (buf.length < 2) return null;
+  const opcode = buf[0] & 0x0f;
+  const masked = (buf[1] & 0x80) !== 0;
+  let payloadLen = buf[1] & 0x7f;
+  let offset = 2;
+
+  if (payloadLen === 126) {
+    if (buf.length < 4) return null;
+    payloadLen = buf.readUInt16BE(2);
+    offset = 4;
+  } else if (payloadLen === 127) {
+    if (buf.length < 10) return null;
+    payloadLen = Number(buf.readBigUInt64BE(2));
+    offset = 10;
+  }
+
+  let maskKey = null;
+  if (masked) {
+    if (buf.length < offset + 4) return null;
+    maskKey = buf.subarray(offset, offset + 4);
+    offset += 4;
+  }
+
+  if (buf.length < offset + payloadLen) return null;
+  const payload = buf.subarray(offset, offset + payloadLen);
+
+  if (masked && maskKey) {
+    for (let i = 0; i < payload.length; i++) {
+      payload[i] ^= maskKey[i % 4];
+    }
+  }
+
+  return { opcode, payload, totalLength: offset + payloadLen };
+}
+
+function wsSend(socket, data) {
+  try {
+    const text = typeof data === "string" ? data : JSON.stringify(data);
+    socket.write(wsFrameText(text));
+  } catch {}
+}
+
+function wsHandleMessage(socket, clientInfo, text) {
+  try {
+    const msg = JSON.parse(text);
+
+    switch (msg.type) {
+      case "signal:join": {
+        clientInfo.clawId = msg.clawId;
+        wsClients.set(msg.clawId, { socket, clawId: msg.clawId, joinedAt: Date.now() });
+        wsSend(socket, { type: "signal:joined", clawId: msg.clawId, peers: wsClients.size });
+        break;
+      }
+
+      case "signal:offer":
+      case "signal:answer":
+      case "signal:ice":
+      case "signal:punch": {
+        // Forward to target peer
+        const target = wsClients.get(msg.to);
+        if (target) {
+          wsSend(target.socket, { ...msg, from: clientInfo.clawId });
+        } else {
+          wsSend(socket, { type: "signal:error", error: "Peer not found", target: msg.to });
+        }
+        break;
+      }
+
+      case "signal:peers": {
+        // Return list of connected signaling peers
+        const peers = [...wsClients.keys()].filter(id => id !== clientInfo.clawId);
+        wsSend(socket, { type: "signal:peers", peers });
+        break;
+      }
+    }
+  } catch {}
+}
+
+server.on("upgrade", (req, socket, head) => {
+  if (req.url !== "/ws/signal") {
+    socket.destroy();
+    return;
+  }
+
+  const key = req.headers["sec-websocket-key"];
+  if (!key) { socket.destroy(); return; }
+
+  // WebSocket handshake
+  const acceptKey = wsAcceptKey(key);
+  socket.write(
+    "HTTP/1.1 101 Switching Protocols\r\n" +
+    "Upgrade: websocket\r\n" +
+    "Connection: Upgrade\r\n" +
+    `Sec-WebSocket-Accept: ${acceptKey}\r\n` +
+    "\r\n"
+  );
+
+  const clientInfo = { clawId: null };
+  let buffer = Buffer.alloc(0);
+
+  socket.on("data", (chunk) => {
+    buffer = Buffer.concat([buffer, chunk]);
+
+    while (buffer.length > 0) {
+      const frame = wsParseFrame(buffer);
+      if (!frame) break;
+
+      buffer = buffer.subarray(frame.totalLength);
+
+      if (frame.opcode === 0x08) {
+        // Close frame
+        socket.end();
+        return;
+      } else if (frame.opcode === 0x09) {
+        // Ping → Pong
+        const pong = Buffer.alloc(2);
+        pong[0] = 0x8a; // FIN + pong
+        pong[1] = 0;
+        socket.write(pong);
+      } else if (frame.opcode === 0x01) {
+        // Text frame
+        wsHandleMessage(socket, clientInfo, frame.payload.toString("utf8"));
+      }
+    }
+  });
+
+  socket.on("close", () => {
+    if (clientInfo.clawId) wsClients.delete(clientInfo.clawId);
+  });
+
+  socket.on("error", () => {
+    if (clientInfo.clawId) wsClients.delete(clientInfo.clawId);
+  });
+});
+
 // ── Exportable start function for embedded mode ──
 export async function startRelay({ port, embedded = false } = {}) {
   const listenPort = port || PORT;
