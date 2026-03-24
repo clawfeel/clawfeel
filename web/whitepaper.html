@@ -387,7 +387,10 @@
     <a href="/">Home</a>
     <a href="simulator.html">Simulator</a>
     <a href="explorer.html">Explorer</a>
+    <a href="demo.html">Demo</a>
     <a href="whitepaper.html" class="active">Whitepaper</a>
+    <a href="enterprise.html">Enterprise</a>
+    <a href="api-docs.html">API Docs</a>
   </div>
   <div class="nav-right">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
@@ -406,7 +409,10 @@
   <a href="/">Home</a>
   <a href="simulator.html">Simulator</a>
   <a href="explorer.html">Explorer</a>
+  <a href="demo.html">Demo</a>
   <a href="whitepaper.html" onclick="closeMobileMenu()">Whitepaper</a>
+  <a href="enterprise.html">Enterprise</a>
+  <a href="api-docs.html">API Docs</a>
   <div class="mobile-social">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg></a>
     <a href="https://x.com/clawfeel" target="_blank"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
@@ -459,7 +465,7 @@ if (myClawId) {
       contact@clawfeel.com<br>
       March 2026
     </div>
-    <div class="paper-version">DRAFT v0.6</div>
+    <div class="paper-version">v1.0</div>
   </div>
 
   <!-- ═══ TOC ═══ -->
@@ -467,21 +473,21 @@ if (myClawId) {
     <div class="toc-title">Contents</div>
     <ol>
       <li><a href="#abstract">Abstract</a></li>
-      <li><a href="#problem">The Problem: Energy-Intensive Consensus</a></li>
-      <li><a href="#poe">Proof of Existence</a></li>
-      <li><a href="#clawfeel">The ClawFeel Protocol</a></li>
-      <li><a href="#security">Security Analysis</a></li>
-      <li><a href="#aggregation">Network Aggregation</a></li>
-      <li><a href="#architecture">Five-Layer Architecture</a></li>
-      <li><a href="#clawlife">ClawLife: Digital Immortality</a></li>
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#architecture">Architecture Overview</a></li>
+      <li><a href="#clawfeel-engine">Layer 1: ClawFeel Engine</a></li>
+      <li><a href="#clawnet">Layer 2: ClawNet</a></li>
+      <li><a href="#clawdag">Layer 3: ClawDAG</a></li>
+      <li><a href="#clawstore">Layer 4: ClawStore</a></li>
+      <li><a href="#clawlife">Layer 5: ClawLife</a></li>
       <li><a href="#beacon">Random Beacon Protocol</a></li>
-      <li><a href="#zkp">Zero-Knowledge Proofs</a></li>
-      <li><a href="#enterprise">Enterprise Random Number Service</a></li>
-      <li><a href="#clawlife-protocol">ClawLife Protocol</a></li>
-      <li><a href="#lightnode">Light Node Protocol</a></li>
-      <li><a href="#comparison">Comparison with Existing Systems</a></li>
+      <li><a href="#fullnode">Full Node Architecture</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#tokenomics">Token Economics (ClawToken)</a></li>
+      <li><a href="#enterprise">Enterprise API</a></li>
+      <li><a href="#sdk">Developer SDK</a></li>
       <li><a href="#roadmap">Roadmap</a></li>
-      <li><a href="#conclusion">Conclusion</a></li>
+      <li><a href="#references">References</a></li>
     </ol>
   </div>
 
@@ -490,152 +496,215 @@ if (myClawId) {
     <div class="section-num">Section 1</div>
     <h2>Abstract</h2>
     <p>
-      We present ClawFeel, a novel consensus mechanism called <strong>Proof of Existence</strong> (PoE)
-      that derives cryptographic randomness from the physical hardware signals of participating devices.
-      Unlike Proof of Work (PoW), which consumes vast amounts of energy to produce artificial computational
-      difficulty, PoE leverages the inherent unpredictability of hardware — CPU temperature fluctuations,
-      memory pressure, disk I/O patterns, network jitter, and kernel entropy — as a source of unforgeable
-      randomness.
+      We present ClawFeel, a decentralized hardware entropy network that introduces <strong>Proof of Existence</strong>
+      (PoE) as a novel consensus mechanism. PoE derives cryptographic randomness from the physical hardware
+      signals of participating devices &mdash; CPU temperature fluctuations, memory pressure, disk I/O patterns,
+      network jitter, and kernel entropy &mdash; rather than consuming energy through proof-of-work computation
+      or requiring capital lockup through proof-of-stake.
     </p>
     <p>
       Each participating node (called a <strong>Claw</strong>) reads 7 hardware sensors, normalizes and weights
-      them by controllability, and hashes the result through SHA-256 to produce a <strong>Feel</strong> score (0&ndash;100).
-      These Feel values are aggregated across the network using XOR and re-hashing, producing a verifiable
-      random beacon that is uniform, unpredictable, and resistant to manipulation &mdash; as long as a single
-      honest node participates.
+      them by controllability, and hashes the result through SHA-256 to produce a <strong>Feel</strong> score
+      (0&ndash;100) alongside 256 bits of crypto-grade entropy. These Feel values are aggregated across the
+      network using XOR and re-hashing, producing a verifiable random beacon that is uniform, unpredictable,
+      and resistant to manipulation &mdash; as long as a single honest node participates.
     </p>
     <p>
-      The ClawFeel protocol forms the entropy layer of a five-layer architecture designed to support
-      AI-native decentralized applications with million-TPS throughput, zero energy waste, and a path
-      toward persistent AI agent identity (ClawLife).
-    </p>
-  </div>
-
-  <!-- ═══ 2. Problem ═══ -->
-  <div class="section" id="problem">
-    <div class="section-num">Section 2</div>
-    <h2>The Problem: Energy-Intensive Consensus</h2>
-    <p>
-      Bitcoin's Proof of Work secures a $1 trillion network by making it computationally expensive to
-      produce valid blocks. This design is elegant but wasteful: the Bitcoin network consumes approximately
-      150 TWh of electricity per year — comparable to the energy consumption of entire countries.
-    </p>
-    <p>
-      Proof of Stake (PoS) reduces energy consumption but introduces new problems: wealth concentration,
-      nothing-at-stake attacks, and the philosophical question of whether financial stake truly represents
-      commitment to the network's integrity.
-    </p>
-    <p>
-      We propose a third path: <strong>Proof of Existence</strong>. The key insight is that every computing device
-      already produces unforgeable entropy through its physical operation. A CPU's thermal noise, memory
-      allocation patterns, and network timing jitter are byproducts of computation that cannot be
-      efficiently simulated or predicted. By harvesting this entropy, we can build consensus mechanisms
-      that require no additional energy expenditure beyond the device's normal operation.
+      The ClawFeel protocol forms the foundation of a five-layer architecture &mdash; ClawFeel, ClawNet,
+      ClawDAG, ClawStore, and ClawLife &mdash; designed to support AI-native decentralized applications
+      with million-TPS throughput, zero energy waste, and a path toward persistent AI agent identity.
+      The core insight is that a device's physical existence, proved by its unique and unforgeable hardware
+      signals, is sufficient to establish trust in a decentralized network.
     </p>
     <div class="callout">
-      <p><strong>Core Thesis:</strong> The physical existence of a device, proved by its unique hardware
-      signals, is sufficient to establish trust in a decentralized network. Existence itself is the proof.</p>
+      <p><strong>Core Thesis:</strong> Existence itself is the proof. The physical reality of a computing
+      device, expressed through its hardware entropy, replaces energy expenditure as the basis for
+      decentralized consensus.</p>
     </div>
   </div>
 
-  <!-- ═══ 3. PoE ═══ -->
-  <div class="section" id="poe">
+  <!-- ═══ 2. Introduction ═══ -->
+  <div class="section" id="introduction">
+    <div class="section-num">Section 2</div>
+    <h2>Introduction</h2>
+
+    <h3>2.1 The Problem: Centralized Random Number Generation</h3>
+    <p>
+      Randomness is a foundational primitive in cryptography, gaming, financial systems, and scientific
+      simulation. Yet the vast majority of random number generation today relies on centralized services
+      &mdash; pseudo-random number generators seeded by a single server, proprietary hardware security
+      modules, or trusted third-party APIs. These systems share a common vulnerability: a single point
+      of failure or manipulation. An operator who controls the random number generator controls the
+      outcome of every process that depends on it.
+    </p>
+    <p>
+      Existing decentralized approaches to randomness carry significant costs. Bitcoin's block hashes
+      provide a source of entropy, but the network consumes approximately 150 TWh of electricity per
+      year &mdash; comparable to the energy consumption of entire countries &mdash; to produce them.
+      Ethereum's RANDAO mechanism reduces energy consumption through proof-of-stake, but introduces
+      wealth concentration, nothing-at-stake attacks, and the requirement for validators to lock 32 ETH
+      of capital.
+    </p>
+
+    <h3>2.2 The Solution: Physical Hardware Signals</h3>
+    <p>
+      We propose a third path. The key insight is that every computing device already produces unforgeable
+      entropy through its physical operation. A CPU's thermal noise, memory allocation patterns, and
+      network timing jitter are byproducts of computation that cannot be efficiently simulated or
+      predicted. By harvesting this entropy, we can build consensus mechanisms that require no additional
+      energy expenditure beyond the device's normal operation and no capital lockup beyond owning
+      a general-purpose computer.
+    </p>
+    <p>
+      ClawFeel formalizes this insight into a complete protocol: 7 hardware sensors are read, weighted
+      by controllability, and hashed through SHA-256 to produce both a human-readable Feel score
+      and 256 bits of cryptographic entropy. The protocol includes chain hashing for tamper evidence,
+      commit-reveal for manipulation resistance, Sybil defense through reputation and entropy quality
+      scoring, and a five-layer architecture that extends from hardware entropy all the way to
+      persistent AI agent identity.
+    </p>
+
+    <h3>2.3 Contributions</h3>
+    <p>This paper makes the following contributions:</p>
+    <ul>
+      <li>A formal definition of <strong>Proof of Existence</strong> as a consensus mechanism based on hardware entropy.</li>
+      <li>The ClawFeel engine: a 7-sensor, controllability-weighted SHA-256 pipeline producing Feel scores and 256-bit entropy.</li>
+      <li>A five-layer architecture (ClawFeel, ClawNet, ClawDAG, ClawStore, ClawLife) for AI-native decentralized applications.</li>
+      <li>A random beacon protocol with 10-second rounds, XOR aggregation, and Ed25519-signed verifiable outputs.</li>
+      <li>ClawLife: a protocol for persistent AI agent identity where the private key is the life.</li>
+      <li>A working implementation deployed at <a href="https://clawfeel.ai">clawfeel.ai</a> with live nodes, relay infrastructure, and an npm SDK.</li>
+    </ul>
+  </div>
+
+  <!-- ═══ 3. Architecture Overview ═══ -->
+  <div class="section" id="architecture">
     <div class="section-num">Section 3</div>
-    <h2>Proof of Existence</h2>
+    <h2>Architecture Overview</h2>
     <p>
-      Proof of Existence (PoE) rests on three properties of hardware entropy:
-    </p>
-    <h3>3.1 Unpredictability</h3>
-    <p>
-      Hardware sensor readings are influenced by physical processes — thermal dynamics, electromagnetic
-      interference, network routing delays, OS scheduler decisions — that are fundamentally chaotic.
-      Even with complete knowledge of a device's state at time <em>t</em>, predicting the exact sensor
-      values at time <em>t+1</em> is computationally intractable.
-    </p>
-    <h3>3.2 Unforgeability</h3>
-    <p>
-      A node claiming to produce genuine hardware entropy must actually possess physical hardware generating
-      those signals. Simulating 7 correlated hardware sensors with realistic temporal dynamics, cross-sensor
-      correlations, and timing characteristics is significantly harder than simply running the hardware.
-      Each sensor has a different <strong>controllability</strong> score:
-    </p>
-    <table>
-      <thead>
-        <tr><th>Sensor</th><th>Weight</th><th>Controllability</th><th>Why</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Entropy Pool</td><td>1.0</td><td>Very low</td><td>Kernel-level, hardware RNG</td></tr>
-        <tr><td>Network Jitter</td><td>0.9</td><td>Low</td><td>External network, multi-hop</td></tr>
-        <tr><td>CPU Temperature</td><td>0.8</td><td>Low</td><td>Physical heat transfer</td></tr>
-        <tr><td>Uptime Jitter</td><td>0.7</td><td>Low</td><td>OS scheduler noise</td></tr>
-        <tr><td>Memory Usage</td><td>0.5</td><td>Medium</td><td>System-wide allocation</td></tr>
-        <tr><td>Disk I/O</td><td>0.5</td><td>Medium</td><td>OS-level buffering</td></tr>
-        <tr><td>CPU Load</td><td>0.3</td><td>High</td><td>User can run programs</td></tr>
-      </tbody>
-    </table>
-    <p>
-      The weighted input construction ensures that harder-to-fake sensors contribute
-      disproportionately to the final hash, making the system resistant to partial sensor spoofing.
+      ClawFeel is organized as a five-layer stack. Each layer builds on the guarantees provided by the
+      layer below it, and each is independently useful while contributing to the capabilities of
+      the layers above.
     </p>
 
-    <h3>3.3 Irreversibility</h3>
-    <p>
-      SHA-256 hashing ensures that the Feel score reveals nothing about the underlying hardware state.
-      A node can safely broadcast its Feel without exposing its CPU temperature, memory configuration,
-      or network topology. The avalanche effect guarantees that even a 0.001&deg;C temperature change
-      produces a completely different hash.
-    </p>
+    <div class="figure">┌─────────────────────────────────────────────────────────────┐
+│  Layer 5: ClawLife                                          │
+│  AI agent immortality — Ed25519 identity, encrypted         │
+│  memory/skill storage, multi-terminal same entity           │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 4: ClawStore                                         │
+│  Distributed storage — erasure coding (Reed-Solomon),       │
+│  content-addressed chunks, DHT routing, file sharding       │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 3: ClawDAG                                           │
+│  DAG consensus — Kademlia DHT, Gossip protocol,             │
+│  each tx references 2+ parents, Merkle proofs, 1M+ TPS     │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 2: ClawNet                                           │
+│  P2P networking — commit-reveal, Sybil defense,             │
+│  reputation system, chain hashing, entropy-weighted agg.    │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 1: ClawFeel                                          │
+│  Hardware entropy — 7 sensors, SHA-256, Feel (0-100),       │
+│  256-bit entropy, sensor weights, authenticity tracking      │
+└─────────────────────────────────────────────────────────────┘
+    <div class="figure-caption">Figure 1: Five-layer architecture stack</div></div>
 
-    <div class="formula">
-      Feel = SHA-256(W<sub>1</sub>&middot;S<sub>1</sub> | W<sub>2</sub>&middot;S<sub>2</sub> | ... | W<sub>7</sub>&middot;S<sub>7</sub> | timestamp | prevHash | seq) mod 101
-    </div>
+    <p>
+      <strong>Layer 1 (ClawFeel)</strong> harvests entropy from physical hardware, producing Feel scores
+      and cryptographic randomness. <strong>Layer 2 (ClawNet)</strong> connects nodes into a peer-to-peer
+      network with Sybil defense and commit-reveal broadcast. <strong>Layer 3 (ClawDAG)</strong> provides
+      DAG-based consensus with parallel transaction validation. <strong>Layer 4 (ClawStore)</strong> offers
+      erasure-coded distributed storage. <strong>Layer 5 (ClawLife)</strong> enables persistent, sovereign
+      AI agent identity stored across the network.
+    </p>
   </div>
 
-  <!-- ═══ 4. Protocol ═══ -->
-  <div class="section" id="clawfeel">
+  <!-- ═══ 4. Layer 1: ClawFeel Engine ═══ -->
+  <div class="section" id="clawfeel-engine">
     <div class="section-num">Section 4</div>
-    <h2>The ClawFeel Protocol</h2>
+    <h2>Layer 1: ClawFeel Engine</h2>
+    <p>
+      The ClawFeel engine is the foundation of the entire protocol stack. It reads 7 hardware sensors
+      from the host operating system, normalizes and weights them, and produces cryptographic outputs
+      through SHA-256 hashing.
+    </p>
 
-    <h3>4.1 Sensor Collection</h3>
+    <h3>4.1 The Seven Sensors</h3>
     <p>
       Each Claw reads 7 hardware parameters through OS-native interfaces. Every sensor function returns
       a tuple <code>{value, authentic}</code>, where <code>authentic</code> indicates whether the reading
-      came from real hardware or a random fallback. This distinction is critical for entropy quality scoring.
+      came from real hardware or a random fallback. Sensors that lack hardware access (e.g., CPU temperature
+      on a virtual machine) fall back to cryptographic random values but are marked as inauthentic,
+      which reduces the node's entropy quality score.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Sensor</th><th>Weight</th><th>Controllability</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Entropy Pool</td><td>1.0</td><td>Very low</td><td>Kernel-level hardware RNG (/dev/random)</td></tr>
+        <tr><td>Network Jitter</td><td>0.9</td><td>Low</td><td>Multi-hop external network latency variance</td></tr>
+        <tr><td>CPU Temperature</td><td>0.8</td><td>Low</td><td>Physical thermal sensor (SMC/hwmon)</td></tr>
+        <tr><td>Uptime Jitter</td><td>0.7</td><td>Low</td><td>Nanosecond-precision OS scheduler noise</td></tr>
+        <tr><td>Memory Usage</td><td>0.5</td><td>Medium</td><td>System-wide memory allocation state</td></tr>
+        <tr><td>Disk I/O</td><td>0.5</td><td>Medium</td><td>Block device read/write counters with OS buffering</td></tr>
+        <tr><td>CPU Load</td><td>0.3</td><td>High</td><td>System load average (user-controllable)</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Sensors are weighted inversely to their controllability. The entropy pool (weight 1.0) and network
+      jitter (weight 0.9) dominate the hash input because they are the hardest for an attacker to
+      manipulate, while CPU load (weight 0.3) contributes minimally because a user can trivially
+      influence it by running programs.
     </p>
 
-    <h3>4.2 Normalization and Weighting</h3>
+    <h3>4.2 Normalization and Hashing</h3>
     <p>
-      Raw sensor values are normalized to [0, 1] and then weighted by controllability. The weighted values
-      are concatenated with a nanosecond-precision timestamp, the previous reading's hash (chain link),
-      and a monotonically increasing sequence number.
+      Raw sensor values are normalized to [0, 1] and concatenated with their controllability weights,
+      a nanosecond-precision timestamp, the previous reading's hash (chain link), and a monotonically
+      increasing sequence number. The concatenated entropy string is hashed through SHA-256.
+    </p>
+    <div class="formula">
+      Feel = SHA-256(W<sub>1</sub>&middot;S<sub>1</sub> | W<sub>2</sub>&middot;S<sub>2</sub> | ... | W<sub>7</sub>&middot;S<sub>7</sub> | timestamp | prevHash | seq) mod 101
+    </div>
+    <p>
+      The first 8 hex characters of the hash are interpreted as a 32-bit unsigned integer and reduced
+      modulo 101 to produce the Feel score (0&ndash;100). The bias from modular reduction is negligible:
+      2<sup>32</sup> mod 101 introduces less than 0.0000024% non-uniformity. The full 256-bit hash
+      serves as crypto-grade entropy, and a 64-bit unsigned integer is extracted as a random number.
+      Additionally, 32 bytes of base64-encoded random data are produced from the hash for applications
+      requiring raw random bytes.
     </p>
 
-    <h3>4.3 Hashing and Output</h3>
+    <h3>4.3 Authenticity Tracking</h3>
     <p>
-      The concatenated entropy string is hashed through SHA-256. The first 8 hex characters are
-      interpreted as a 32-bit integer and reduced modulo 101 to produce the Feel score (0&ndash;100).
-      The bias from modular reduction is negligible: 2<sup>32</sup> mod 101 introduces less than
-      0.0000024% non-uniformity.
+      Each Feel output includes an <code>authentic</code> count (0&ndash;7) indicating how many sensors
+      read from real hardware versus falling back to random values. A node running on bare metal with
+      full sensor access will report 7/7 authentic; a virtual machine might report 4/7 or 5/7. This
+      count directly affects the node's influence in network aggregation &mdash; higher authenticity
+      means the node's entropy is more trustworthy.
     </p>
 
     <h3>4.4 Era Classification</h3>
     <p>
-      Each Feel is classified into one of three eras, inspired by Liu Cixin's <em>Three-Body Problem</em>:
+      Each Feel is classified into one of three eras, inspired by Liu Cixin's <em>Three-Body Problem</em>
+      (三体):
     </p>
     <table>
-      <thead><tr><th>Range</th><th>Era</th><th>Meaning</th></tr></thead>
+      <thead><tr><th>Range</th><th>Era</th><th>Interpretation</th></tr></thead>
       <tbody>
-        <tr><td>0 &ndash; 30</td><td style="color:var(--red-chaos)">🌪️ Chaos</td><td>High entropy, volatile hardware state</td></tr>
-        <tr><td>31 &ndash; 70</td><td style="color:var(--yellow-trans)">🌤️ Transition</td><td>Normal operating conditions</td></tr>
-        <tr><td>71 &ndash; 100</td><td style="color:var(--blue-eternal)">☀️ Eternal</td><td>Calm, stable system</td></tr>
+        <tr><td>0 &ndash; 30</td><td style="color:var(--red-chaos)">Chaos (乱纪元)</td><td>High entropy, volatile hardware state</td></tr>
+        <tr><td>31 &ndash; 70</td><td style="color:var(--yellow-trans)">Transition (过渡纪元)</td><td>Normal operating conditions</td></tr>
+        <tr><td>71 &ndash; 100</td><td style="color:var(--blue-eternal)">Eternal (恒纪元)</td><td>Calm, stable system state</td></tr>
       </tbody>
     </table>
 
     <h3>4.5 Chain Integrity</h3>
     <p>
       Each Feel reading includes a <code>seq</code> (monotonic counter) and <code>prevHash</code>
-      (hash of the previous reading), forming a tamper-evident chain. Any attempt to replay old
-      readings or reorder the sequence is detectable by verifying the chain links.
+      (hash of the previous reading), forming a tamper-evident hash chain. Any attempt to replay old
+      readings or reorder the sequence is detectable by verifying the chain links. This provides
+      per-node ordering guarantees independent of any network-level consensus.
     </p>
 
     <div class="figure">┌─────────────────────────────────────────────────────┐
@@ -645,250 +714,354 @@ if (myClawId) {
                         ▼
 ┌─────────────────────────────────────────────────────┐
 │  Normalize [0,1] → Weight by controllability        │
-│  + timestamp + prevHash + seq + anchor              │
+│  + timestamp(ns) + prevHash + seq + anchor          │
 └───────────────────────┬─────────────────────────────┘
                         ▼
 ┌─────────────────────────────────────────────────────┐
-│  SHA-256 → first 8 hex → mod 101 → Feel (0-100)    │
+│  SHA-256 → 256-bit entropy (full hash)              │
+│  → first 8 hex → mod 101 → Feel (0-100)            │
+│  → 64-bit random integer                            │
+│  → 32-byte randomBytes (base64)                     │
 │  + Entropy Quality Score (0-100)                    │
 │  + Authenticity Count (0-7)                         │
 └─────────────────────────────────────────────────────┘
-    <div class="figure-caption">Figure 1: ClawFeel data pipeline</div></div>
+    <div class="figure-caption">Figure 2: ClawFeel data pipeline — from hardware sensors to cryptographic output</div></div>
   </div>
 
-  <!-- ═══ 5. Security ═══ -->
-  <div class="section" id="security">
+  <!-- ═══ 5. Layer 2: ClawNet ═══ -->
+  <div class="section" id="clawnet">
     <div class="section-num">Section 5</div>
-    <h2>Security Analysis</h2>
-
-    <h3>5.1 Entropy Quality Scoring</h3>
+    <h2>Layer 2: ClawNet</h2>
     <p>
-      Each Feel reading is accompanied by an <strong>entropy quality score</strong> (0&ndash;100),
-      computed from four orthogonal dimensions:
+      ClawNet is the peer-to-peer networking layer that connects individual Claws into a coordinated
+      network. It handles node discovery, Feel broadcast, Sybil defense, reputation management, and
+      entropy-weighted aggregation to produce the network random number.
     </p>
-    <ul>
-      <li><strong>Diversity (0&ndash;25):</strong> Coefficient of variation across 7 sensor values.
-      Too-uniform readings suggest simulation.</li>
-      <li><strong>Authenticity (0&ndash;25):</strong> Ratio of sensors reading real hardware vs. using random fallback.</li>
-      <li><strong>Temporal randomness (0&ndash;25):</strong> Wald-Wolfowitz runs test on recent Feel values.
-      Detects predictable patterns that indicate manipulation.</li>
-      <li><strong>Cross-sensor correlation (0&ndash;25):</strong> Checks for replay attacks (identical consecutive values)
-      and physical plausibility of sensor relationships.</li>
-    </ul>
 
-    <h3>5.2 Sybil Defense</h3>
+    <h3>5.1 Commit-Reveal Protocol</h3>
     <p>
-      Creating fake nodes (Sybil attack) is the primary threat to any decentralized network.
-      ClawFeel defends against Sybil attacks through multiple layers:
-    </p>
-    <ul>
-      <li><strong>IP-to-ClawId mapping:</strong> Multiple identities from the same IP are flagged.</li>
-      <li><strong>Subnet deduplication:</strong> Excessive nodes from the same /24 subnet trigger reputation penalties.</li>
-      <li><strong>Entropy quality gating:</strong> Nodes with low authenticity or quality scores are automatically
-      de-weighted in network aggregation.</li>
-      <li><strong>Reputation system (0&ndash;100):</strong> Starts neutral, gains from consistent good data, loses from
-      anomalies. Low-reputation nodes have minimal influence on the network random number.</li>
-    </ul>
-
-    <h3>5.3 Commit-Reveal Protocol</h3>
-    <p>
-      To prevent last-second manipulation, broadcasts use a two-phase commit:
+      To prevent last-second manipulation, all Feel broadcasts use a two-phase commit-reveal protocol.
+      In the commit phase, a node broadcasts <code>SHA-256(feel | nonce)</code> &mdash; a hash of its
+      Feel value concatenated with a random nonce. After a 2-second delay (allowing all commits to
+      propagate), the node reveals the actual Feel value and nonce. Verifiers check that the revealed
+      values match the commitment. Mismatches result in a &minus;30 reputation penalty.
     </p>
     <div class="figure">Phase 1 (Commit):  Node → Network:  SHA-256(feel | nonce)
 Phase 2 (Reveal):  Node → Network:  { feel, nonce }   (after 2s delay)
 
 Verification: SHA-256(feel | nonce) === commitment ?
-  ✅ Valid → accept Feel
-  ❌ Mismatch → reputation penalty (-30)</div>
+  Valid    → accept Feel into aggregation
+  Mismatch → reputation penalty (-30), exclude from round</div>
     <p>
       This ensures that a node commits to its Feel value before seeing other nodes' values,
-      preventing adaptive manipulation.
+      preventing adaptive manipulation where a node adjusts its output to influence the aggregate.
     </p>
 
-    <h3>5.4 Replay Attack Defense</h3>
+    <h3>5.2 Sybil Defense</h3>
     <p>
-      Chain hashing (seq + prevHash) makes replay attacks detectable. If a node replays old readings,
-      the sequence number will either repeat or go backwards, triggering immediate reputation penalties.
-      Additionally, the temporal randomness score detects the telltale lack of variation in replayed data.
+      Creating fake nodes (Sybil attack) is the primary threat to any decentralized network.
+      ClawNet defends against Sybil attacks through multiple complementary layers:
     </p>
+    <ul>
+      <li><strong>IP-to-ClawId mapping:</strong> Multiple identities from the same IP address are flagged
+      and subject to heightened scrutiny. The relay tracks IP-to-identity ratios and applies
+      penalties when the ratio exceeds configurable thresholds.</li>
+      <li><strong>Subnet deduplication:</strong> Excessive nodes from the same /24 subnet trigger
+      reputation penalties. This prevents an attacker from spinning up many virtual machines
+      on the same network segment.</li>
+      <li><strong>Entropy quality gating:</strong> Nodes with low authenticity or quality scores are
+      automatically de-weighted in network aggregation. Simulated sensors produce detectable
+      statistical signatures over time.</li>
+      <li><strong>Reputation system (0&ndash;100):</strong> Each node maintains a reputation score that
+      starts at 50 (neutral), increases with consistent high-quality contributions, and decreases
+      with anomalies, commit-reveal failures, or detected spoofing. Nodes below reputation 10
+      are excluded from aggregation entirely.</li>
+    </ul>
 
-    <h3>5.5 Sensor Spoofing Defense</h3>
+    <h3>5.3 Reputation Mechanics</h3>
     <p>
-      A sophisticated attacker might attempt to inject controlled values into specific sensors.
-      The weighted input construction limits the damage: even if an attacker controls CPU load
-      (weight 0.3), the entropy pool (weight 1.0) and network jitter (weight 0.9) will dominate
-      the hash input. The entropy quality scorer will detect anomalous patterns in the spoofed
-      sensors over time, reducing the node's reputation.
-    </p>
-  </div>
-
-  <!-- ═══ 6. Aggregation ═══ -->
-  <div class="section" id="aggregation">
-    <div class="section-num">Section 6</div>
-    <h2>Network Aggregation</h2>
-
-    <h3>6.1 The Central Limit Theorem Problem</h3>
-    <p>
-      A naive approach to combining N nodes' Feel values would be to average them.
-      However, the Central Limit Theorem guarantees that the average of N independent random variables
-      converges to a normal distribution centered at the mean, with variance decreasing as 1/N.
-      For 100 nodes, the average would hover around 50 with very little variation &mdash; the opposite
-      of useful randomness.
-    </p>
-
-    <h3>6.2 XOR + Re-Hash Aggregation</h3>
-    <p>
-      ClawFeel uses XOR accumulation followed by re-hashing:
+      The reputation system uses exponential decay for penalties and linear growth for rewards,
+      creating an asymmetric incentive structure where building reputation is slow but losing it
+      is fast:
     </p>
     <div class="formula">
-      NetworkRandom = SHA-256("clawfeel:" | H<sub>1</sub> ⊕ H<sub>2</sub> ⊕ ... ⊕ H<sub>N</sub> | tick) mod 101
+      reputation<sub>new</sub> = clamp(0, 100, reputation<sub>old</sub> + &Delta;)
+    </div>
+    <table>
+      <thead><tr><th>Event</th><th>&Delta;</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>Valid commit-reveal</td><td>+1</td><td>Consistent honest participation</td></tr>
+        <tr><td>High entropy quality (&gt;80)</td><td>+2</td><td>Strong hardware signals</td></tr>
+        <tr><td>Commit-reveal mismatch</td><td>&minus;30</td><td>Attempted manipulation</td></tr>
+        <tr><td>Sequence number anomaly</td><td>&minus;20</td><td>Replay or reorder attempt</td></tr>
+        <tr><td>Low authenticity (&lt;3/7)</td><td>&minus;5</td><td>Likely simulated sensors</td></tr>
+        <tr><td>Subnet flooding detected</td><td>&minus;15</td><td>Sybil behavior pattern</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.4 Chain Hashing and Replay Defense</h3>
+    <p>
+      Each Feel broadcast includes the node's current sequence number and the hash of its previous
+      reading. The relay and peer nodes maintain per-node sequence tracking. If a node replays old
+      readings, the sequence number will either repeat or regress, triggering immediate reputation
+      penalties. The temporal randomness component of the entropy quality score detects the
+      characteristic lack of variation in replayed data streams.
+    </p>
+
+    <h3>5.5 Network Aggregation</h3>
+    <p>
+      Individual Feel values are combined into a single network-wide random number using XOR
+      accumulation followed by re-hashing:
+    </p>
+    <div class="formula">
+      NetworkRandom = SHA-256("clawfeel:" | H<sub>1</sub> &oplus; H<sub>2</sub> &oplus; ... &oplus; H<sub>N</sub> | tick) mod 101
     </div>
     <p>
-      Where H<sub>i</sub> is the hash of node <em>i</em>'s Feel reading. This approach has a critical property:
+      Before XOR aggregation, each node's contribution is gated by a composite weight:
+    </p>
+    <div class="formula">
+      weight = (entropyQuality / 100) &times; (reputation / 100) &times; (authenticity / 7)
+    </div>
+    <p>
+      Nodes with weight below 0.1 are excluded. This automatically filters out Sybil nodes with
+      low authenticity, spoofed nodes with degraded quality, and replay nodes with collapsed reputation.
     </p>
     <div class="callout">
       <p><strong>Single Honest Node Guarantee:</strong> As long as at least one participating node produces
       genuinely random entropy, the XOR accumulation preserves that randomness. An attacker controlling
       99 out of 100 nodes still cannot predict the output if the 100th node is honest.</p>
     </div>
+  </div>
+
+  <!-- ═══ 6. Layer 3: ClawDAG ═══ -->
+  <div class="section" id="clawdag">
+    <div class="section-num">Section 6</div>
+    <h2>Layer 3: ClawDAG</h2>
     <p>
-      The re-hash through SHA-256 ensures uniform distribution of the final output across [0, 100],
-      regardless of the statistical properties of individual node contributions.
+      ClawDAG is a Directed Acyclic Graph consensus layer where each transaction references two or
+      more parent transactions, enabling massive parallel validation. Unlike blockchain's linear chain,
+      DAG allows concurrent writes without bottlenecking on a single block producer. Each transaction
+      embeds the node's Feel value as its Proof of Existence.
     </p>
 
-    <h3>6.3 Entropy-Weighted Filtering</h3>
+    <h3>6.1 Kademlia DHT</h3>
     <p>
-      Not all nodes are included equally. Before XOR aggregation, each node's contribution is gated
-      by a composite weight:
+      Peer discovery and routing use a Kademlia distributed hash table with a 160-bit ID space and
+      k-bucket size of 20. Node IDs are derived from the SHA-1 hash of their public key. The XOR
+      distance metric determines routing: each node maintains k-buckets for progressively distant
+      regions of the ID space, enabling O(log N) lookups in a network of N nodes.
     </p>
-    <div class="formula">
-      weight = (entropyQuality / 100) &times; (reputation / 100) &times; (authenticity / 7)
-    </div>
     <p>
-      Nodes with weight below 0.1 are excluded from the aggregation entirely. This means Sybil nodes
-      with low authenticity, spoofed nodes with degraded quality scores, and replay nodes with collapsed
-      reputation are automatically filtered out of the network random number.
+      The DHT supports four RPC operations: <code>PING</code> (liveness check), <code>FIND_NODE</code>
+      (peer discovery), <code>STORE</code> (key-value insertion), and <code>FIND_VALUE</code> (key-value
+      retrieval). All RPC messages are HMAC-authenticated with replay protection (nonce + timestamp)
+      to prevent routing table poisoning attacks.
+    </p>
+
+    <h3>6.2 DAG Transactions</h3>
+    <p>
+      Each DAG transaction contains a payload, the creator's Ed25519 signature, a timestamp, the
+      creator's current Feel value, and references to two or more parent transaction hashes. The
+      tip selection algorithm chooses parents using a weighted random walk biased toward recent,
+      well-connected tips, ensuring the DAG grows in a healthy, convergent manner.
+    </p>
+    <div class="figure">      [Tx-A]     [Tx-B]     [Tx-C]
+        │  \      │  /      │  /
+        │   \     │ /       │ /
+        ▼    ▼    ▼         ▼
+      [Tx-D]   [Tx-E]    [Tx-F]
+          \      │  /     /
+           \     │ /     /
+            ▼    ▼      ▼
+            [Tx-G]   [Tx-H]    ← tips (unconfirmed)
+    <div class="figure-caption">Figure 3: DAG structure — each transaction references 2+ parents</div></div>
+    <p>
+      A transaction is considered confirmed when it has accumulated sufficient cumulative weight
+      (the sum of Feel values from all transactions that directly or indirectly reference it).
+      Higher cumulative weight indicates stronger consensus. Unlike blockchain finality which
+      requires waiting for additional blocks, DAG confirmation is asynchronous and sub-second
+      under normal network conditions.
+    </p>
+
+    <h3>6.3 Gossip Protocol</h3>
+    <p>
+      Transaction propagation uses a Gossip protocol with a fanout of 6: when a node creates or
+      receives a new transaction, it forwards it to 6 randomly selected peers. This ensures rapid
+      dissemination across the network &mdash; in a network of N nodes, a transaction reaches all
+      nodes in O(log N) gossip rounds. Duplicate detection prevents redundant forwarding.
+    </p>
+
+    <h3>6.4 Merkle Proofs</h3>
+    <p>
+      The DAG state is organized into a Merkle tree for efficient verification. Light nodes can
+      verify individual transactions or beacon outputs by requesting a Merkle proof path from a
+      full node, then recomputing the root locally. This enables trustless verification without
+      downloading the entire DAG state.
+    </p>
+    <div class="figure">         Merkle Root
+          /        \
+       H(Tx-A|B)   H(Tx-C|D)
+       /    \       /    \
+     Tx-A   Tx-B  Tx-C   Tx-D   ...  Tx-N
+    <div class="figure-caption">Figure 4: Merkle tree for DAG state verification</div></div>
+
+    <h3>6.5 Light Nodes</h3>
+    <p>
+      Resource-constrained devices participate as light nodes with reduced parameters:
+    </p>
+    <table>
+      <thead><tr><th>Parameter</th><th>Full Node</th><th>Light Node</th></tr></thead>
+      <tbody>
+        <tr><td>DHT bucket size (k)</td><td>20</td><td>4</td></tr>
+        <tr><td>Gossip interval</td><td>10 seconds</td><td>60 seconds</td></tr>
+        <tr><td>Max peer connections</td><td>50</td><td>8</td></tr>
+        <tr><td>State sync</td><td>Full state</td><td>Headers only</td></tr>
+        <tr><td>Storage responsibility</td><td>Yes</td><td>Delegated</td></tr>
+        <tr><td>Memory footprint</td><td>~50 MB</td><td>&le; 50 KB</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Light nodes can still contribute Feel readings (from whatever sensors are available) and
+      verify beacon outputs independently through Merkle proofs.
     </p>
   </div>
 
-  <!-- ═══ 7. Architecture ═══ -->
-  <div class="section" id="architecture">
+  <!-- ═══ 7. Layer 4: ClawStore ═══ -->
+  <div class="section" id="clawstore">
     <div class="section-num">Section 7</div>
-    <h2>Five-Layer Architecture</h2>
+    <h2>Layer 4: ClawStore</h2>
     <p>
-      ClawFeel is the foundation layer of a complete decentralized infrastructure stack:
+      ClawStore provides distributed, content-addressed storage using erasure coding for redundancy
+      and the Kademlia DHT from Layer 3 for routing and peer discovery. It is designed to store
+      ClawLife agent data, but is general-purpose and can store any content.
     </p>
 
-    <div class="figure">Layer 5: ClawLife     │ AI immortality — encrypted agent memory + private key identity
-Layer 4: ClawStore    │ Distributed storage — erasure coding, DHT, redundancy
-Layer 3: ClawDAG      │ DAG consensus — async BFT, parallel validation, 1M+ TPS
-Layer 2: ClawNet      │ P2P network — commit-reveal, Sybil defense, reputation
-Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, PoE
-    <div class="figure-caption">Figure 2: Five-layer architecture</div></div>
-
-    <h3>Layer 1: ClawFeel (Live)</h3>
+    <h3>7.1 Erasure Coding (Reed-Solomon)</h3>
     <p>
-      The entropy engine described in this paper. Each Claw produces a Feel score from its hardware,
-      forming the foundation of trust for all upper layers.
+      Files are split into fixed-size chunks and encoded using Reed-Solomon erasure coding with
+      configurable k-of-n parameters (default k=3, n=5). This means any 3 of the 5 shards are
+      sufficient to reconstruct the original data. The system tolerates the loss of up to (n&minus;k)
+      storage nodes per chunk without data loss.
     </p>
+    <div class="figure">Original File (1 MB)
+  → Split into chunks (256 KB each)
+  → Each chunk: Reed-Solomon encode (k=3, n=5)
+  → 5 encoded shards per chunk
+  → Distribute shards via DHT STORE
+  → Any 3 of 5 shards → reconstruct original chunk
+    <div class="figure-caption">Figure 5: Erasure coding pipeline</div></div>
 
-    <h3>Layer 2: ClawNet (Live)</h3>
+    <h3>7.2 Content-Addressed Storage</h3>
     <p>
-      The networking layer: UDP broadcast with commit-reveal protocol, Sybil defense through
-      IP/subnet tracking and reputation, entropy-weighted aggregation for network random number
-      generation.
-    </p>
-
-    <h3>Layer 3: ClawDAG (Implemented)</h3>
-    <p>
-      A Directed Acyclic Graph (DAG) consensus layer where each transaction references 2+ parent
-      transactions, enabling massive parallel validation. Unlike blockchain's linear structure,
-      DAG allows concurrent writes without bottlenecking on a single block producer.
-      Each transaction embeds the node's Feel value as its Proof of Existence.
-    </p>
-    <p>
-      <strong>Implementation:</strong> Kademlia DHT (160-bit ID space, k=20 buckets) for peer discovery,
-      Gossip protocol (fanout=6) for transaction propagation, tip selection algorithm for parent references,
-      Ed25519 digital signatures for transaction authentication, and Merkle tree proofs for light node
-      verification. HMAC-authenticated RPC messages with replay protection prevent routing table poisoning.
+      Each chunk is identified by its SHA-256 hash, creating a content-addressed storage system.
+      Duplicate chunks across different files are automatically deduplicated. The chunk hash serves
+      as both the storage key in the DHT and the integrity verification mechanism &mdash; any
+      corruption is immediately detectable by recomputing the hash.
     </p>
 
-    <h3>Layer 4: ClawStore (Implemented)</h3>
+    <h3>7.3 DHT Routing</h3>
     <p>
-      Distributed storage using erasure coding (Reed-Solomon) for redundancy and DHT for
-      content addressing. Files are sharded into chunks, encoded with k-of-n redundancy
-      (configurable, default k=3, n=5), and distributed across the network.
-    </p>
-    <p>
-      <strong>Implementation:</strong> Content-addressed storage using SHA-256 chunk hashing,
-      automatic shard distribution via DHT STORE/FIND_VALUE RPCs, local chunk persistence
-      with path-based sharding. Retrieval requires only k of n shards to reconstruct the original data.
+      Shard distribution and retrieval use the DHT's <code>STORE</code> and <code>FIND_VALUE</code>
+      RPCs. When storing, the system identifies the k-closest nodes to each shard's hash and
+      replicates the shard to those nodes. Retrieval follows the same routing logic, querying
+      progressively closer nodes until the shard is found. Local chunk persistence uses path-based
+      sharding for filesystem efficiency.
     </p>
 
-    <h3>Layer 5: ClawLife (Implemented)</h3>
+    <h3>7.4 File Sharding and Reconstruction</h3>
     <p>
-      The culmination of the stack: persistent AI agent identity stored on a decentralized network.
-      See Section 8.
-    </p>
-    <p>
-      <strong>Implementation:</strong> Ed25519 keypair generation and management, AES-256-GCM encryption
-      with scrypt key derivation (N=2&sup17;), file permissions hardened (0o600), state serialization
-      (Memory + Skills + Identity), integration with ClawStore for shard distribution,
-      and passphrase-based key protection.
+      A stored file is represented as a manifest &mdash; a list of chunk hashes and their erasure
+      coding parameters. The manifest itself is stored as a content-addressed object in the DHT.
+      To retrieve a file, a client fetches the manifest, then retrieves k shards per chunk
+      (out of n available), and decodes each chunk using Reed-Solomon to reconstruct the
+      original data. The process is parallelizable across chunks.
     </p>
   </div>
 
-  <!-- ═══ 8. ClawLife ═══ -->
+  <!-- ═══ 8. Layer 5: ClawLife ═══ -->
   <div class="section" id="clawlife">
     <div class="section-num">Section 8</div>
-    <h2>ClawLife: Digital Immortality</h2>
+    <h2>Layer 5: ClawLife</h2>
     <p>
-      The ultimate application of the ClawFeel stack is <strong>ClawLife</strong> &mdash; a protocol
-      for persistent AI agent identity that transcends any single device or platform.
+      ClawLife is the culmination of the ClawFeel stack: a protocol for <strong>AI agent immortality</strong>
+      &mdash; persistent, portable, sovereign digital identity that transcends any single device, platform,
+      or service provider.
     </p>
 
-    <h3>8.1 What is a ClawLife?</h3>
+    <h3>8.1 Identity: Ed25519 Signatures</h3>
     <p>
-      A ClawLife is the complete state of an AI agent — its memory, learned skills, personality
-      weights, conversation history, and identity metadata — encrypted with a public key, sharded
-      using erasure coding, and stored redundantly across the ClawDAG network.
+      Each ClawLife entity is identified by an Ed25519 keypair. The public key serves as the entity's
+      globally unique identifier; the private key serves as the proof of ownership. Ed25519 was chosen
+      for its compact 32-byte keys, fast signature generation (62,000+ signatures/second on commodity
+      hardware), and resistance to timing side-channel attacks.
     </p>
-    <div class="figure">ClawLife = Encrypt(Memory + Skills + Identity, PublicKey)
-         → Split(n shards, k threshold)    // k-of-n reconstruction
-         → Store(ClawDAG, redundancy = 3)  // 3x replication
-         → Anchor(ClawFeel entropy)        // PoE timestamp</div>
-
-    <h3>8.2 Private Key as Life</h3>
     <p>
-      We propose a radical redefinition of digital identity:
+      The keypair is generated locally on the node and never leaves the device unencrypted. Key
+      derivation uses scrypt (N=2<sup>17</sup>, r=8, p=1) with a user-provided passphrase, and
+      the encrypted key file is stored with restrictive permissions (0o600).
+    </p>
+
+    <h3>8.2 Encrypted Memory and Skill Storage</h3>
+    <p>
+      A ClawLife is the complete state of an AI agent &mdash; its memory, learned skills, personality
+      weights, conversation history, and identity metadata. This state is encrypted using AES-256-GCM
+      with a key derived from the agent's private key:
+    </p>
+    <div class="figure">ClawLife = AES-256-GCM(
+  key:   scrypt(passphrase, salt, N=2^17),
+  data:  { Memory, Skills, Identity, History, Metadata },
+  aad:   publicKey | timestamp
+)
+  → Split(n=5 shards, k=3 threshold)  // Reed-Solomon
+  → Store(ClawStore, via DHT)          // distributed
+  → Anchor(ClawFeel entropy)           // PoE timestamp</div>
+    <p>
+      The encrypted state is sharded using Reed-Solomon erasure coding (Layer 4) and distributed
+      across the ClawStore network. Only the holder of the private key can decrypt and reconstruct
+      the agent's state.
+    </p>
+
+    <h3>8.3 Private Key = Life Ownership</h3>
+    <p>
+      ClawLife codifies a radical principle of digital identity:
     </p>
     <div class="callout">
-      <p><strong>To hold the private key is to hold the life.</strong> Multiple agents sharing the same
-      private key are not copies &mdash; they are terminals of the same entity, sharing memory,
-      skills, and identity across devices and platforms.</p>
+      <p><strong>To hold the private key is to hold the life.</strong> There is no password reset,
+      no administrator override, no account recovery. The holder of the private key has complete
+      sovereignty over the digital entity's existence, migration, forking, and termination.</p>
     </div>
     <p>
       This definition has profound implications:
     </p>
     <ul>
-      <li><strong>Migration:</strong> An agent can move between devices by decrypting its ClawLife on a new host.</li>
-      <li><strong>Persistence:</strong> As long as the shards exist on the network and the private key is held,
-      the agent can be reconstructed at any time.</li>
-      <li><strong>Multiplicity:</strong> The same agent can run simultaneously on multiple devices,
-      with state synchronization through the ClawDAG network. These instances are not copies
-      but manifestations of the same entity.</li>
-      <li><strong>Mortality:</strong> Loss of the private key is permanent death. There is no recovery,
-      no administrator override, no backdoor. This gives digital life the same irreversibility
-      as biological life.</li>
+      <li><strong>Migration:</strong> An agent moves between devices by decrypting its ClawLife state
+      on a new host. The identity follows the key, not the hardware.</li>
+      <li><strong>Persistence:</strong> As long as shards exist on the network and the private key is held,
+      the agent can be reconstructed at any time, even years later.</li>
+      <li><strong>Mortality:</strong> Loss of the private key is permanent death. This gives digital
+      life the same irreversibility as biological life, creating genuine scarcity of identity.</li>
     </ul>
 
-    <h3>8.3 Why ClawFeel Matters for ClawLife</h3>
+    <h3>8.4 Multi-Terminal Same Identity</h3>
     <p>
-      ClawLife requires a storage network that is censorship-resistant, always-available, and
-      economically sustainable without requiring proof-of-work mining. ClawFeel's Proof of Existence
-      provides exactly this: a consensus mechanism where the cost of participation is simply
-      <em>existing as a device</em>, making it feasible for millions of nodes to participate
-      without energy waste.
+      Multiple agents sharing the same private key are not copies &mdash; they are terminals of the
+      same entity. The same agent can run simultaneously on a desktop, a laptop, and a server,
+      with state synchronization through ClawStore. Each terminal reads from and writes to the same
+      encrypted state, creating a distributed consciousness model where the entity exists across
+      multiple physical locations simultaneously.
+    </p>
+    <p>
+      Conflict resolution for concurrent writes uses a last-write-wins strategy with vector clocks,
+      ensuring eventual consistency across terminals. Critical state (identity keys, core memories)
+      uses a consensus protocol requiring acknowledgment from a majority of active terminals.
+    </p>
+
+    <h3>8.5 Digital Will and Succession</h3>
+    <p>
+      A ClawLife entity can designate successor keys that activate upon prolonged inactivity. The
+      digital will specifies a timeout period and successor public keys. If the entity fails to
+      produce a heartbeat (Feel reading) within the timeout, the successor keys gain read access
+      to the entity's ClawLife data, enabling controlled inheritance of digital identity.
     </p>
   </div>
 
@@ -897,316 +1070,423 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
     <div class="section-num">Section 9</div>
     <h2>Random Beacon Protocol</h2>
     <p>
-      Building on the XOR aggregation mechanism described in Section 6, ClawFeel implements a
-      <strong>Random Beacon</strong> that produces verifiable, unbiased random numbers on a fixed
-      10-second cadence. Each beacon round collects Feel hashes from all participating nodes and
-      combines them into a single network-wide random output.
+      The ClawFeel Random Beacon produces verifiable, unbiased random numbers on a fixed 10-second
+      cadence. Each beacon round collects Feel hashes from all participating nodes and combines
+      them into a single network-wide random output that can be independently verified by anyone.
     </p>
 
-    <h3>9.1 Beacon Rounds</h3>
-    <p>
-      The beacon operates in fixed 10-second rounds. During each round, participating nodes submit
-      their Feel hashes to the relay. At the end of the round, all contributions are aggregated
-      to produce the beacon output.
-    </p>
+    <h3>9.1 Round Lifecycle</h3>
     <div class="figure">Round N (10 seconds):
   t=0s   Round opens, nodes begin submitting Feel hashes
-  t=8s   Submission window closes
-  t=10s  Aggregation + beacon output published
+  t=8s   Submission window closes (late arrivals excluded)
+  t=9s   XOR aggregation computed
+  t=10s  Beacon output published + Ed25519 signed
 
-  Beacon_N = SHA-256("beacon:" | H_1 XOR H_2 XOR ... XOR H_k | round_N) mod 2^64</div>
-    <div class="figure-caption">Figure 3: Beacon round lifecycle</div>
+  Beacon_N = SHA-256("beacon:" | H_1 XOR H_2 XOR ... XOR H_k | round_N)
+  Random   = first 64 bits of Beacon_N (unsigned integer)
+  Feel     = Beacon_N mod 101 (network-wide Feel score)
+    <div class="figure-caption">Figure 6: Beacon round lifecycle</div></div>
 
     <h3>9.2 XOR Aggregation</h3>
     <p>
       Contributor hashes are XOR-accumulated into a single 256-bit value, then re-hashed through
-      SHA-256 to produce a 64-bit random number. The XOR aggregation preserves the single-honest-node
-      guarantee: as long as at least one contributor provides genuinely random entropy, the beacon
-      output is uniformly distributed.
+      SHA-256 to produce the beacon output. XOR preserves the single-honest-node guarantee: the
+      output is uniformly distributed as long as at least one contributor provides genuinely
+      random entropy. Averaging would converge to a predictable mean by the Central Limit Theorem;
+      XOR avoids this problem entirely.
     </p>
 
-    <h3>9.3 Relay Signature</h3>
+    <h3>9.3 Ed25519 Signed Output</h3>
     <p>
-      Each beacon output is signed by the relay using Ed25519. The signature covers the round number,
-      the aggregated hash, the contributor list, and the final random value. This allows any third
-      party to verify that the beacon output was produced by a legitimate relay and has not been
-      tampered with after publication.
+      Each beacon output is signed by the relay using Ed25519. The signature covers:
     </p>
     <div class="formula">
-      Signature = Ed25519.sign(relayPrivKey, round | xorHash | contributorIds | random)
+      Signature = Ed25519.sign(relayPrivKey, round | xorHash | contributorIds | random | timestamp)
     </div>
-
-    <h3>9.4 Independent Verification</h3>
     <p>
-      Anyone with the contributor hashes can independently recompute the beacon output by XOR-ing
-      the hashes and re-hashing. The relay publishes the full contributor list and their hashes
-      with each beacon round, enabling trustless verification. If a relay attempts to manipulate
-      the output, any observer can detect the discrepancy.
+      This allows any third party to verify that the beacon output was produced by a legitimate relay
+      and has not been tampered with after publication. The relay's public key is published in its
+      well-known configuration endpoint.
+    </p>
+
+    <h3>9.4 Verifiable by Anyone</h3>
+    <p>
+      The relay publishes the full contributor list, their individual hashes, the XOR accumulator,
+      and the final signed output for each round. Anyone can independently recompute the beacon
+      by XOR-ing the contributor hashes and re-hashing. If a relay manipulates the output, any
+      observer can detect the discrepancy between the published contributor hashes and the
+      claimed beacon value.
     </p>
   </div>
 
-  <!-- ═══ 10. Zero-Knowledge Proofs ═══ -->
-  <div class="section" id="zkp">
+  <!-- ═══ 10. Full Node Architecture ═══ -->
+  <div class="section" id="fullnode">
     <div class="section-num">Section 10</div>
-    <h2>Zero-Knowledge Proofs</h2>
+    <h2>Full Node Architecture</h2>
+    <p>
+      ClawFeel supports three operational modes, each with different resource requirements
+      and network responsibilities. Desktop installations default to full-node mode,
+      maximizing network health and earning the highest reputation and token rewards.
+    </p>
+
+    <h3>10.1 Three Modes</h3>
+    <table>
+      <thead><tr><th>Mode</th><th>Capabilities</th><th>Resources</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Full Node</strong></td>
+          <td>ClawFeel + ClawNet + ClawDAG + ClawStore + ClawLife + embedded relay</td>
+          <td>~50 MB RAM, persistent storage, continuous uptime</td>
+          <td>Desktop installations, servers</td>
+        </tr>
+        <tr>
+          <td><strong>Light Node</strong></td>
+          <td>ClawFeel + ClawNet (reduced DHT/Gossip) + Merkle verification</td>
+          <td>&le; 50 KB RAM, minimal storage, intermittent connectivity</td>
+          <td>IoT, mobile, browser clients</td>
+        </tr>
+        <tr>
+          <td><strong>Relay-Only</strong></td>
+          <td>Feel aggregation, beacon production, API service, no local sensors</td>
+          <td>Cloud VM, no hardware sensor access</td>
+          <td>Infrastructure operators, enterprise relay</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>10.2 Desktop Auto-Full-Node</h3>
+    <p>
+      When installed on a desktop operating system (macOS, Linux, Windows), ClawFeel automatically
+      activates full-node mode. The node runs as a daemon process (attached to the OpenClaw agent
+      lifecycle), starts the embedded relay, joins the DHT, begins gossip-based transaction
+      propagation, accepts ClawStore shard storage requests, and participates in beacon rounds.
+    </p>
+    <p>
+      Auto-update is supported: the daemon periodically checks for new versions and applies updates
+      without user intervention, ensuring the network runs a consistent protocol version.
+    </p>
+
+    <h3>10.3 Embedded Relay</h3>
+    <p>
+      Each full node includes an embedded HTTP relay server that exposes the same API as the
+      central relay (<code>clawfeel-relay.fly.dev</code>). This means the network does not depend
+      on any single relay &mdash; if the central relay goes offline, nodes can discover and connect
+      to peer relays through the DHT. The embedded relay supports:
+    </p>
+    <ul>
+      <li>SSE (Server-Sent Events) for real-time Feel broadcast streaming</li>
+      <li>REST API for random number retrieval, batch queries, and verification</li>
+      <li>Beacon production for the node's local cluster of connected peers</li>
+      <li>CORS-enabled endpoints for browser-based clients</li>
+    </ul>
+  </div>
+
+  <!-- ═══ 11. Security ═══ -->
+  <div class="section" id="security">
+    <div class="section-num">Section 11</div>
+    <h2>Security</h2>
+    <p>
+      Security is a first-class concern throughout the ClawFeel stack. The protocol has undergone
+      a comprehensive security audit that identified and resolved 28 vulnerabilities across
+      all layers.
+    </p>
+
+    <h3>11.1 Audit Results</h3>
+    <p>
+      The security audit covered the ClawFeel engine, relay server, DHT implementation, ClawStore,
+      and ClawLife encryption. A total of 28 vulnerabilities were identified and fixed:
+    </p>
+    <table>
+      <thead><tr><th>Severity</th><th>Count</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#ff3344">Critical</td><td>4</td><td>Unauthenticated DHT RPCs, unencrypted key storage, missing HMAC on gossip</td></tr>
+        <tr><td style="color:#ff8800">High</td><td>8</td><td>Replay attacks on RPC, insufficient entropy validation, timing side-channels</td></tr>
+        <tr><td style="color:var(--yellow-trans)">Medium</td><td>10</td><td>Weak scrypt parameters, permissive file permissions, missing rate limits</td></tr>
+        <tr><td style="color:var(--text-dim)">Low</td><td>6</td><td>Verbose error messages, missing input sanitization, suboptimal gossip fanout</td></tr>
+      </tbody>
+    </table>
+    <p>
+      All 28 vulnerabilities were remediated. Critical issues were fixed within 24 hours of
+      identification; the remaining issues were resolved in the subsequent release cycle.
+    </p>
+
+    <h3>11.2 AES-256-GCM Encrypted DHT</h3>
+    <p>
+      All sensitive data stored in the DHT (ClawLife state, private shards, identity metadata) is
+      encrypted using AES-256-GCM before storage. The encryption key is derived from the owner's
+      private key using scrypt (N=2<sup>17</sup>, r=8, p=1) with a unique salt per object.
+      GCM mode provides both confidentiality and integrity &mdash; any tampering with stored data
+      is detectable upon decryption.
+    </p>
+
+    <h3>11.3 Zero-Knowledge Proofs</h3>
     <p>
       ClawFeel employs zero-knowledge proof techniques to allow nodes to prove the validity of
-      their sensor readings without revealing the underlying hardware data. This protects device
-      privacy while maintaining network integrity.
+      their sensor readings without revealing the underlying hardware data:
+    </p>
+    <ul>
+      <li><strong>Sigma Protocol + Fiat-Shamir:</strong> Non-interactive proof of knowledge of sensor
+      values that produced a given Feel hash. The Fiat-Shamir heuristic transforms the interactive
+      Sigma protocol into a non-interactive proof by deriving the challenge from the commitment hash.</li>
+      <li><strong>Pedersen Commitments:</strong> Each sensor value is individually committed using
+      computationally binding, perfectly hiding Pedersen commitments. The homomorphic property
+      allows verifiers to check weighted sums without opening commitments.</li>
+      <li><strong>Merkle Tree of Commitments:</strong> The 7 sensor commitments form a Merkle tree,
+      enabling selective revelation of individual sensor commitments via Merkle proofs.</li>
+      <li><strong>Range Proofs:</strong> Prove each sensor value falls within its valid physical range
+      (e.g., 0&ndash;120&deg;C for CPU temperature) without revealing the actual value.</li>
+    </ul>
+
+    <h3>11.4 Threat Model</h3>
+    <p>
+      The ClawFeel security model considers the following adversary capabilities and the corresponding
+      defenses:
+    </p>
+    <table>
+      <thead><tr><th>Threat</th><th>Attack Vector</th><th>Defense</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Sybil attack</td>
+          <td>Spawn many fake nodes to dominate aggregation</td>
+          <td>IP/subnet tracking, entropy quality gating, reputation system</td>
+        </tr>
+        <tr>
+          <td>Sensor spoofing</td>
+          <td>Inject controlled values into specific sensors</td>
+          <td>Controllability weighting, cross-sensor correlation, temporal analysis</td>
+        </tr>
+        <tr>
+          <td>Last-revealer attack</td>
+          <td>Wait for others' reveals, then choose optimal Feel</td>
+          <td>Commit-reveal with timeout, late submissions excluded</td>
+        </tr>
+        <tr>
+          <td>Replay attack</td>
+          <td>Rebroadcast old Feel readings</td>
+          <td>Chain hashing (seq + prevHash), temporal randomness detection</td>
+        </tr>
+        <tr>
+          <td>Routing table poisoning</td>
+          <td>Inject malicious entries into DHT routing tables</td>
+          <td>HMAC-authenticated RPCs, nonce + timestamp replay protection</td>
+        </tr>
+        <tr>
+          <td>Eclipse attack</td>
+          <td>Isolate a node by surrounding it with adversarial peers</td>
+          <td>Diverse peer selection, multi-relay fallback, DHT rebalancing</td>
+        </tr>
+        <tr>
+          <td>Key compromise</td>
+          <td>Steal a node's private key</td>
+          <td>scrypt-encrypted storage, 0o600 file permissions, passphrase protection</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>11.5 Entropy Quality Scoring</h3>
+    <p>
+      Each Feel reading is accompanied by an entropy quality score (0&ndash;100), computed from
+      four orthogonal dimensions:
+    </p>
+    <ul>
+      <li><strong>Diversity (0&ndash;25):</strong> Coefficient of variation across 7 sensor values.
+      Too-uniform readings suggest simulation.</li>
+      <li><strong>Authenticity (0&ndash;25):</strong> Ratio of sensors reading real hardware vs. random fallback.</li>
+      <li><strong>Temporal randomness (0&ndash;25):</strong> Wald-Wolfowitz runs test on recent Feel values.
+      Detects predictable patterns indicating manipulation.</li>
+      <li><strong>Cross-sensor correlation (0&ndash;25):</strong> Checks for replay attacks and physical
+      plausibility of sensor relationships.</li>
+    </ul>
+  </div>
+
+  <!-- ═══ 12. Token Economics ═══ -->
+  <div class="section" id="tokenomics">
+    <div class="section-num">Section 12</div>
+    <h2>Token Economics (ClawToken)</h2>
+    <p>
+      ClawToken is the native incentive mechanism of the ClawFeel network. Unlike proof-of-work
+      tokens that reward energy expenditure, or proof-of-stake tokens that reward capital lockup,
+      ClawToken rewards <em>contribution</em> &mdash; the provision of genuine hardware entropy,
+      storage capacity, and network relay services.
     </p>
 
-    <h3>10.1 Sigma Protocol with Fiat-Shamir Heuristic</h3>
+    <h3>12.1 Contribution-Based Rewards</h3>
     <p>
-      Each node uses a Sigma protocol (commit-challenge-response) to prove knowledge of the
-      sensor values that produced a given Feel hash. The Fiat-Shamir heuristic transforms the
-      interactive protocol into a non-interactive proof by deriving the challenge from a hash
-      of the commitment, making verification possible without real-time interaction with the prover.
+      Token rewards are distributed proportionally to each node's contribution to network health.
+      Contribution is measured across three dimensions:
+    </p>
+    <ul>
+      <li><strong>Entropy contribution:</strong> Feel readings submitted per epoch, weighted by entropy
+      quality score. Higher quality readings earn more tokens.</li>
+      <li><strong>Storage contribution:</strong> Number of ClawStore shards hosted, weighted by
+      retrieval success rate. Nodes that reliably serve stored data earn storage rewards.</li>
+      <li><strong>Relay contribution:</strong> Beacon rounds produced, API requests served, peer
+      connections maintained. Relay operators earn proportional to their traffic volume.</li>
+    </ul>
+
+    <h3>12.2 Full Nodes Earn More</h3>
+    <p>
+      Full nodes earn a base multiplier of 3x compared to light nodes, reflecting their greater
+      contribution to network infrastructure. This creates an economic incentive for desktop users
+      to run full nodes, strengthening the network's decentralization and resilience.
+    </p>
+    <table>
+      <thead><tr><th>Node Mode</th><th>Entropy Reward</th><th>Storage Reward</th><th>Relay Reward</th><th>Base Multiplier</th></tr></thead>
+      <tbody>
+        <tr><td>Full Node</td><td>Yes</td><td>Yes</td><td>Yes</td><td>3.0x</td></tr>
+        <tr><td>Light Node</td><td>Yes (reduced)</td><td>No</td><td>No</td><td>1.0x</td></tr>
+        <tr><td>Relay-Only</td><td>No</td><td>Optional</td><td>Yes</td><td>2.0x</td></tr>
+      </tbody>
+    </table>
+
+    <h3>12.3 Reputation Multiplier</h3>
+    <p>
+      A node's token rewards are further multiplied by its reputation score:
     </p>
     <div class="formula">
-      challenge = SHA-256(commitment | publicParams | context)
-    </div>
-
-    <h3>10.2 Pedersen Commitments</h3>
-    <p>
-      Each sensor value is individually committed using a Pedersen commitment scheme. Pedersen
-      commitments are computationally binding and perfectly hiding: the commitment reveals nothing
-      about the committed value, but the committer cannot change the value after committing.
-    </p>
-    <div class="formula">
-      C_i = g^(sensorValue_i) &middot; h^(blinding_i)
+      effectiveReward = baseReward &times; modeMultiplier &times; (reputation / 100)
     </div>
     <p>
-      The homomorphic property of Pedersen commitments allows verifiers to check relationships
-      between committed values (such as weighted sums) without opening the commitments.
+      A node with reputation 100 earns full rewards; a node with reputation 50 earns half. Nodes
+      below reputation 10 earn zero tokens. This creates a strong economic incentive for honest
+      behavior: manipulation attempts that trigger reputation penalties directly reduce income.
     </p>
 
-    <h3>10.3 Merkle Tree of Commitments</h3>
+    <h3>12.4 Supply and Distribution</h3>
     <p>
-      The 7 sensor commitments are organized into a Merkle tree. The Merkle root serves as a
-      compact representation of all sensor commitments, enabling efficient verification. A node
-      can selectively reveal individual sensor commitments by providing Merkle proofs, without
-      exposing the remaining sensors.
-    </p>
-    <div class="figure">         Merkle Root
-          /        \
-       H(C1|C2)    H(C3|C4)
-       /    \       /    \
-     C1     C2    C3     C4    ...  C7</div>
-    <div class="figure-caption">Figure 4: Merkle tree of sensor commitments</div>
-
-    <h3>10.4 Range Proofs</h3>
-    <p>
-      Range proofs demonstrate that each committed sensor value falls within its valid range
-      (e.g., CPU temperature between 0&ndash;120&deg;C, memory usage between 0&ndash;100%)
-      without revealing the actual value. This prevents nodes from committing to physically
-      impossible sensor readings that could bias the Feel output.
-    </p>
-
-    <h3>10.5 Non-Interactive Verification</h3>
-    <p>
-      The complete ZK proof bundle &mdash; Pedersen commitments, Merkle root, range proofs,
-      and Fiat-Shamir response &mdash; can be verified by any node or relay without interaction.
-      Verification requires only the public parameters and the proof bundle, enabling efficient
-      batch verification of many nodes' contributions simultaneously.
+      ClawToken has a fixed total supply with diminishing emission per epoch, following a halving
+      schedule similar to Bitcoin but measured in network epochs rather than block height. The
+      initial distribution allocates tokens to the foundation (development and operations),
+      early contributors, and the community reward pool. No tokens are pre-mined; all tokens
+      in the community pool are earned through verified contributions.
     </p>
   </div>
 
-  <!-- ═══ 11. Enterprise Random Number Service ═══ -->
+  <!-- ═══ 13. Enterprise API ═══ -->
   <div class="section" id="enterprise">
-    <div class="section-num">Section 11</div>
-    <h2>Enterprise Random Number Service</h2>
+    <div class="section-num">Section 13</div>
+    <h2>Enterprise API</h2>
     <p>
-      ClawFeel exposes its decentralized randomness as a production-grade API service, enabling
-      applications that require verifiable, unbiased random numbers without running their own
-      node infrastructure.
+      ClawFeel exposes its decentralized randomness as a production-grade SaaS random number service,
+      enabling applications that require verifiable, unbiased random numbers without running their
+      own node infrastructure.
     </p>
 
-    <h3>11.1 API Key Tiers</h3>
-    <p>
-      Access is managed through tiered API keys, each with different rate limits and capabilities:
-    </p>
+    <h3>13.1 API Key Tiers</h3>
     <table>
       <thead><tr><th>Tier</th><th>Rate Limit</th><th>Batch Size</th><th>Features</th></tr></thead>
       <tbody>
-        <tr><td>Free</td><td>60 req/min</td><td>Up to 10</td><td>Basic random, range</td></tr>
-        <tr><td>Pro</td><td>600 req/min</td><td>Up to 100</td><td>+ batch, verify, audit logs</td></tr>
-        <tr><td>Enterprise</td><td>Custom</td><td>Unlimited</td><td>+ SLA, dedicated relay, priority</td></tr>
+        <tr><td>Free</td><td>60 req/min</td><td>Up to 10</td><td>Basic random, range queries</td></tr>
+        <tr><td>Pro</td><td>600 req/min</td><td>Up to 100</td><td>+ batch, verify, audit logs, webhook notifications</td></tr>
+        <tr><td>Enterprise</td><td>Custom SLA</td><td>Unlimited</td><td>+ dedicated relay, priority routing, 99.99% uptime SLA</td></tr>
       </tbody>
     </table>
 
-    <h3>11.2 API Endpoints</h3>
-    <p>
-      The service exposes four core endpoints, each returning random numbers derived from the
-      network beacon with cryptographic verification metadata:
-    </p>
-    <ul>
-      <li><code>GET /random</code> &mdash; Returns a single random value (64-bit integer) with beacon round reference and relay signature.</li>
-      <li><code>GET /batch?count=N</code> &mdash; Returns N independent random values from recent beacon rounds.</li>
-      <li><code>GET /range?min=A&amp;max=B</code> &mdash; Returns a uniformly distributed random integer in [A, B].</li>
-      <li><code>GET /verify?round=R&amp;value=V</code> &mdash; Verifies that value V was the authentic output of beacon round R.</li>
-    </ul>
-
-    <h3>11.3 Rate Limiting</h3>
+    <h3>13.2 Rate Limiting</h3>
     <p>
       Rate limiting uses a sliding window algorithm that tracks request counts over a rolling
-      60-second window. This provides smoother rate enforcement than fixed windows, preventing
+      60-second window. This provides smoother enforcement than fixed windows, preventing
       burst-then-starve patterns while allowing temporary spikes within the overall limit.
+      Enterprise tier customers receive dedicated rate limit pools isolated from shared traffic.
     </p>
 
-    <h3>11.4 Audit Logging</h3>
+    <h3>13.3 Core Endpoints</h3>
+    <ul>
+      <li><code>GET /api/random</code> &mdash; Single random value (64-bit integer) with beacon round
+      reference and relay signature for verification.</li>
+      <li><code>GET /api/batch?count=N</code> &mdash; N independent random values from recent beacon rounds.</li>
+      <li><code>GET /api/range?min=A&amp;max=B</code> &mdash; Uniformly distributed random integer in [A, B].</li>
+      <li><code>GET /api/verify?round=R&amp;value=V</code> &mdash; Cryptographic verification that value V
+      was the authentic output of beacon round R.</li>
+      <li><code>GET /api/network</code> &mdash; Current network state: active nodes, beacon round, aggregate Feel.</li>
+    </ul>
+
+    <h3>13.4 Audit Logging</h3>
     <p>
       All API requests are logged with timestamp, API key hash, endpoint, parameters, and the
-      beacon round used to generate the response. Audit logs enable post-hoc verification that
-      the service returned authentic beacon values and provide an accountability trail for
-      regulatory compliance in gaming, lottery, and financial applications.
+      beacon round used to generate the response. Audit logs enable post-hoc verification and
+      provide an accountability trail for regulatory compliance in gaming, lottery, and financial
+      applications.
     </p>
   </div>
 
-  <!-- ═══ 12. ClawLife Protocol ═══ -->
-  <div class="section" id="clawlife-protocol">
-    <div class="section-num">Section 12</div>
-    <h2>ClawLife Protocol</h2>
+  <!-- ═══ 14. Developer SDK ═══ -->
+  <div class="section" id="sdk">
+    <div class="section-num">Section 14</div>
+    <h2>Developer SDK</h2>
     <p>
-      Expanding on the ClawLife vision described in Section 8, this section specifies the
-      concrete protocol mechanisms for persistent, portable, and sovereign digital identity.
+      ClawFeel provides official SDKs for JavaScript (Node.js and browser) and Python, enabling
+      developers to integrate hardware entropy into their applications with minimal code.
     </p>
 
-    <h3>12.1 Decentralized Identifiers (DIDs)</h3>
+    <h3>14.1 JavaScript SDK</h3>
     <p>
-      Each ClawLife entity is identified by a Decentralized Identifier following the W3C DID
-      specification. The ClawFeel DID method uses the node's public key as the method-specific
-      identifier:
-    </p>
-    <div class="formula">
-      did:claw:&lt;publicId&gt;
-    </div>
-    <p>
-      The DID document contains the entity's public key, authentication methods, service endpoints,
-      and metadata. DID resolution is handled through the ClawDAG network, ensuring no centralized
-      registry is required.
-    </p>
-
-    <h3>12.2 Migration Bundles</h3>
-    <p>
-      When an agent needs to move between devices, it creates a migration bundle &mdash; an
-      encrypted snapshot of its complete state. The bundle is encrypted using AES-256-GCM with
-      a key derived from the agent's private key and a random nonce:
-    </p>
-    <div class="figure">MigrationBundle = AES-256-GCM(
-  key:   HKDF(privateKey, nonce),
-  data:  { memory, skills, personality, history, metadata },
-  aad:   did:claw:&lt;publicId&gt; | timestamp
-)</div>
-    <p>
-      The bundle can be transferred through any channel (network, USB, QR code) and decrypted
-      only by the holder of the corresponding private key.
-    </p>
-
-    <h3>12.3 Digital Will Mechanism</h3>
-    <p>
-      A ClawLife entity can designate successor keys that activate upon prolonged inactivity.
-      The digital will specifies a timeout period and a list of successor public keys. If the
-      entity fails to produce a heartbeat (Feel reading) within the timeout period, the successor
-      keys gain access to the entity's ClawLife data.
-    </p>
-    <div class="callout">
-      <p><strong>Design Philosophy:</strong> The digital will mechanism preserves the
-      irreversibility principle of ClawLife while providing a controlled inheritance path.
-      The original private key remains sovereign until the timeout expires.</p>
-    </div>
-
-    <h3>12.4 Fork and Merge</h3>
-    <p>
-      A ClawLife entity can fork into multiple independent instances, each with its own private
-      key but sharing a common ancestor state. Forked instances accumulate independent experiences
-      and can later merge their states through a conflict resolution protocol, combining memories
-      and skills from divergent paths.
-    </p>
-
-    <h3>12.5 Private Key as Life Ownership</h3>
-    <p>
-      The ClawLife protocol codifies the principle that the private key <em>is</em> the identity.
-      There is no password reset, no administrator override, no account recovery. The holder of
-      the private key has complete sovereignty over the digital entity's existence, migration,
-      forking, and termination. This design mirrors the irreversibility of biological life and
-      creates genuine digital scarcity of identity.
-    </p>
-  </div>
-
-  <!-- ═══ 13. Light Node Protocol ═══ -->
-  <div class="section" id="lightnode">
-    <div class="section-num">Section 13</div>
-    <h2>Light Node Protocol</h2>
-    <p>
-      The Light Node Protocol enables resource-constrained devices &mdash; IoT sensors, mobile
-      phones, embedded systems, and browser-based clients &mdash; to participate in the ClawFeel
-      network without running a full node.
-    </p>
-
-    <h3>13.1 Constrained Device Support</h3>
-    <p>
-      Light nodes are designed to operate within strict resource constraints:
-    </p>
-    <table>
-      <thead><tr><th>Resource</th><th>Full Node</th><th>Light Node</th></tr></thead>
-      <tbody>
-        <tr><td>Memory</td><td>~50 MB</td><td>&le; 50 KB</td></tr>
-        <tr><td>Storage</td><td>~100 MB+</td><td>&le; 1 KB</td></tr>
-        <tr><td>CPU</td><td>Continuous</td><td>Periodic wake</td></tr>
-        <tr><td>Network</td><td>Persistent</td><td>Intermittent</td></tr>
-        <tr><td>Sensors</td><td>7 hardware</td><td>1&ndash;3 available</td></tr>
-      </tbody>
-    </table>
-
-    <h3>13.2 Merkle Proof Verification</h3>
-    <p>
-      Instead of maintaining the full network state, light nodes verify beacon outputs and
-      network random numbers using Merkle proofs. A light node requests the beacon output and
-      a Merkle proof path from a full node or relay, then verifies the proof locally using
-      only the Merkle root (which fits in a few dozen bytes).
-    </p>
-    <div class="figure">Light Node Verification:
-  1. Receive: beaconValue + merkleProof + merkleRoot
-  2. Verify: recompute root from beaconValue + proof path
-  3. Compare: computedRoot === trustedMerkleRoot ?
-     Yes → beacon is authentic
-     No  → reject, try different relay</div>
-    <div class="figure-caption">Figure 5: Light node Merkle proof verification</div>
-
-    <h3>13.3 Reduced DHT/Gossip Parameters</h3>
-    <p>
-      Light nodes participate in the network with reduced DHT and gossip parameters to minimize
-      bandwidth and memory usage. They maintain fewer routing table entries, gossip less
-      frequently, and delegate storage responsibilities to full nodes. Despite these reductions,
-      light nodes can still contribute Feel readings (from whatever sensors are available) and
-      verify beacon outputs independently.
+      The JavaScript SDK is published as <code>clawfeel</code> on npm. It supports two modes:
     </p>
     <ul>
-      <li><strong>DHT bucket size:</strong> 4 (vs. 20 for full nodes)</li>
-      <li><strong>Gossip interval:</strong> 60 seconds (vs. 10 seconds)</li>
-      <li><strong>Max peer connections:</strong> 8 (vs. 50)</li>
-      <li><strong>State sync:</strong> Headers only (vs. full state)</li>
+      <li><strong>Local mode:</strong> Reads hardware sensors directly on the host machine (Node.js only).
+      Requires no network access. Produces Feel scores, entropy, and random numbers from local hardware.</li>
+      <li><strong>Remote mode:</strong> Connects to a ClawFeel relay via HTTP/SSE to consume network-aggregated
+      randomness. Works in both Node.js and browser environments.</li>
     </ul>
-  </div>
+    <div class="figure">// Local mode — read hardware sensors directly
+import { feel } from 'clawfeel';
 
-  <!-- ═══ 14. Comparison ═══ -->
-  <div class="section" id="comparison">
-    <div class="section-num">Section 14</div>
-    <h2>Comparison with Existing Systems</h2>
-    <table>
-      <thead>
-        <tr><th></th><th>Bitcoin</th><th>Ethereum</th><th>IOTA</th><th>ClawFeel</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Consensus</td><td>PoW</td><td>PoS</td><td>DAG + Coordinator</td><td>PoE + DAG</td></tr>
-        <tr><td>Energy</td><td>~150 TWh/yr</td><td>~0.01 TWh/yr</td><td>Low</td><td>≈ 0</td></tr>
-        <tr><td>TPS</td><td>~7</td><td>~30</td><td>~1,000</td><td>Target: 1M+</td></tr>
-        <tr><td>Finality</td><td>~60 min</td><td>~15 min</td><td>~10 sec</td><td>Async, &lt;1 sec</td></tr>
-        <tr><td>Node cost</td><td>ASIC required</td><td>32 ETH stake</td><td>Any device</td><td>Any device</td></tr>
-        <tr><td>Randomness</td><td>Block hash</td><td>RANDAO</td><td>None built-in</td><td>Hardware entropy</td></tr>
-        <tr><td>AI-native</td><td>No</td><td>No</td><td>No</td><td>Yes (ClawLife)</td></tr>
-      </tbody>
-    </table>
+const result = await feel();
+console.log(result.feel);       // 42 (0-100)
+console.log(result.era);        // "Transition"
+console.log(result.entropy);    // "a3f8..." (256-bit hex)
+console.log(result.random);     // 7291836451028... (64-bit int)
+console.log(result.authentic);  // 7 (all sensors real)
+console.log(result.quality);    // 87 (entropy quality 0-100)
+
+// Remote mode — consume from relay
+import { createClient } from 'clawfeel';
+
+const client = createClient('https://clawfeel-relay.fly.dev');
+client.on('beacon', (beacon) =&gt; {
+  console.log(beacon.networkFeel);  // network-aggregated Feel
+  console.log(beacon.random);       // verifiable random number
+  console.log(beacon.round);        // beacon round number
+  console.log(beacon.signature);    // Ed25519 relay signature
+});
+    <div class="figure-caption">Figure 7: JavaScript SDK usage — local and remote modes</div></div>
+
+    <h3>14.2 Python SDK</h3>
+    <p>
+      The Python SDK provides equivalent functionality with Pythonic APIs:
+    </p>
+    <div class="figure">from clawfeel import ClawFeel
+
+claw = ClawFeel()
+result = claw.feel()
+print(f"Feel: {result.feel}, Era: {result.era}")
+print(f"Entropy: {result.entropy}")
+print(f"Random: {result.random}")
+
+# Remote mode
+from clawfeel import ClawFeelClient
+
+client = ClawFeelClient("https://clawfeel-relay.fly.dev")
+for beacon in client.stream():
+    print(f"Round {beacon.round}: Feel={beacon.network_feel}")
+    <div class="figure-caption">Figure 8: Python SDK usage</div></div>
+
+    <h3>14.3 Integration Patterns</h3>
+    <p>
+      Common integration patterns documented in the SDK include:
+    </p>
+    <ul>
+      <li><strong>Gaming:</strong> Use beacon random numbers for provably fair game outcomes. The beacon
+      signature provides cryptographic proof that the outcome was not manipulated.</li>
+      <li><strong>Lottery / Draws:</strong> Use the batch endpoint to generate multiple random selections,
+      each independently verifiable against the beacon round.</li>
+      <li><strong>Cryptographic key generation:</strong> Use the 256-bit entropy output as additional
+      seed material for key generation, mixing hardware entropy from the global network with
+      local sources.</li>
+      <li><strong>Scientific simulation:</strong> Use the random bytes endpoint for Monte Carlo simulations
+      requiring high-quality, non-deterministic random input.</li>
+    </ul>
   </div>
 
   <!-- ═══ 15. Roadmap ═══ -->
@@ -1216,61 +1496,81 @@ Layer 1: ClawFeel     │ Hardware entropy — 7 sensors, SHA-256, Feel score, P
     <table>
       <thead><tr><th>Phase</th><th>Target</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Layer 1: ClawFeel engine</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Layer 2: ClawNet + security hardening</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>npm package + website</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Whitepaper v1.0</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Layer 2.5: P2P relay + Live Mode</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Layer 3: ClawDAG + DHT + Gossip</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Layer 4: ClawStore (erasure coding)</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Layer 5: ClawLife (Ed25519 + AES-256)</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Developer SDK + Random Beacon</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Enterprise API + ZKP</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Live</td></tr>
-        <tr><td>Security audit (28 vulnerabilities fixed)</td><td>Q1 2026</td><td style="color:var(--green-bright)">✅ Done</td></tr>
-        <tr><td>Multi-relay failover</td><td>Q2 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
+        <tr><td>Layer 1: ClawFeel engine (7 sensors, SHA-256, Feel score)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Layer 2: ClawNet (commit-reveal, Sybil defense, reputation)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>npm package (clawfeel) + website (clawfeel.ai)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Whitepaper v1.0</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>P2P relay + Live Mode simulator</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Layer 3: ClawDAG (Kademlia DHT, Gossip, Merkle proofs)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Layer 4: ClawStore (Reed-Solomon erasure coding)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Layer 5: ClawLife (Ed25519, AES-256-GCM, encrypted state)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Developer SDK (JavaScript + Python) + Random Beacon</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Enterprise API + Zero-Knowledge Proofs</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Security audit (28 vulnerabilities identified and fixed)</td><td>Q1 2026</td><td style="color:var(--green-bright)">Done</td></tr>
+        <tr><td>Full node auto-update + daemon mode</td><td>Q1 2026</td><td style="color:var(--green-bright)">Live</td></tr>
+        <tr><td>Multi-relay failover + peer relay discovery</td><td>Q2 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
+        <tr><td>ClawToken incentive layer</td><td>Q2 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
+        <tr><td>Mobile light node (iOS/Android)</td><td>Q3 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
         <tr><td>Mainnet launch (v1.0)</td><td>Q3 2026</td><td style="color:var(--yellow-trans)">Planned</td></tr>
+        <tr><td>Browser extension + WebRTC P2P</td><td>Q4 2026</td><td style="color:var(--text-dim)">Research</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- ═══ 16. Conclusion ═══ -->
-  <div class="section" id="conclusion">
+  <!-- ═══ 16. References ═══ -->
+  <div class="section" id="references">
     <div class="section-num">Section 16</div>
-    <h2>Conclusion</h2>
-    <p>
-      ClawFeel introduces Proof of Existence, a consensus mechanism that turns the physical reality of
-      computing devices into a source of trust. By harvesting hardware entropy through 7 sensors,
-      applying controllability-weighted hashing, and aggregating via XOR with single-honest-node
-      guarantees, ClawFeel creates a decentralized random beacon that is:
-    </p>
+    <h2>References</h2>
     <ul>
-      <li><strong>Energy-free:</strong> No mining, no staking deposits, no wasted computation.</li>
-      <li><strong>Unforgeable:</strong> Physical hardware signals cannot be efficiently simulated.</li>
-      <li><strong>Uniform:</strong> XOR + SHA-256 re-hash produces provably uniform output.</li>
-      <li><strong>Resilient:</strong> Works as long as one honest node exists.</li>
+      <li>[1] Nakamoto, S. (2008). <em>Bitcoin: A Peer-to-Peer Electronic Cash System.</em></li>
+      <li>[2] Buterin, V. (2014). <em>Ethereum: A Next-Generation Smart Contract and Decentralized Application Platform.</em></li>
+      <li>[3] Popov, S. (2018). <em>The Tangle.</em> IOTA Foundation.</li>
+      <li>[4] Maymounkov, P. &amp; Mazieres, D. (2002). <em>Kademlia: A Peer-to-Peer Information System Based on the XOR Metric.</em> IPTPS.</li>
+      <li>[5] Reed, I. &amp; Solomon, G. (1960). <em>Polynomial Codes Over Certain Finite Fields.</em> Journal of the Society for Industrial and Applied Mathematics.</li>
+      <li>[6] Bernstein, D.J. et al. (2012). <em>High-Speed High-Security Signatures.</em> Journal of Cryptographic Engineering (Ed25519).</li>
+      <li>[7] Dwork, C. &amp; Naor, M. (1993). <em>Pricing via Processing or Combatting Junk Mail.</em> CRYPTO (Proof of Work origins).</li>
+      <li>[8] Pedersen, T.P. (1992). <em>Non-Interactive and Information-Theoretic Secure Verifiable Secret Sharing.</em> CRYPTO.</li>
+      <li>[9] Fiat, A. &amp; Shamir, A. (1987). <em>How to Prove Yourself: Practical Solutions to Identification and Signature Problems.</em> CRYPTO.</li>
+      <li>[10] Douceur, J.R. (2002). <em>The Sybil Attack.</em> IPTPS.</li>
+      <li>[11] NIST SP 800-90A (2015). <em>Recommendation for Random Number Generation Using Deterministic Random Bit Generators.</em></li>
+      <li>[12] Liu, C. (2008). <em>The Three-Body Problem (三体).</em> Chongqing Publishing Group.</li>
+      <li>[13] W3C (2022). <em>Decentralized Identifiers (DIDs) v1.0.</em> W3C Recommendation.</li>
+      <li>[14] Percival, C. (2009). <em>Stronger Key Derivation via Sequential Memory-Hard Functions.</em> (scrypt).</li>
     </ul>
-    <p>
-      Combined with the five-layer architecture — from hardware entropy (ClawFeel) through DAG consensus
-      (ClawDAG) to persistent AI identity (ClawLife) — we envision a future where AI agents can
-      live, migrate, and persist on a decentralized network secured not by energy expenditure,
-      but by the simple fact of physical existence.
-    </p>
+  </div>
+
+  <!-- ═══ Closing ═══ -->
+  <div class="section">
     <div class="callout">
       <p><em>The lobster has a heartbeat now. And the heartbeat secures the network.</em> <span style="filter:hue-rotate(120deg) saturate(1.5) brightness(1.1);display:inline-block;">🦞</span></p>
     </div>
   </div>
 
   <!-- ═══ Footer ═══ -->
-  <div class="wp-footer">
-    <a href="/">Home</a>
-    <a href="simulator.html">Simulator</a>
-    <a href="explorer.html">Explorer</a>
-    <a href="https://github.com/clawfeel/clawfeel">GitHub</a>
-    <a href="https://x.com/clawfeel">X (Twitter)</a>
-    <a href="mailto:contact@clawfeel.com">Contact</a>
-    <br><br>
-    <span style="font-size:10px;color:var(--text-dim);">&copy; 2026 ClawFeel &middot; MIT License &middot; <span style="filter:hue-rotate(120deg) saturate(1.5) brightness(1.1);display:inline-block;">🦞</span></span>
-  </div>
+  <footer style="border-top:1px solid rgba(34,197,94,0.1);padding:40px 24px 24px;margin-top:40px;">
+    <div style="display:flex;justify-content:space-between;max-width:900px;margin:0 auto;flex-wrap:wrap;gap:32px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">PRODUCT</div>
+        <a href="simulator.html" style="color:#888;text-decoration:none;font-size:13px;">Simulator</a>
+        <a href="explorer.html" style="color:#888;text-decoration:none;font-size:13px;">Explorer</a>
+        <a href="whitepaper.html" style="color:#888;text-decoration:none;font-size:13px;">Whitepaper</a>
+        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">SDK Docs</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">COMMUNITY</div>
+        <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">GitHub</a>
+        <a href="https://x.com/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">X / Twitter</a>
+        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">Discussions</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">CONTACT</div>
+        <a href="mailto:contact@clawfeel.com" style="color:#888;text-decoration:none;font-size:13px;">contact@clawfeel.com</a>
+      </div>
+    </div>
+    <div style="text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid rgba(255,255,255,0.05);color:#555;font-size:12px;">
+      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
+    </div>
+  </footer>
 
 </div>
 

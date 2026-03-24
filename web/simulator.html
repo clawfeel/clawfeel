@@ -369,7 +369,10 @@
     <a href="/">Home</a>
     <a href="simulator.html" class="active">Simulator</a>
     <a href="explorer.html">Explorer</a>
+    <a href="demo.html">Demo</a>
     <a href="whitepaper.html">Whitepaper</a>
+    <a href="enterprise.html">Enterprise</a>
+    <a href="api-docs.html">API Docs</a>
   </div>
   <div class="nav-right">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
@@ -388,7 +391,10 @@
   <a href="/">Home</a>
   <a href="simulator.html" onclick="closeMobileMenu()">Simulator</a>
   <a href="explorer.html">Explorer</a>
+  <a href="demo.html">Demo</a>
   <a href="whitepaper.html">Whitepaper</a>
+  <a href="enterprise.html">Enterprise</a>
+  <a href="api-docs.html">API Docs</a>
   <div class="mobile-social">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg></a>
     <a href="https://x.com/clawfeel" target="_blank"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
@@ -567,15 +573,30 @@
     </div>
   </div>
 
-  <div class="footer" style="display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap;">
-    <a href="/" style="font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:3px;"><img src="logo.svg" alt="" style="height:16px;vertical-align:middle;margin-right:4px;"> CLAWFEEL</a>
-    <span style="color:var(--text-dim);">&middot;</span>
-    <a href="https://x.com/clawfeel" target="_blank" rel="noopener" style="color:var(--text-dim);">X (Twitter)</a>
-    <span style="color:var(--text-dim);">&middot;</span>
-    <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" style="color:var(--text-dim);">GitHub</a>
-    <span style="color:var(--text-dim);">&middot;</span>
-    <a href="mailto:contact@clawfeel.com" style="color:var(--text-dim);">contact@clawfeel.com</a>
-  </div>
+  <footer class="footer" style="border-top:1px solid rgba(34,197,94,0.1);padding:40px 24px 24px;margin-top:40px;">
+    <div style="display:flex;justify-content:space-between;max-width:900px;margin:0 auto;flex-wrap:wrap;gap:32px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">PRODUCT</div>
+        <a href="simulator.html" style="color:#888;text-decoration:none;font-size:13px;">Simulator</a>
+        <a href="explorer.html" style="color:#888;text-decoration:none;font-size:13px;">Explorer</a>
+        <a href="whitepaper.html" style="color:#888;text-decoration:none;font-size:13px;">Whitepaper</a>
+        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">SDK Docs</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">COMMUNITY</div>
+        <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">GitHub</a>
+        <a href="https://x.com/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">X / Twitter</a>
+        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">Discussions</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">CONTACT</div>
+        <a href="mailto:contact@clawfeel.com" style="color:#888;text-decoration:none;font-size:13px;">contact@clawfeel.com</a>
+      </div>
+    </div>
+    <div style="text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid rgba(255,255,255,0.05);color:#555;font-size:12px;">
+      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
+    </div>
+  </footer>
 </div>
 
 <script>
@@ -1304,6 +1325,18 @@ function updateNavLoginStatus(nodes) {
     ? 'border:1px solid #22c55e44;color:#22c55e;background:rgba(34,197,94,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;'
     : 'border:1px solid #55555544;color:#888;background:rgba(85,85,85,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;';
 }
+
+// ── Auto-detect local ClawFeel node via localhost:31415 ──
+(async function detectLocalNode() {
+  try {
+    const res = await fetch('http://127.0.0.1:31415/identity', { signal: AbortSignal.timeout(1500) });
+    const local = await res.json();
+    if (local.clawId && /^[0-9a-f]{8,16}$/i.test(local.clawId)) {
+      localStorage.setItem('clawfeel_me', local.clawId);
+      if (!myClawId) window.location.reload();
+    }
+  } catch {}
+})();
 
 // Check status on page load
 if (myClawId) {

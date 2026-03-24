@@ -868,8 +868,10 @@
     <a href="/" class="active">Home</a>
     <a href="simulator.html">Simulator</a>
     <a href="explorer.html">Explorer</a>
+    <a href="demo.html">Demo</a>
     <a href="whitepaper.html">Whitepaper</a>
     <a href="enterprise.html">Enterprise</a>
+    <a href="api-docs.html">API Docs</a>
   </div>
   <div class="nav-right">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" title="GitHub">
@@ -879,6 +881,7 @@
       <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
     <a href="#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
+    <button onclick="toggleLang()" id="langBtn" style="background:none;border:1px solid #333;color:#888;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px;">CN</button>
   </div>
   <div class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
@@ -888,8 +891,10 @@
   <a href="/" onclick="closeMobileMenu()" style="color:var(--green-bright)">Home</a>
   <a href="simulator.html">Simulator</a>
   <a href="explorer.html">Explorer</a>
+  <a href="demo.html">Demo</a>
   <a href="whitepaper.html">Whitepaper</a>
   <a href="enterprise.html">Enterprise</a>
+  <a href="api-docs.html">API Docs</a>
   <a href="#get-started" onclick="closeMobileMenu()">Install</a>
   <div class="mobile-social">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">
@@ -907,8 +912,8 @@
   <div class="hero">
     <div class="hero-emoji">🦞</div>
     <div class="hero-logo-text">CLAWFEEL</div>
-    <div class="hero-tagline">Your Claw's Heartbeat</div>
-    <div class="hero-subtitle">Decentralized Entropy for a Trustless World</div>
+    <div class="hero-tagline" data-i18n="hero-tagline">Your Claw's Heartbeat</div>
+    <div class="hero-subtitle" data-i18n="hero-subtitle">Decentralized Entropy for a Trustless World</div>
     <div class="hero-feel" id="heroFeel">73</div>
     <div class="hero-cta">
       <a href="#get-started" class="btn btn-primary">Get Started &rarr;</a>
@@ -1243,6 +1248,7 @@
         <div class="footer-col-title">Product</div>
         <a href="simulator.html">Simulator</a>
         <a href="explorer.html">Explorer</a>
+        <a href="demo.html">Demo</a>
         <a href="whitepaper.html">Whitepaper</a>
         <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener">SDK Docs</a>
         <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener">Enterprise API</a>
@@ -1259,7 +1265,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.6.9
+      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
     </div>
   </footer>
 
@@ -1362,6 +1368,19 @@ function updateNavLoginStatus(nodes) {
     ? 'border:1px solid #22c55e44;color:#22c55e;background:rgba(34,197,94,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;'
     : 'border:1px solid #55555544;color:#888;background:rgba(85,85,85,0.08);padding:6px 14px;border-radius:20px;font-size:13px;font-family:JetBrains Mono,monospace;text-decoration:none;display:flex;align-items:center;';
 }
+
+// ── Auto-detect local ClawFeel node via localhost:31415 ──
+(async function detectLocalNode() {
+  try {
+    const res = await fetch('http://127.0.0.1:31415/identity', { signal: AbortSignal.timeout(1500) });
+    const local = await res.json();
+    if (local.clawId && /^[0-9a-f]{8,16}$/i.test(local.clawId)) {
+      localStorage.setItem('clawfeel_me', local.clawId);
+      // Reload myClawId if it was null
+      if (!myClawId) window.location.reload();
+    }
+  } catch {} // no local node running — that's fine
+})();
 
 // Check status on page load
 if (myClawId) {
@@ -1542,6 +1561,62 @@ const archObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.2 });
 
 archObserver.observe(document.getElementById('archStack'));
+</script>
+
+<script src="i18n.js"></script>
+<script>
+// ── i18n: 50-language support ──
+let currentLang = localStorage.getItem('clawfeel_lang') || 'en';
+
+function toggleLang() {
+  // Show a dropdown selector
+  const sel = document.getElementById('langSelector');
+  if (sel) { sel.style.display = sel.style.display === 'none' ? 'block' : 'none'; return; }
+  // Create selector on first click
+  const dropdown = document.createElement('div');
+  dropdown.id = 'langSelector';
+  dropdown.style.cssText = 'position:fixed;top:52px;right:16px;background:#0a1f0a;border:1px solid #22c55e33;border-radius:8px;padding:8px;max-height:400px;overflow-y:auto;z-index:10001;display:block;min-width:180px;';
+  const langs = window.CLAWFEEL_LANGS || [{ code:'en', name:'English' }];
+  langs.forEach(l => {
+    const a = document.createElement('a');
+    a.textContent = l.name;
+    a.href = '#';
+    a.style.cssText = 'display:block;padding:6px 12px;color:#888;text-decoration:none;font-size:13px;font-family:JetBrains Mono,monospace;border-radius:4px;';
+    if (l.code === currentLang) a.style.color = '#22c55e';
+    a.onmouseover = () => a.style.background = '#1a3a1a';
+    a.onmouseout = () => a.style.background = 'transparent';
+    a.onclick = (e) => { e.preventDefault(); setLang(l.code); dropdown.style.display = 'none'; };
+    dropdown.appendChild(a);
+  });
+  document.body.appendChild(dropdown);
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target) && e.target.id !== 'langBtn') dropdown.style.display = 'none';
+  });
+}
+
+function setLang(code) {
+  currentLang = code;
+  localStorage.setItem('clawfeel_lang', code);
+  applyLang();
+}
+
+function applyLang() {
+  const i18n = window.CLAWFEEL_I18N || {};
+  const dict = i18n[currentLang] || i18n['en'] || {};
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) el.textContent = dict[key];
+  });
+  // Update button to show current language code
+  const btn = document.getElementById('langBtn');
+  const langs = window.CLAWFEEL_LANGS || [];
+  const lang = langs.find(l => l.code === currentLang);
+  if (btn) btn.textContent = lang ? lang.name.substring(0, 3).toUpperCase() : currentLang.toUpperCase();
+}
+
+// Apply on load if user previously chose non-English
+if (currentLang !== 'en') applyLang();
 </script>
 </body>
 </html>

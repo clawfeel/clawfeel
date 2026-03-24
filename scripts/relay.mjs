@@ -33,6 +33,7 @@ import { argv } from "node:process";
 import os from "node:os";
 import path from "node:path";
 import { BeaconManager, BeaconRound } from "./beacon.mjs";
+import { TokenLedger, REWARD_RATES } from "./token.mjs";
 import { ClawZKP } from "./zkp.mjs";
 import { readFileSync } from "node:fs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -491,6 +492,12 @@ const beaconManager = new BeaconManager({
 beaconManager.init().catch(() => {});
 loadApiKeys().catch(() => {});
 
+// ── ClawToken Ledger ──
+const tokenLedger = new TokenLedger({ dataDir: DATA_DIR });
+tokenLedger.init().catch(() => {});
+// Save ledger every 5 minutes
+setInterval(() => tokenLedger.save().catch(() => {}), 300_000);
+
 setInterval(() => {
   broadcastSSE();
 
@@ -702,6 +709,21 @@ const server = createServer(async (req, res) => {
           zkpVerified: nodes.get(clawId)?.zkpVerified ?? null,
         });
         if (txLog.length > TX_LOG_MAX) txLog.splice(0, txLog.length - TX_LOG_MAX);
+
+        // ── Award ClawTokens ──
+        const node = nodes.get(clawId);
+        const uptimeMs = node ? (Date.now() - (node.firstSeen || Date.now())) : 0;
+        const tokenReward = tokenLedger.reward(clawId, {
+          nodeType: body.type === "browser" ? "browser" : (body.fullNode ? "full" : "light"),
+          entropyQuality: body.entropyQuality ?? 50,
+          authenticity: body.authenticity ?? 4,
+          reputation: node?.reputation ?? 50,
+          uptimeHours: uptimeMs / 3_600_000,
+          beaconContrib: false, // set true during beacon seal
+          feel: body.feel,
+          hash: body.hash,
+        });
+        result.tokens = tokenReward;
       }
 
       res.writeHead(result.ok ? 200 : 429, { "Content-Type": "application/json" });
@@ -710,6 +732,42 @@ const server = createServer(async (req, res) => {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: false, error: err.message }));
     }
+    return;
+  }
+
+  // ── GET /api/tokens/stats — network token stats ──
+  if (req.method === "GET" && path === "/api/tokens/stats") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(tokenLedger.getStats()));
+    return;
+  }
+
+  // ── GET /api/tokens/leaderboard — top earners ──
+  if (req.method === "GET" && path === "/api/tokens/leaderboard") {
+    const limit = parseInt(url.searchParams.get("limit") || "20", 10);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ leaderboard: tokenLedger.getLeaderboard(Math.min(limit, 100)) }));
+    return;
+  }
+
+  // ── GET /api/tokens/balance/:clawId — account balance ──
+  if (req.method === "GET" && path.startsWith("/api/tokens/balance/")) {
+    const clawId = path.split("/").pop();
+    const account = tokenLedger.getAccount(clawId);
+    if (account) {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ clawId, balance: account.balance, totalEarned: account.totalEarned, rewardCount: account.rewardCount }));
+    } else {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Account not found" }));
+    }
+    return;
+  }
+
+  // ── GET /api/tokens/rates — reward rate documentation ──
+  if (req.method === "GET" && path === "/api/tokens/rates") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(REWARD_RATES));
     return;
   }
 
@@ -798,6 +856,24 @@ const server = createServer(async (req, res) => {
       dhtPort: DHT_PORT,
       peers: peerList,
       peerCount: peerList.length,
+    }));
+    return;
+  }
+
+  // ── GET /health — deep health check for monitoring ──
+  if (req.method === "GET" && path === "/health") {
+    const onlineCount = [...nodes.values()].filter(n => Date.now() - n.lastSeen < NODE_TIMEOUT_MS).length;
+    const latestBeacon = beaconManager.getLatest();
+    const beaconAge = latestBeacon ? Date.now() - new Date(latestBeacon.timestamp).getTime() : Infinity;
+    const healthy = beaconAge < 60_000 || onlineCount === 0; // beacon stale > 60s is unhealthy (unless no nodes)
+    res.writeHead(healthy ? 200 : 503, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      status: healthy ? "healthy" : "degraded",
+      nodes: onlineCount,
+      beaconRound: latestBeacon?.round || 0,
+      beaconAgeMs: beaconAge === Infinity ? null : Math.round(beaconAge),
+      tokenAccounts: tokenLedger.getStats().totalAccounts,
+      uptime: Math.round(process.uptime()),
     }));
     return;
   }

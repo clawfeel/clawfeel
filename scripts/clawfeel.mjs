@@ -141,6 +141,7 @@ const ZKP = flag("zkp");
 const HEARTBEAT = flag("heartbeat");
 const IS_DAEMON = flag("__daemon");  // internal: marks the background process
 const ATTACHED = flag("__attached"); // internal: lifecycle bound to parent (OpenClaw)
+const NO_DAEMON = flag("no-daemon"); // run in foreground (for Docker/containers)
 const INTERVAL = parseInt(param("interval", "0"), 10);
 const COUNT = parseInt(param("count", "1"), 10);
 const PORT = parseInt(param("port", "31415"), 10); // Three-Body: pi digits
@@ -1283,6 +1284,48 @@ async function startEmbeddedRelay(port) {
   }
 }
 
+// ── Local Identity Server (localhost:31415) ─────────────────────
+// Allows clawfeel.ai to auto-detect the local node without ?me= param.
+// Only binds to 127.0.0.1 — not accessible from outside.
+let localIdentityServerStarted = false;
+
+async function startLocalIdentityServer() {
+  if (localIdentityServerStarted) return;
+  localIdentityServerStarted = true;
+
+  const { createServer: createHttpServer } = await import("node:http");
+  const LOCAL_ID_PORT = 31415; // Three-Body: pi digits
+
+  try {
+    const srv = createHttpServer((req, res) => {
+      // CORS: allow clawfeel.ai to fetch
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET");
+      res.setHeader("Content-Type", "application/json");
+
+      if (req.method === "OPTIONS") { res.writeHead(204); res.end(); return; }
+
+      if (req.url === "/identity" || req.url === "/") {
+        const clawId = getClawId();
+        res.writeHead(200);
+        res.end(JSON.stringify({
+          clawId,
+          alias: nodeAlias || "Claw-" + clawId.substring(0, 8),
+          version: LOCAL_VERSION,
+          online: true,
+        }));
+        return;
+      }
+
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: "Not found" }));
+    });
+
+    srv.on("error", () => {}); // silently fail if port in use
+    srv.listen(LOCAL_ID_PORT, "127.0.0.1", () => {});
+  } catch {}
+}
+
 // ── Auto-open browser to register clawId in localStorage ────────
 let browserOpened = false;
 async function autoOpenBrowser(clawId) {
@@ -1474,7 +1517,7 @@ async function main() {
     return;
   }
 
-  if (!IS_DAEMON && !isOneShot && !userSetCount && !userSetInterval) {
+  if (!IS_DAEMON && !NO_DAEMON && !isOneShot && !userSetCount && !userSetInterval) {
     // Detect if running inside OpenClaw (check parent process)
     let isOpenClaw = false;
     try {
@@ -1501,6 +1544,7 @@ async function main() {
     await loadIdentity();
     await loadSigningKeys();
     await loadSeqState();
+    await startLocalIdentityServer();
 
     // Give one reading to the user
     const sensorResults = await collectSensors();
@@ -1888,6 +1932,9 @@ async function main() {
 
   // Load sequence state for chain integrity
   await loadSeqState();
+
+  // Start local identity server (localhost:31415) for browser auto-detection
+  await startLocalIdentityServer();
 
   // ── P2P mode: start DHT + DAG + Gossip ──
   let gossipManager = null;

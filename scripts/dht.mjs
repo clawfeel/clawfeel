@@ -7,10 +7,36 @@
 //  160-bit ID space, 160 k-buckets, k=20.
 // ═══════════════════════════════════════════════════════════════════
 
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual,
+  createCipheriv, createDecipheriv } from "node:crypto";
 import { createServer, createConnection } from "node:net";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+
+// ── Message encryption (AES-256-GCM) ──
+// All DHT messages are encrypted with a network-wide key derived from
+// a shared secret. This prevents eavesdropping and message tampering.
+const NETWORK_SECRET = "clawfeel-dht-v1"; // known to all nodes
+const ENCRYPTION_KEY = createHash("sha256").update(NETWORK_SECRET).digest(); // 32 bytes
+
+function encryptMessage(plaintext) {
+  const iv = randomBytes(12); // 96-bit IV for GCM
+  const cipher = createCipheriv("aes-256-gcm", ENCRYPTION_KEY, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag(); // 16 bytes
+  // Format: IV (12) + Tag (16) + Ciphertext
+  return Buffer.concat([iv, tag, encrypted]);
+}
+
+function decryptMessage(data) {
+  if (data.length < 29) throw new Error("Encrypted message too short");
+  const iv = data.subarray(0, 12);
+  const tag = data.subarray(12, 28);
+  const ciphertext = data.subarray(28);
+  const decipher = createDecipheriv("aes-256-gcm", ENCRYPTION_KEY, iv);
+  decipher.setAuthTag(tag);
+  return decipher.update(ciphertext, null, "utf8") + decipher.final("utf8");
+}
 
 const K = 20;               // bucket size
 const ALPHA = 3;             // concurrency for iterative lookups
@@ -99,10 +125,10 @@ function randomId() {
 
 function frameSend(socket, obj) {
   const json = JSON.stringify(obj);
-  const jsonBuf = Buffer.from(json, "utf8");
+  const encrypted = encryptMessage(json);
   const header = Buffer.alloc(4);
-  header.writeUInt32BE(jsonBuf.length, 0);
-  socket.write(Buffer.concat([header, jsonBuf]));
+  header.writeUInt32BE(encrypted.length, 0);
+  socket.write(Buffer.concat([header, encrypted]));
 }
 
 function frameReceive(socket, timeout = RPC_TIMEOUT) {
@@ -120,7 +146,8 @@ function frameReceive(socket, timeout = RPC_TIMEOUT) {
         if (buf.length >= 4 + len) {
           clearTimeout(timer);
           try {
-            resolve(JSON.parse(buf.subarray(4, 4 + len).toString("utf8")));
+            const decrypted = decryptMessage(buf.subarray(4, 4 + len));
+            resolve(JSON.parse(decrypted));
           } catch (e) {
             reject(new Error("Invalid JSON in frame"));
           }
