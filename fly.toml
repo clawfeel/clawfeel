@@ -4,7 +4,10 @@
 #
 
 app = 'clawfeel-relay'
-primary_region = 'sjc'
+primary_region = 'nrt'
+
+[env]
+  PRIMARY_REGION = 'nrt'
 
 [build]
   dockerfile = 'Dockerfile'

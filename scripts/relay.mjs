@@ -722,6 +722,16 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname;
 
+  // ── Fly.io multi-region: replay API requests to primary region ──
+  // All /api/* requests go to primary to ensure consistent node state
+  const FLY_REGION = process.env.FLY_REGION || "";
+  const PRIMARY_REGION = process.env.PRIMARY_REGION || "nrt";
+  if (FLY_REGION && FLY_REGION !== PRIMARY_REGION && path.startsWith("/api/")) {
+    res.writeHead(409, { "fly-replay": `region=${PRIMARY_REGION}`, "Content-Type": "text/plain" });
+    res.end("Replaying to primary region");
+    return;
+  }
+
   // ── POST /api/report ──
   if (req.method === "POST" && path === "/api/report") {
     try {

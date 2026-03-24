@@ -1212,40 +1212,56 @@ async function attachZKP(result, sensorResults) {
 
 // ── Relay report (HTTP POST) ─────────────────────────────────────
 
+// Multi-relay endpoints for redundancy
+const RELAY_ENDPOINTS = [
+  "https://clawfeel-relay.fly.dev",
+];
+
 async function reportToRelay(result) {
-  const relayUrl = RELAY || nodeRelay;
-  if (!relayUrl) return;
-  const url = relayUrl.replace(/\/$/, "") + "/api/report";
+  const primaryRelay = RELAY || nodeRelay;
+  if (!primaryRelay) return;
   const clawId = getClawId();
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Claw-Id": clawId,
-      },
-      // Strip raw sensor data for privacy — only send derived values
-      body: JSON.stringify({
-        feel: result.feel, era: result.era, hash: result.hash, entropy: result.entropy,
-        seq: result.seq, prevHash: result.prevHash, timestamp: result.timestamp,
-        authenticity: result.authenticity, entropyQuality: result.entropyQuality,
-        sensorFlags: result.sensorFlags, clawId, alias: nodeAlias, publicKey: nodeSignPub,
-        ...(result.zkProof ? { zkProof: result.zkProof } : {}),
-      }),
-      signal: AbortSignal.timeout(15000), // 15s for high-latency networks
-    });
-    const data = await res.json();
-    if (PRETTY) {
-      console.log(`  📡 Relay: ${data.ok ? "✅" : "❌"} ${data.peers || 0} peers online`);
+  const body = JSON.stringify({
+    feel: result.feel, era: result.era, hash: result.hash, entropy: result.entropy,
+    seq: result.seq, prevHash: result.prevHash, timestamp: result.timestamp,
+    authenticity: result.authenticity, entropyQuality: result.entropyQuality,
+    sensorFlags: result.sensorFlags, clawId, alias: nodeAlias, publicKey: nodeSignPub,
+    ...(result.zkProof ? { zkProof: result.zkProof } : {}),
+  });
+
+  // Build unique relay URLs to report to
+  const relayUrls = new Set([primaryRelay, ...RELAY_ENDPOINTS]);
+
+  // Report to all relays in parallel
+  const results = await Promise.allSettled(
+    [...relayUrls].map(async (relayUrl) => {
+      const url = relayUrl.replace(/\/$/, "") + "/api/report";
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Claw-Id": clawId },
+        body,
+        signal: AbortSignal.timeout(15000),
+      });
+      return res.json();
+    })
+  );
+
+  // Show status from first successful response
+  const firstOk = results.find(r => r.status === "fulfilled" && r.value?.ok);
+  const firstAny = results.find(r => r.status === "fulfilled");
+  const data = firstOk?.value || firstAny?.value || null;
+  const successCount = results.filter(r => r.status === "fulfilled" && r.value?.ok).length;
+
+  if (PRETTY) {
+    if (data) {
+      console.log(`  📡 Relay: ${data.ok ? "✅" : "❌"} ${data.peers || 0} peers | ${successCount}/${relayUrls.size} relays`);
       console.log(`  🌐 Live:  https://clawfeel.ai/simulator.html?me=${clawId}`);
-    }
-    // Auto-open browser on first successful report to register clawId
-    if (data.ok) autoOpenBrowser(clawId);
-  } catch (err) {
-    if (PRETTY) {
-      console.log(`  📡 Relay: ⚠️ ${err.message}`);
+    } else {
+      const err = results[0]?.reason?.message || "all relays failed";
+      console.log(`  📡 Relay: ⚠️ ${err}`);
     }
   }
+  if (data?.ok) autoOpenBrowser(clawId);
 }
 
 // ── Device detection (desktop vs mobile/IoT) ───────────────────
