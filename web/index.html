@@ -865,31 +865,30 @@
     CLAWFEEL
   </a>
   <div class="nav-center">
-    <a href="/" class="active">Home</a>
-    <a href="simulator.html">Simulator</a>
-    <a href="explorer.html">Explorer</a>
-    <a href="demo.html">Demo</a>
-    <a href="whitepaper.html">Whitepaper</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="api-docs.html">API</a>
+    <a href="/" class="active" data-i18n="nav-home">Home</a>
+    <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+    <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+    <a href="demo.html" data-i18n="nav-demo">Demo</a>
+    <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+    <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+    <a href="api-docs.html" data-i18n="nav-api">API</a>
   </div>
   <div class="nav-right">
-    <a href="#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
-    <button onclick="toggleLang()" id="langBtn" style="background:none;border:1px solid #333;color:#888;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px;">CN</button>
+    <a href="#get-started" class="nav-install-btn" id="navUserBtn" data-i18n="nav-install">Install</a>
   </div>
   <div class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
   </div>
 </nav>
 <div class="nav-mobile-menu" id="navMobileMenu">
-  <a href="/" onclick="closeMobileMenu()" style="color:var(--green-bright)">Home</a>
-  <a href="simulator.html">Simulator</a>
-  <a href="explorer.html">Explorer</a>
-  <a href="demo.html">Demo</a>
-  <a href="whitepaper.html">Whitepaper</a>
-  <a href="enterprise.html">Enterprise</a>
-  <a href="api-docs.html">API</a>
-  <a href="#get-started" onclick="closeMobileMenu()">Install</a>
+  <a href="/" onclick="closeMobileMenu()" style="color:var(--green-bright)" data-i18n="nav-home">Home</a>
+  <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+  <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+  <a href="demo.html" data-i18n="nav-demo">Demo</a>
+  <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+  <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+  <a href="api-docs.html" data-i18n="nav-api">API</a>
+  <a href="#get-started" onclick="closeMobileMenu()" data-i18n="nav-install">Install</a>
   <div class="mobile-social">
     <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
@@ -910,7 +909,7 @@
     <div class="hero-subtitle" data-i18n="hero-subtitle">Decentralized Entropy for a Trustless World</div>
     <div class="hero-feel" id="heroFeel">73</div>
     <div class="hero-cta">
-      <a href="#get-started" class="btn btn-primary">Get Started &rarr;</a>
+      <a href="#get-started" class="btn btn-primary" data-i18n="hero-cta">Get Started</a>
     </div>
   </div>
 
@@ -919,22 +918,22 @@
   <!-- ═══ Section 2: One-liner Definition ═══ -->
   <div class="section">
     <div class="section-inner fade-in">
-      <p class="definition-text">
+      <p class="definition-text" data-i18n="definition-text">
         ClawFeel turns every device's physical hardware signals into
         cryptographic-grade randomness &mdash; no mining, no waste, just existence.
       </p>
       <div class="metric-grid">
         <div class="glass-card metric-card">
           <div class="metric-value">256-bit</div>
-          <div class="metric-label">Crypto-grade Entropy</div>
+          <div class="metric-label" data-i18n="metric-entropy">Crypto-grade Entropy</div>
         </div>
         <div class="glass-card metric-card">
           <div class="metric-value">7 Sensors</div>
-          <div class="metric-label">Hardware Fingerprint</div>
+          <div class="metric-label" data-i18n="metric-sensors">Hardware Fingerprint</div>
         </div>
         <div class="glass-card metric-card">
           <div class="metric-value">0 Deps</div>
-          <div class="metric-label">Pure Node.js</div>
+          <div class="metric-label" data-i18n="metric-deps">Pure Node.js</div>
         </div>
       </div>
     </div>
@@ -945,14 +944,14 @@
   <!-- ═══ Section 3: Architecture ═══ -->
   <div class="section">
     <div class="section-inner">
-      <div class="section-title fade-in">Five Layers of Trust</div>
-      <div class="section-subtitle fade-in">A complete stack for AI-native decentralized infrastructure</div>
+      <div class="section-title fade-in" data-i18n="arch-title">Five Layers of Trust</div>
+      <div class="section-subtitle fade-in" data-i18n="arch-subtitle">A complete stack for AI-native decentralized infrastructure</div>
       <div class="arch-stack" id="archStack">
         <div class="arch-layer" data-delay="0">
           <div class="arch-icon">🦞</div>
           <div class="arch-info">
             <div class="arch-name">ClawFeel</div>
-            <div class="arch-desc">Hardware entropy engine</div>
+            <div class="arch-desc" data-i18n="arch-clawfeel-desc">Hardware entropy engine</div>
           </div>
           <div class="arch-tag">7 sensors &rarr; SHA-256</div>
         </div>
@@ -960,7 +959,7 @@
           <div class="arch-icon">🌐</div>
           <div class="arch-info">
             <div class="arch-name">ClawNet</div>
-            <div class="arch-desc">P2P network</div>
+            <div class="arch-desc" data-i18n="arch-clawnet-desc">P2P network</div>
           </div>
           <div class="arch-tag">Kademlia DHT + Gossip</div>
         </div>
@@ -968,7 +967,7 @@
           <div class="arch-icon">🔗</div>
           <div class="arch-info">
             <div class="arch-name">ClawDAG</div>
-            <div class="arch-desc">DAG consensus</div>
+            <div class="arch-desc" data-i18n="arch-clawdag-desc">DAG consensus</div>
           </div>
           <div class="arch-tag">Parallel transactions</div>
         </div>
@@ -976,7 +975,7 @@
           <div class="arch-icon">💾</div>
           <div class="arch-info">
             <div class="arch-name">ClawStore</div>
-            <div class="arch-desc">Distributed storage</div>
+            <div class="arch-desc" data-i18n="arch-clawstore-desc">Distributed storage</div>
           </div>
           <div class="arch-tag">Erasure coding</div>
         </div>
@@ -984,7 +983,7 @@
           <div class="arch-icon">🧬</div>
           <div class="arch-info">
             <div class="arch-name">ClawLife</div>
-            <div class="arch-desc">AI immortality</div>
+            <div class="arch-desc" data-i18n="arch-clawlife-desc">AI immortality</div>
           </div>
           <div class="arch-tag">DID + encrypted shards</div>
         </div>
@@ -997,35 +996,35 @@
   <!-- ═══ Section 4: Live Network ═══ -->
   <div class="section">
     <div class="section-inner">
-      <div class="section-title fade-in">Live Network</div>
-      <div class="section-subtitle fade-in" id="liveSubtitle">Connecting to relay...</div>
+      <div class="section-title fade-in" data-i18n="live-title">Live Network</div>
+      <div class="section-subtitle fade-in" id="liveSubtitle" data-i18n="live-connecting">Connecting to relay...</div>
       <div class="live-stats fade-in">
         <div class="glass-card live-stat-card">
           <div class="live-stat-value">
             <span class="pulse-dot"></span>
             <span id="liveNodeCount">0</span>
           </div>
-          <div class="live-stat-label">Online Nodes</div>
+          <div class="live-stat-label" data-i18n="live-online-nodes">Online Nodes</div>
         </div>
         <div class="glass-card live-stat-card">
           <div class="live-stat-value">
             <span id="liveBeaconRound">&mdash;</span>
           </div>
-          <div class="live-stat-label">Beacon Round</div>
+          <div class="live-stat-label" data-i18n="live-beacon-round">Beacon Round</div>
         </div>
         <div class="glass-card live-stat-card">
           <div class="live-stat-value">
             <span id="liveNetworkRandom">&mdash;</span>
           </div>
-          <div class="live-stat-label">Network Random</div>
+          <div class="live-stat-label" data-i18n="live-network-random">Network Random</div>
         </div>
       </div>
       <div class="contribute-area fade-in">
         <button class="contribute-btn" id="contributeBtn" onclick="toggleBrowserNode(event)">
-          Contribute Entropy
+          <span data-i18n="live-contribute">Contribute Entropy</span>
         </button>
         <div>
-          <a href="simulator.html" style="font-size:12px;color:var(--text-dim);letter-spacing:1px;">Open Full Simulator &rarr;</a>
+          <a href="simulator.html" style="font-size:12px;color:var(--text-dim);letter-spacing:1px;" data-i18n="live-open-simulator">Open Full Simulator</a>
         </div>
       </div>
     </div>
@@ -1036,27 +1035,27 @@
   <!-- ═══ Section 5: Random Beacon ═══ -->
   <div class="section">
     <div class="section-inner">
-      <div class="section-title fade-in">Verifiable Random Beacon</div>
-      <div class="section-subtitle fade-in">A new beacon every 10 seconds, signed and verifiable by anyone</div>
+      <div class="section-title fade-in" data-i18n="beacon-title">Verifiable Random Beacon</div>
+      <div class="section-subtitle fade-in" data-i18n="beacon-subtitle">A new beacon every 10 seconds, signed and verifiable by anyone</div>
 
       <div class="beacon-display fade-in">
         <div class="beacon-round">
-          <span>Latest Beacon</span>
+          <span data-i18n="beacon-latest">Latest Beacon</span>
           <span class="beacon-round-num" id="beaconRoundNum">#&mdash;</span>
         </div>
         <div class="beacon-number" id="beaconNumber">Connecting...</div>
         <div class="beacon-hash" id="beaconHash">&mdash;</div>
         <div class="beacon-meta">
           <div>
-            <div class="beacon-meta-label">Era</div>
+            <div class="beacon-meta-label" data-i18n="beacon-era">Era</div>
             <div class="beacon-meta-value" id="beaconEra">&mdash;</div>
           </div>
           <div>
-            <div class="beacon-meta-label">Contributors</div>
+            <div class="beacon-meta-label" data-i18n="beacon-contributors">Contributors</div>
             <div class="beacon-meta-value" id="beaconContributors">&mdash;</div>
           </div>
           <div>
-            <div class="beacon-meta-label">Verified</div>
+            <div class="beacon-meta-label" data-i18n="beacon-verified">Verified</div>
             <div class="beacon-meta-value" id="beaconVerified">&mdash;</div>
           </div>
         </div>
@@ -1081,33 +1080,33 @@
       <div class="features-grid">
         <div class="glass-card feature-card fade-in">
           <div class="feature-icon">🔒</div>
-          <div class="feature-title">Zero-Knowledge Proofs</div>
-          <div class="feature-desc">Prove hardware authenticity without revealing sensor data</div>
+          <div class="feature-title" data-i18n="feat-zk-title">Zero-Knowledge Proofs</div>
+          <div class="feature-desc" data-i18n="feat-zk-desc">Prove hardware authenticity without revealing sensor data</div>
         </div>
         <div class="glass-card feature-card fade-in">
           <div class="feature-icon">📦</div>
-          <div class="feature-title">Developer SDK</div>
-          <div class="feature-desc">One import, instant access to decentralized entropy</div>
+          <div class="feature-title" data-i18n="feat-sdk-title">Developer SDK</div>
+          <div class="feature-desc" data-i18n="feat-sdk-desc">One import, instant access to decentralized entropy</div>
         </div>
         <div class="glass-card feature-card fade-in">
           <div class="feature-icon">🏢</div>
-          <div class="feature-title">Enterprise API</div>
-          <div class="feature-desc">Financial-grade randomness with rate limiting and audit logs</div>
+          <div class="feature-title" data-i18n="feat-enterprise-title">Enterprise API</div>
+          <div class="feature-desc" data-i18n="feat-enterprise-desc">Financial-grade randomness with rate limiting and audit logs</div>
         </div>
         <div class="glass-card feature-card fade-in">
           <div class="feature-icon">💻</div>
-          <div class="feature-title">Cross-Platform</div>
-          <div class="feature-desc">macOS, Linux, Windows, and Browser light nodes</div>
+          <div class="feature-title" data-i18n="feat-crossplatform-title">Cross-Platform</div>
+          <div class="feature-desc" data-i18n="feat-crossplatform-desc">macOS, Linux, Windows, and Browser light nodes</div>
         </div>
         <div class="glass-card feature-card fade-in">
           <div class="feature-icon">🧬</div>
-          <div class="feature-title">ClawLife</div>
-          <div class="feature-desc">AI agent immortality through encrypted distributed storage</div>
+          <div class="feature-title" data-i18n="feat-clawlife-title">ClawLife</div>
+          <div class="feature-desc" data-i18n="feat-clawlife-desc">AI agent immortality through encrypted distributed storage</div>
         </div>
         <div class="glass-card feature-card fade-in">
           <div class="feature-icon">🪶</div>
-          <div class="feature-title">Light Nodes</div>
-          <div class="feature-desc">IoT-friendly protocol with 50KB memory footprint</div>
+          <div class="feature-title" data-i18n="feat-lightnodes-title">Light Nodes</div>
+          <div class="feature-desc" data-i18n="feat-lightnodes-desc">IoT-friendly protocol with 50KB memory footprint</div>
         </div>
       </div>
     </div>
@@ -1118,8 +1117,8 @@
   <!-- ═══ Section 7: Comparison ═══ -->
   <div class="section">
     <div class="section-inner">
-      <div class="section-title fade-in">How ClawFeel Compares</div>
-      <div class="section-subtitle fade-in">Proof of Existence vs the alternatives</div>
+      <div class="section-title fade-in" data-i18n="compare-title">How ClawFeel Compares</div>
+      <div class="section-subtitle fade-in" data-i18n="compare-subtitle">Proof of Existence vs the alternatives</div>
       <div class="compare-wrapper fade-in">
         <table class="compare-table">
           <thead>
@@ -1192,8 +1191,8 @@
   <!-- ═══ Section 8: Get Started ═══ -->
   <div class="section" id="get-started">
     <div class="section-inner">
-      <div class="section-title fade-in">Start in 30 Seconds</div>
-      <div class="section-subtitle fade-in">Three ways to join the network</div>
+      <div class="section-title fade-in" data-i18n="get-started-title">Start in 30 Seconds</div>
+      <div class="section-subtitle fade-in" data-i18n="get-started-sub">Three ways to join the network</div>
 
       <div class="tabs-container fade-in">
         <div class="tabs-header">
@@ -1227,8 +1226,8 @@
 
       <!-- ═══ Three API Modes ═══ -->
       <div style="margin-top:48px;" class="fade-in">
-        <div class="section-title" style="font-size:22px;margin-bottom:8px;">Three Modes, One API</div>
-        <div class="section-subtitle" style="margin-bottom:32px;">Choose the right mode for your use case</div>
+        <div class="section-title" style="font-size:22px;margin-bottom:8px;" data-i18n="three-modes-title">Three Modes, One API</div>
+        <div class="section-subtitle" style="margin-bottom:32px;" data-i18n="three-modes-sub">Choose the right mode for your use case</div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
           <!-- Fast Mode -->
@@ -1274,27 +1273,27 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-col">
-        <div class="footer-col-title">Product</div>
-        <a href="simulator.html">Simulator</a>
-        <a href="explorer.html">Explorer</a>
-        <a href="demo.html">Demo</a>
-        <a href="whitepaper.html">Whitepaper</a>
-        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener">SDK Docs</a>
-        <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener">Enterprise API</a>
+        <div class="footer-col-title" data-i18n="footer-product">Product</div>
+        <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+        <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+        <a href="demo.html" data-i18n="nav-demo">Demo</a>
+        <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" data-i18n="footer-sdk-docs">SDK Docs</a>
+        <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener" data-i18n="footer-enterprise-api">Enterprise API</a>
       </div>
       <div class="footer-col">
-        <div class="footer-col-title">Community</div>
+        <div class="footer-col-title" data-i18n="footer-community">Community</div>
         <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">GitHub</a>
         <a href="https://x.com/clawfeel" target="_blank" rel="noopener">X / Twitter</a>
-        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener">Discussions</a>
+        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" data-i18n="footer-discussions">Discussions</a>
       </div>
       <div class="footer-col">
-        <div class="footer-col-title">Contact</div>
+        <div class="footer-col-title" data-i18n="footer-contact">Contact</div>
         <a href="mailto:contact@clawfeel.com">contact@clawfeel.com</a>
       </div>
     </div>
-    <div class="footer-bottom">
-      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
+    <div class="footer-bottom" data-i18n="footer-copy">
+      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.9.0
     </div>
   </footer>
 
@@ -1593,59 +1592,5 @@ archObserver.observe(document.getElementById('archStack'));
 </script>
 
 <script src="i18n.js"></script>
-<script>
-// ── i18n: 50-language support ──
-let currentLang = localStorage.getItem('clawfeel_lang') || 'en';
-
-function toggleLang() {
-  // Show a dropdown selector
-  const sel = document.getElementById('langSelector');
-  if (sel) { sel.style.display = sel.style.display === 'none' ? 'block' : 'none'; return; }
-  // Create selector on first click
-  const dropdown = document.createElement('div');
-  dropdown.id = 'langSelector';
-  dropdown.style.cssText = 'position:fixed;top:52px;right:16px;background:#0a1f0a;border:1px solid #22c55e33;border-radius:8px;padding:8px;max-height:400px;overflow-y:auto;z-index:10001;display:block;min-width:180px;';
-  const langs = window.CLAWFEEL_LANGS || [{ code:'en', name:'English' }];
-  langs.forEach(l => {
-    const a = document.createElement('a');
-    a.textContent = l.name;
-    a.href = '#';
-    a.style.cssText = 'display:block;padding:6px 12px;color:#888;text-decoration:none;font-size:13px;font-family:JetBrains Mono,monospace;border-radius:4px;';
-    if (l.code === currentLang) a.style.color = '#22c55e';
-    a.onmouseover = () => a.style.background = '#1a3a1a';
-    a.onmouseout = () => a.style.background = 'transparent';
-    a.onclick = (e) => { e.preventDefault(); setLang(l.code); dropdown.style.display = 'none'; };
-    dropdown.appendChild(a);
-  });
-  document.body.appendChild(dropdown);
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    if (!dropdown.contains(e.target) && e.target.id !== 'langBtn') dropdown.style.display = 'none';
-  });
-}
-
-function setLang(code) {
-  currentLang = code;
-  localStorage.setItem('clawfeel_lang', code);
-  applyLang();
-}
-
-function applyLang() {
-  const i18n = window.CLAWFEEL_I18N || {};
-  const dict = i18n[currentLang] || i18n['en'] || {};
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (dict[key]) el.textContent = dict[key];
-  });
-  // Update button to show current language code
-  const btn = document.getElementById('langBtn');
-  const langs = window.CLAWFEEL_LANGS || [];
-  const lang = langs.find(l => l.code === currentLang);
-  if (btn) btn.textContent = lang ? lang.name.substring(0, 3).toUpperCase() : currentLang.toUpperCase();
-}
-
-// Apply on load if user previously chose non-English
-if (currentLang !== 'en') applyLang();
-</script>
 </body>
 </html>

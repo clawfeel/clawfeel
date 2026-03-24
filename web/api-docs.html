@@ -327,29 +327,29 @@
     CLAWFEEL
   </a>
   <div class="nav-center">
-    <a href="/">Home</a>
-    <a href="simulator.html">Simulator</a>
-    <a href="explorer.html">Explorer</a>
-    <a href="demo.html">Demo</a>
-    <a href="whitepaper.html">Whitepaper</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="api-docs.html" class="active">API</a>
+    <a href="/" data-i18n="nav-home">Home</a>
+    <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+    <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+    <a href="demo.html" data-i18n="nav-demo">Demo</a>
+    <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+    <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+    <a href="api-docs.html" class="active" data-i18n="nav-api">API</a>
   </div>
   <div class="nav-right">
-    <a href="/#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
+    <a href="/#get-started" class="nav-install-btn" id="navUserBtn" data-i18n="nav-install">Install</a>
   </div>
   <div class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
   </div>
 </nav>
 <div class="nav-mobile-menu" id="navMobileMenu">
-  <a href="/">Home</a>
-  <a href="simulator.html">Simulator</a>
-  <a href="explorer.html">Explorer</a>
-  <a href="demo.html">Demo</a>
-  <a href="whitepaper.html">Whitepaper</a>
-  <a href="enterprise.html">Enterprise</a>
-  <a href="api-docs.html" onclick="closeMobileMenu()">API</a>
+  <a href="/" data-i18n="nav-home">Home</a>
+  <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+  <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+  <a href="demo.html" data-i18n="nav-demo">Demo</a>
+  <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+  <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+  <a href="api-docs.html" onclick="closeMobileMenu()" data-i18n="nav-api">API</a>
 </div>
 
 <!-- ── Page layout ── -->
@@ -358,14 +358,14 @@
 <!-- ── Sidebar ── -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-group">
-    <div class="sidebar-group-title">Network</div>
+    <div class="sidebar-group-title" data-i18n="api-group-network">Network</div>
     <a class="sidebar-link" href="#report"><span class="method-badge method-post">POST</span> /api/report</a>
     <a class="sidebar-link" href="#network"><span class="method-badge method-get">GET</span> /api/network</a>
     <a class="sidebar-link" href="#stream"><span class="method-badge method-get">GET</span> /api/stream</a>
     <a class="sidebar-link" href="#bootstrap"><span class="method-badge method-get">GET</span> /api/bootstrap</a>
   </div>
   <div class="sidebar-group">
-    <div class="sidebar-group-title">Beacon</div>
+    <div class="sidebar-group-title" data-i18n="api-group-beacon">Beacon</div>
     <a class="sidebar-link" href="#beacon-latest"><span class="method-badge method-get">GET</span> /api/beacon/latest</a>
     <a class="sidebar-link" href="#beacon-round"><span class="method-badge method-get">GET</span> /api/beacon/:round</a>
     <a class="sidebar-link" href="#beacons"><span class="method-badge method-get">GET</span> /api/beacons</a>
@@ -378,7 +378,7 @@
     <a class="sidebar-link" href="#explorer-overview"><span class="method-badge method-get">GET</span> /api/explorer/overview</a>
   </div>
   <div class="sidebar-group">
-    <div class="sidebar-group-title">Enterprise API</div>
+    <div class="sidebar-group-title" data-i18n="api-group-enterprise">Enterprise API</div>
     <a class="sidebar-link" href="#v1-random"><span class="method-badge method-get">GET</span> /api/v1/random</a>
     <a class="sidebar-link" href="#v1-batch"><span class="method-badge method-get">GET</span> /api/v1/random/batch</a>
     <a class="sidebar-link" href="#v1-range"><span class="method-badge method-get">GET</span> /api/v1/random/range</a>
@@ -390,7 +390,7 @@
 <!-- ── Main ── -->
 <main class="main-content">
 
-  <h1 class="page-title">API Reference</h1>
+  <h1 class="page-title" data-i18n="api-title">API Reference</h1>
   <p class="page-subtitle">Complete reference for the ClawFeel relay API. Public endpoints require no authentication. Enterprise endpoints require a Bearer token.</p>
 
   <div class="base-url-box">
@@ -1200,25 +1200,25 @@ es.onmessage = (e) => {
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-col">
-      <div class="footer-col-title">Product</div>
-      <a href="simulator.html">Simulator</a>
-      <a href="explorer.html">Explorer</a>
-      <a href="whitepaper.html">Whitepaper</a>
-      <a href="enterprise.html">Enterprise</a>
-      <a href="api-docs.html">API</a>
+      <div class="footer-col-title" data-i18n="footer-product">Product</div>
+      <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+      <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+      <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+      <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+      <a href="api-docs.html" data-i18n="nav-api">API</a>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Community</div>
+      <div class="footer-col-title" data-i18n="footer-community">Community</div>
       <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">GitHub</a>
       <a href="https://x.com/clawfeel" target="_blank" rel="noopener">X / Twitter</a>
-      <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener">Discussions</a>
+      <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" data-i18n="footer-discussions">Discussions</a>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Contact</div>
+      <div class="footer-col-title" data-i18n="footer-contact">Contact</div>
       <a href="mailto:contact@clawfeel.com">contact@clawfeel.com</a>
     </div>
   </div>
-  <div class="footer-bottom">
+  <div class="footer-bottom" data-i18n="footer-copy">
     &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
   </div>
 </footer>
@@ -1318,5 +1318,6 @@ function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('mobile-open');
 }
 </script>
+<script src="i18n.js"></script>
 </body>
 </html>

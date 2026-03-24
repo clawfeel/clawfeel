@@ -384,29 +384,29 @@
     CLAWFEEL
   </a>
   <div class="nav-center">
-    <a href="/">Home</a>
-    <a href="simulator.html">Simulator</a>
-    <a href="explorer.html">Explorer</a>
-    <a href="demo.html">Demo</a>
-    <a href="whitepaper.html" class="active">Whitepaper</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="api-docs.html">API</a>
+    <a href="/" data-i18n="nav-home">Home</a>
+    <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+    <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+    <a href="demo.html" data-i18n="nav-demo">Demo</a>
+    <a href="whitepaper.html" class="active" data-i18n="nav-whitepaper">Whitepaper</a>
+    <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+    <a href="api-docs.html" data-i18n="nav-api">API</a>
   </div>
   <div class="nav-right">
-    <a href="/#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
+    <a href="/#get-started" class="nav-install-btn" id="navUserBtn" data-i18n="nav-install">Install</a>
   </div>
   <div class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
   </div>
 </nav>
 <div class="nav-mobile-menu" id="navMobileMenu">
-  <a href="/">Home</a>
-  <a href="simulator.html">Simulator</a>
-  <a href="explorer.html">Explorer</a>
-  <a href="demo.html">Demo</a>
-  <a href="whitepaper.html" onclick="closeMobileMenu()">Whitepaper</a>
-  <a href="enterprise.html">Enterprise</a>
-  <a href="api-docs.html">API</a>
+  <a href="/" data-i18n="nav-home">Home</a>
+  <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+  <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+  <a href="demo.html" data-i18n="nav-demo">Demo</a>
+  <a href="whitepaper.html" onclick="closeMobileMenu()" data-i18n="nav-whitepaper">Whitepaper</a>
+  <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+  <a href="api-docs.html" data-i18n="nav-api">API</a>
 </div>
 
 <script>
@@ -448,8 +448,8 @@ if (myClawId) {
 
   <!-- ═══ Header ═══ -->
   <div class="paper-header">
-    <div class="paper-title">ClawFeel: Proof of Existence</div>
-    <div class="paper-subtitle">A Hardware-Entropy Protocol for AI-Native Decentralized Networks</div>
+    <div class="paper-title" data-i18n="wp-title">ClawFeel: Proof of Existence</div>
+    <div class="paper-subtitle" data-i18n="wp-subtitle">A Hardware-Entropy Protocol for AI-Native Decentralized Networks</div>
     <div class="paper-meta">
       ClawFeel.com<br>
       contact@clawfeel.com<br>
@@ -460,24 +460,24 @@ if (myClawId) {
 
   <!-- ═══ TOC ═══ -->
   <div class="toc">
-    <div class="toc-title">Contents</div>
+    <div class="toc-title" data-i18n="wp-contents">Contents</div>
     <ol>
-      <li><a href="#abstract">Abstract</a></li>
-      <li><a href="#introduction">Introduction</a></li>
-      <li><a href="#architecture">Architecture Overview</a></li>
-      <li><a href="#clawfeel-engine">Layer 1: ClawFeel Engine</a></li>
-      <li><a href="#clawnet">Layer 2: ClawNet</a></li>
-      <li><a href="#clawdag">Layer 3: ClawDAG</a></li>
-      <li><a href="#clawstore">Layer 4: ClawStore</a></li>
-      <li><a href="#clawlife">Layer 5: ClawLife</a></li>
-      <li><a href="#beacon">Random Beacon Protocol</a></li>
-      <li><a href="#fullnode">Full Node Architecture</a></li>
-      <li><a href="#security">Security</a></li>
-      <li><a href="#tokenomics">Token Economics (ClawToken)</a></li>
-      <li><a href="#enterprise">Enterprise API</a></li>
-      <li><a href="#sdk">Developer SDK</a></li>
-      <li><a href="#roadmap">Roadmap</a></li>
-      <li><a href="#references">References</a></li>
+      <li><a href="#abstract" data-i18n="wp-abstract">Abstract</a></li>
+      <li><a href="#introduction" data-i18n="wp-introduction">Introduction</a></li>
+      <li><a href="#architecture" data-i18n="wp-architecture">Architecture Overview</a></li>
+      <li><a href="#clawfeel-engine" data-i18n="wp-layer1">Layer 1: ClawFeel Engine</a></li>
+      <li><a href="#clawnet" data-i18n="wp-layer2">Layer 2: ClawNet</a></li>
+      <li><a href="#clawdag" data-i18n="wp-layer3">Layer 3: ClawDAG</a></li>
+      <li><a href="#clawstore" data-i18n="wp-layer4">Layer 4: ClawStore</a></li>
+      <li><a href="#clawlife" data-i18n="wp-layer5">Layer 5: ClawLife</a></li>
+      <li><a href="#beacon" data-i18n="wp-beacon">Random Beacon Protocol</a></li>
+      <li><a href="#fullnode" data-i18n="wp-fullnode">Full Node Architecture</a></li>
+      <li><a href="#security" data-i18n="wp-security">Security</a></li>
+      <li><a href="#tokenomics" data-i18n="wp-tokenomics">Token Economics (ClawToken)</a></li>
+      <li><a href="#enterprise" data-i18n="wp-enterprise">Enterprise API</a></li>
+      <li><a href="#sdk" data-i18n="wp-sdk">Developer SDK</a></li>
+      <li><a href="#roadmap" data-i18n="wp-roadmap">Roadmap</a></li>
+      <li><a href="#references" data-i18n="wp-references">References</a></li>
     </ol>
   </div>
 
@@ -1540,29 +1540,30 @@ for beacon in client.stream():
   <footer style="border-top:1px solid rgba(34,197,94,0.1);padding:40px 24px 24px;margin-top:40px;">
     <div style="display:flex;justify-content:space-between;max-width:900px;margin:0 auto;flex-wrap:wrap;gap:32px;">
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">PRODUCT</div>
-        <a href="simulator.html" style="color:#888;text-decoration:none;font-size:13px;">Simulator</a>
-        <a href="explorer.html" style="color:#888;text-decoration:none;font-size:13px;">Explorer</a>
-        <a href="whitepaper.html" style="color:#888;text-decoration:none;font-size:13px;">Whitepaper</a>
-        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">SDK Docs</a>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;" data-i18n="footer-product">PRODUCT</div>
+        <a href="simulator.html" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="nav-simulator">Simulator</a>
+        <a href="explorer.html" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="nav-explorer">Explorer</a>
+        <a href="whitepaper.html" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="nav-whitepaper">Whitepaper</a>
+        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="footer-sdk-docs">SDK Docs</a>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">COMMUNITY</div>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;" data-i18n="footer-community">COMMUNITY</div>
         <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">GitHub</a>
         <a href="https://x.com/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">X / Twitter</a>
-        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">Discussions</a>
+        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="footer-discussions">Discussions</a>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">CONTACT</div>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;" data-i18n="footer-contact">CONTACT</div>
         <a href="mailto:contact@clawfeel.com" style="color:#888;text-decoration:none;font-size:13px;">contact@clawfeel.com</a>
       </div>
     </div>
-    <div style="text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid rgba(255,255,255,0.05);color:#555;font-size:12px;">
+    <div style="text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid rgba(255,255,255,0.05);color:#555;font-size:12px;" data-i18n="footer-copy">
       &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
     </div>
   </footer>
 
 </div>
 
+<script src="i18n.js"></script>
 </body>
 </html>

@@ -367,35 +367,35 @@
     CLAWFEEL
   </a>
   <div class="nav-center">
-    <a href="/">Home</a>
-    <a href="simulator.html" class="active">Simulator</a>
-    <a href="explorer.html">Explorer</a>
-    <a href="demo.html">Demo</a>
-    <a href="whitepaper.html">Whitepaper</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="api-docs.html">API</a>
+    <a href="/" data-i18n="nav-home">Home</a>
+    <a href="simulator.html" class="active" data-i18n="nav-simulator">Simulator</a>
+    <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+    <a href="demo.html" data-i18n="nav-demo">Demo</a>
+    <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+    <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+    <a href="api-docs.html" data-i18n="nav-api">API</a>
   </div>
   <div class="nav-right">
-    <a href="/#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
+    <a href="/#get-started" class="nav-install-btn" id="navUserBtn" data-i18n="nav-install">Install</a>
   </div>
   <div class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
   </div>
 </nav>
 <div class="nav-mobile-menu" id="navMobileMenu">
-  <a href="/">Home</a>
-  <a href="simulator.html" onclick="closeMobileMenu()">Simulator</a>
-  <a href="explorer.html">Explorer</a>
-  <a href="demo.html">Demo</a>
-  <a href="whitepaper.html">Whitepaper</a>
-  <a href="enterprise.html">Enterprise</a>
-  <a href="api-docs.html">API</a>
+  <a href="/" data-i18n="nav-home">Home</a>
+  <a href="simulator.html" onclick="closeMobileMenu()" data-i18n="nav-simulator">Simulator</a>
+  <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+  <a href="demo.html" data-i18n="nav-demo">Demo</a>
+  <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+  <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+  <a href="api-docs.html" data-i18n="nav-api">API</a>
 </div>
 
 <div class="content">
   <div class="header" style="padding-top:80px;">
     <div class="logo"><img src="logo.svg" alt="" style="height:42px;vertical-align:middle;margin-right:12px;filter:hue-rotate(0deg);">CLAWFEEL</div>
-    <div class="subtitle">THREE-BODY &nbsp; ENTROPY &nbsp; NETWORK &nbsp;·&nbsp; Security-Hardened</div>
+    <div class="subtitle" data-i18n="sim-subtitle">THREE-BODY ENTROPY NETWORK</div>
   </div>
 
   <div class="mode-toggle">
@@ -407,7 +407,7 @@
   <div class="stats-bar">
     <div class="stat-item">
       <div class="stat-value" id="statNodes">0</div>
-      <div class="stat-label">Online</div>
+      <div class="stat-label" data-i18n="sim-online">Online</div>
     </div>
     <div class="stat-item">
       <div class="stat-value" id="statAvgFeel">—</div>
@@ -567,25 +567,25 @@
   <footer class="footer" style="border-top:1px solid rgba(34,197,94,0.1);padding:40px 24px 24px;margin-top:40px;">
     <div style="display:flex;justify-content:space-between;max-width:900px;margin:0 auto;flex-wrap:wrap;gap:32px;">
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">PRODUCT</div>
-        <a href="simulator.html" style="color:#888;text-decoration:none;font-size:13px;">Simulator</a>
-        <a href="explorer.html" style="color:#888;text-decoration:none;font-size:13px;">Explorer</a>
-        <a href="whitepaper.html" style="color:#888;text-decoration:none;font-size:13px;">Whitepaper</a>
-        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">SDK Docs</a>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;" data-i18n="footer-product">PRODUCT</div>
+        <a href="simulator.html" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="nav-simulator">Simulator</a>
+        <a href="explorer.html" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="nav-explorer">Explorer</a>
+        <a href="whitepaper.html" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="nav-whitepaper">Whitepaper</a>
+        <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="footer-sdk-docs">SDK Docs</a>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">COMMUNITY</div>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;" data-i18n="footer-community">COMMUNITY</div>
         <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">GitHub</a>
         <a href="https://x.com/clawfeel" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">X / Twitter</a>
-        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;">Discussions</a>
+        <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" style="color:#888;text-decoration:none;font-size:13px;" data-i18n="footer-discussions">Discussions</a>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;">CONTACT</div>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px;font-size:12px;letter-spacing:2px;" data-i18n="footer-contact">CONTACT</div>
         <a href="mailto:contact@clawfeel.com" style="color:#888;text-decoration:none;font-size:13px;">contact@clawfeel.com</a>
       </div>
     </div>
-    <div style="text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid rgba(255,255,255,0.05);color:#555;font-size:12px;">
-      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
+    <div style="text-align:center;padding-top:24px;margin-top:24px;border-top:1px solid rgba(255,255,255,0.05);color:#555;font-size:12px;" data-i18n="footer-copy">
+      &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.9.0
     </div>
   </footer>
 </div>
@@ -1929,5 +1929,6 @@ if (origRenderLive) {
 }
 
 </script>
+<script src="i18n.js"></script>
 </body>
 </html>

@@ -373,35 +373,35 @@
     CLAWFEEL
   </a>
   <div class="nav-center">
-    <a href="/">Home</a>
-    <a href="simulator.html">Simulator</a>
-    <a href="explorer.html">Explorer</a>
-    <a href="demo.html" class="active">Demo</a>
-    <a href="whitepaper.html">Whitepaper</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="api-docs.html">API</a>
+    <a href="/" data-i18n="nav-home">Home</a>
+    <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+    <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+    <a href="demo.html" class="active" data-i18n="nav-demo">Demo</a>
+    <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+    <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+    <a href="api-docs.html" data-i18n="nav-api">API</a>
   </div>
   <div class="nav-right">
-    <a href="/#get-started" class="nav-install-btn" id="navUserBtn">Install</a>
+    <a href="/#get-started" class="nav-install-btn" id="navUserBtn" data-i18n="nav-install">Install</a>
   </div>
   <div class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
   </div>
 </nav>
 <div class="nav-mobile-menu" id="navMobileMenu">
-  <a href="/">Home</a>
-  <a href="simulator.html">Simulator</a>
-  <a href="explorer.html">Explorer</a>
-  <a href="demo.html" onclick="closeMobileMenu()">Demo</a>
-  <a href="whitepaper.html">Whitepaper</a>
-  <a href="enterprise.html">Enterprise</a>
-  <a href="api-docs.html">API</a>
+  <a href="/" data-i18n="nav-home">Home</a>
+  <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+  <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+  <a href="demo.html" onclick="closeMobileMenu()" data-i18n="nav-demo">Demo</a>
+  <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+  <a href="enterprise.html" data-i18n="nav-enterprise">Enterprise</a>
+  <a href="api-docs.html" data-i18n="nav-api">API</a>
 </div>
 
 <div class="content">
   <div class="page-header">
-    <div class="page-title">INTERACTIVE DEMO</div>
-    <div class="page-subtitle">Verifiable Randomness &middot; Powered by Hardware Entropy</div>
+    <div class="page-title" data-i18n="demo-title">INTERACTIVE DEMO</div>
+    <div class="page-subtitle" data-i18n="demo-subtitle">Verifiable Randomness &middot; Powered by Hardware Entropy</div>
     <div class="api-status" id="apiStatus">
       <span class="api-dot" id="apiDot"></span>
       <span id="apiLabel">Checking API...</span>
@@ -539,26 +539,26 @@
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-col">
-      <div class="footer-col-title">Product</div>
-      <a href="simulator.html">Simulator</a>
-      <a href="explorer.html">Explorer</a>
-      <a href="demo.html">Demo</a>
-      <a href="whitepaper.html">Whitepaper</a>
-      <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener">SDK Docs</a>
-      <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener">Enterprise API</a>
+      <div class="footer-col-title" data-i18n="footer-product">Product</div>
+      <a href="simulator.html" data-i18n="nav-simulator">Simulator</a>
+      <a href="explorer.html" data-i18n="nav-explorer">Explorer</a>
+      <a href="demo.html" data-i18n="nav-demo">Demo</a>
+      <a href="whitepaper.html" data-i18n="nav-whitepaper">Whitepaper</a>
+      <a href="https://www.npmjs.com/package/clawfeel" target="_blank" rel="noopener" data-i18n="footer-sdk-docs">SDK Docs</a>
+      <a href="https://clawfeel-relay.fly.dev/api/v1/random" target="_blank" rel="noopener" data-i18n="footer-enterprise-api">Enterprise API</a>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Community</div>
+      <div class="footer-col-title" data-i18n="footer-community">Community</div>
       <a href="https://github.com/clawfeel/clawfeel" target="_blank" rel="noopener">GitHub</a>
       <a href="https://x.com/clawfeel" target="_blank" rel="noopener">X / Twitter</a>
-      <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener">Discussions</a>
+      <a href="https://github.com/clawfeel/clawfeel/discussions" target="_blank" rel="noopener" data-i18n="footer-discussions">Discussions</a>
     </div>
     <div class="footer-col">
-      <div class="footer-col-title">Contact</div>
+      <div class="footer-col-title" data-i18n="footer-contact">Contact</div>
       <a href="mailto:contact@clawfeel.com">contact@clawfeel.com</a>
     </div>
   </div>
-  <div class="footer-bottom">
+  <div class="footer-bottom" data-i18n="footer-copy">
     &copy; 2026 ClawFeel &middot; Proof of Existence &middot; v0.8.1
   </div>
 </footer>
@@ -962,5 +962,6 @@ function copyPassword() {
 checkAPI();
 initParticipants();
 </script>
+<script src="i18n.js"></script>
 </body>
 </html>

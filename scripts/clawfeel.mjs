@@ -1959,58 +1959,89 @@ async function main() {
     else console.log(`  ⚠️  Full node: relay failed to start`);
   }
 
-  // ── P2P mode: start DHT + DAG + Gossip ──
+  // ── P2P mode: auto-enable on desktop, opt-in on mobile ──
+  // Desktop = auto P2P (unless --no-p2p), Mobile/IoT = relay only (unless --p2p)
+  const NO_P2P = flag("no-p2p");
+  const enableP2P = P2P || (isDesktop() && !NO_P2P && !LIGHT_MODE);
   let gossipManager = null;
-  if (P2P) {
-    const { KademliaNode } = await import("./dht.mjs");
-    const { DAGStore } = await import("./dag.mjs");
-    const { GossipManager } = await import("./gossip.mjs");
+  let dhtNode = null;
 
-    const bootstrapList = BOOTSTRAP
-      ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"]
-      : ["clawfeel-relay.fly.dev:31416"];
+  if (enableP2P) {
+    try {
+      const { KademliaNode } = await import("./dht.mjs");
+      const { DAGStore } = await import("./dag.mjs");
+      const { GossipManager } = await import("./gossip.mjs");
 
-    const dht = new KademliaNode({
-      clawId: getClawId(),
-      host: "0.0.0.0",
-      port: DHT_PORT,
-      bootstrapNodes: bootstrapList,
-      dataDir: DATA_DIR,
-      lightMode: LIGHT_MODE,
-    });
+      // Enhanced bootstrap: fetch online peers from relay API
+      const bootstrapList = BOOTSTRAP
+        ? [BOOTSTRAP, "clawfeel-relay.fly.dev:31416"]
+        : ["clawfeel-relay.fly.dev:31416"];
 
-    const dag = new DAGStore({
-      dataDir: DATA_DIR,
-      lightMode: LIGHT_MODE,
-    });
-    await dag.load();
+      try {
+        const relayUrl = RELAY || nodeRelay || "https://clawfeel-relay.fly.dev";
+        const bsRes = await fetch(relayUrl.replace(/\/$/, "") + "/api/bootstrap", {
+          signal: AbortSignal.timeout(5000),
+        });
+        const bsData = await bsRes.json();
+        if (bsData.nodes) {
+          // Add online peers as bootstrap nodes (up to 10)
+          for (const n of bsData.nodes.slice(0, 10)) {
+            if (n.dhtPort && n.host) {
+              bootstrapList.push(`${n.host}:${n.dhtPort}`);
+            }
+          }
+        }
+      } catch { /* relay unreachable, use defaults */ }
 
-    gossipManager = new GossipManager({
-      dht, dag, clawId: getClawId(),
-      fanout: LIGHT_MODE ? 3 : 6,
-      lightMode: LIGHT_MODE,
-    });
+      dhtNode = new KademliaNode({
+        clawId: getClawId(),
+        host: "0.0.0.0",
+        port: DHT_PORT,
+        bootstrapNodes: bootstrapList,
+        dataDir: DATA_DIR,
+        lightMode: LIGHT_MODE,
+      });
 
-    await dht.start();
+      const dag = new DAGStore({
+        dataDir: DATA_DIR,
+        lightMode: LIGHT_MODE,
+      });
+      await dag.load();
 
-    const modeLabel = LIGHT_MODE ? "🪶 Light" : "🌐 Full";
-    if (PRETTY) {
-      console.log(`  ${modeLabel} P2P mode: DHT on port ${dht.port}, ${dht.stats.peers} peers`);
-      console.log(`  📊 DAG: ${dag.txMap.size} transactions, ${dag.tips.size} tips`);
-      console.log("");
-    }
+      gossipManager = new GossipManager({
+        dht: dhtNode, dag, clawId: getClawId(),
+        fanout: LIGHT_MODE ? 3 : 6,
+        lightMode: LIGHT_MODE,
+      });
 
-    // Initial sync
-    if (LIGHT_MODE) {
-      await gossipManager.lightSync();
-    } else {
-      await gossipManager.fullSync();
-    }
+      await dhtNode.start();
 
-    if (DAG_STATUS) {
-      const stats = gossipManager.getStats();
-      console.log(JSON.stringify(stats, null, 2));
-      return;
+      if (PRETTY) {
+        const peers = dhtNode.stats?.peers || 0;
+        const contacts = dhtNode.stats?.contacts || 0;
+        console.log(`  🔗 P2P: DHT :${dhtNode.port} | ${peers} peers | ${contacts} contacts`);
+        console.log(`  📊 DAG: ${dag.txMap.size} txs, ${dag.tips.size} tips`);
+      }
+
+      // Initial sync
+      try {
+        if (LIGHT_MODE) {
+          await gossipManager.lightSync();
+        } else {
+          await gossipManager.fullSync();
+        }
+      } catch { /* sync failure is non-fatal */ }
+
+      if (DAG_STATUS) {
+        const stats = gossipManager.getStats();
+        console.log(JSON.stringify(stats, null, 2));
+        return;
+      }
+    } catch (err) {
+      // P2P init failed — continue with relay-only mode
+      if (PRETTY) console.log(`  ⚠️  P2P init failed: ${err.message} (relay-only mode)`);
+      gossipManager = null;
+      dhtNode = null;
     }
   }
 

@@ -942,6 +942,38 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // ── POST /api/dht/forward — relay-mediated DHT for NAT-blocked nodes ──
+  if (req.method === "POST" && path === "/api/dht/forward") {
+    try {
+      const body = await readBody(req);
+      // body = { target: { host, port }, message: { ... } }
+      if (!body.target || !body.message) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false, error: "Missing target or message" }));
+        return;
+      }
+      // Forward via relay's DHT node
+      // For now, just broadcast the message as a gossip tx
+      if (body.message.type === "GOSSIP_TX" && body.message.tx) {
+        const tx = body.message.tx;
+        if (tx.clawId && tx.data) {
+          const ip = getClientIP(req);
+          updateNode(tx.clawId, ip, {
+            ...tx.data,
+            alias: tx.data.alias || "Claw-" + tx.clawId.substring(0, 8),
+            source: "dht-forward",
+          });
+        }
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, forwarded: true }));
+    } catch (err) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: err.message }));
+    }
+    return;
+  }
+
   // ── GET /health — deep health check for monitoring ──
   if (req.method === "GET" && path === "/health") {
     const onlineCount = [...nodes.values()].filter(n => Date.now() - n.lastSeen < NODE_TIMEOUT_MS).length;
@@ -1510,7 +1542,7 @@ export async function startRelay({ port, embedded = false } = {}) {
       if (!embedded) {
         _printBanner(listenPort);
       }
-      // Start DHT
+      // Start DHT + gossip listener
       try {
         const { KademliaNode } = await import("./dht.mjs");
         const dht = new KademliaNode({
@@ -1520,8 +1552,31 @@ export async function startRelay({ port, embedded = false } = {}) {
           bootstrapNodes: [],
           dataDir: DATA_DIR,
         });
+
+        // Register gossip handler: when relay receives P2P gossip, update node map
+        dht.onMessage((msg) => {
+          if (msg.type === "GOSSIP_TX" && msg.tx) {
+            const tx = msg.tx;
+            if (tx.clawId && tx.data) {
+              const d = tx.data;
+              const ip = msg.from?.host || "p2p";
+              updateNode(tx.clawId, ip, {
+                feel: d.feel, era: d.era, hash: d.hash,
+                entropy: d.entropy, seq: d.seq,
+                authenticity: d.authenticity,
+                entropyQuality: d.entropyQuality,
+                sensorFlags: d.sensorFlags,
+                alias: d.alias || "Claw-" + tx.clawId.substring(0, 8),
+                timestamp: d.timestamp || new Date().toISOString(),
+                source: "p2p", // mark as P2P-originated
+              });
+            }
+          }
+        });
+
         await dht.start();
-        if (!embedded) console.log(`  🌐 DHT bootstrap node running on :${dht.port}\n`);
+        if (!embedded) console.log(`  🌐 DHT bootstrap node running on :${dht.port}`);
+        if (!embedded) console.log(`  📡 P2P gossip listener active\n`);
       } catch (err) {
         if (!embedded) console.log(`  ⚠️  DHT failed to start: ${err.message}`);
       }
