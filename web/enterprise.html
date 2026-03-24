@@ -782,10 +782,14 @@ async function demoFast(btn) {
   result.textContent = 'Calling API...';
   try {
     const t0 = performance.now();
-    const res = await fetch('https://clawfeel-relay.fly.dev/api/v1/random?bits=256');
+    // Use public beacon endpoint (no API key required)
+    const res = await fetch('https://clawfeel-relay.fly.dev/api/beacon/latest');
     const data = await res.json();
     const ms = Math.round(performance.now() - t0);
-    const hex = data.entropy || data.value || data.random || JSON.stringify(data).slice(0, 64);
+    // Derive entropy from beacon hash + timestamp for uniqueness
+    const raw = data.beaconHash || data.xorAccum || JSON.stringify(data);
+    const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw + Date.now()));
+    const hex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,'0')).join('');
     // Derive a password from the hex
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
     let pw = '';
@@ -920,5 +924,6 @@ function countdownBar(n) {
          ' ' + (n * 1) + 's remaining';
 }
 </script>
+<script src="version.js"></script>
 </body>
 </html>
