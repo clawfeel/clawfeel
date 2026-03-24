@@ -1232,7 +1232,7 @@ async function reportToRelay(result) {
         sensorFlags: result.sensorFlags, clawId, alias: nodeAlias, publicKey: nodeSignPub,
         ...(result.zkProof ? { zkProof: result.zkProof } : {}),
       }),
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(15000), // 15s for high-latency networks
     });
     const data = await res.json();
     if (PRETTY) {
