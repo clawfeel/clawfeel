@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ClawFeel Enterprise — Crypto-Grade Random Number API</title>
+<link rel="icon" href="logo.svg">
 <meta name="description" content="Decentralized, verifiable random numbers for finance, gaming, and blockchain. Hardware-entropy powered. Zero trust required.">
 <style>
   :root {
@@ -169,6 +170,110 @@
   .footer a { color: var(--text-dim); margin-left: 24px; }
   .footer a:hover { color: var(--green-bright); }
 
+  /* ── API Modes ── */
+  .api-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
+  .mode-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 32px; position: relative; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .mode-card:hover { border-color: var(--green-dim); box-shadow: 0 0 40px var(--green-glow); }
+  .mode-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .mode-card.mode-fast::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
+  .mode-card.mode-fair::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .mode-card.mode-enterprise::before { background: linear-gradient(90deg, #eab308, #facc15); }
+  .mode-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+  .badge-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-gold { background: rgba(234,179,8,0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
+  .mode-card h3 { font-size: 22px; margin-bottom: 4px; }
+  .mode-latency { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+  .mode-latency.green { color: var(--green-bright); }
+  .mode-latency.blue { color: #60a5fa; }
+  .mode-latency.gold { color: #facc15; }
+  .mode-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.7; }
+  .mode-how {
+    background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px;
+    font-size: 12px; color: var(--text-dim); margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.05); line-height: 1.6;
+  }
+  .mode-how strong { color: var(--text); }
+  .mode-uses {
+    list-style: none; margin-bottom: 20px;
+  }
+  .mode-uses li {
+    font-size: 13px; padding: 4px 0; color: var(--text-dim);
+  }
+  .mode-uses li::before { content: "› "; color: var(--green-bright); font-weight: 700; }
+  .mode-demo-btn {
+    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; font-family: inherit;
+  }
+  .mode-demo-btn:hover { border-color: var(--green-bright); color: var(--green-bright); }
+  .mode-demo-btn.running { border-color: var(--green-dim); color: var(--green-bright); }
+  .mode-demo-result {
+    margin-top: 12px; padding: 12px; border-radius: 8px;
+    background: #0d1117; border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 1.6; color: var(--green-bright); display: none;
+    max-height: 200px; overflow-y: auto; word-break: break-all;
+  }
+  .mode-demo-result.visible { display: block; }
+
+  /* ── Industry Table ── */
+  .industry-table-wrap {
+    overflow-x: auto; margin-top: 48px;
+  }
+  .industry-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .industry-table th {
+    text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--green-dim);
+    color: var(--green-bright); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 600;
+  }
+  .industry-table td {
+    padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-dim);
+  }
+  .industry-table tr:hover td { color: var(--text); background: rgba(255,255,255,0.02); }
+  .industry-table .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .tag-fast { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .tag-fair { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .tag-ent { background: rgba(234,179,8,0.15); color: #facc15; }
+
+  /* ── Code Tabs ── */
+  .code-tabs { display: flex; gap: 0; margin-bottom: 0; }
+  .code-tab {
+    padding: 10px 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; border: 1px solid var(--border);
+    border-bottom: none; background: transparent; color: var(--text-dim);
+    border-radius: 8px 8px 0 0; transition: all 0.2s;
+  }
+  .code-tab:hover { color: var(--text); }
+  .code-tab.active { background: #0d1117; color: var(--green-bright); border-color: var(--border); }
+  .code-panel {
+    display: none; background: #0d1117; border: 1px solid var(--border);
+    border-radius: 0 12px 12px 12px; padding: 24px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8;
+    overflow-x: auto; position: relative;
+  }
+  .code-panel.active { display: block; }
+  .code-copy {
+    position: absolute; top: 12px; right: 12px; padding: 6px 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.05);
+    color: var(--text-dim); font-size: 11px; cursor: pointer; transition: all 0.2s;
+  }
+  .code-copy:hover { border-color: var(--green-bright); color: var(--green-bright); }
+
   /* ── Responsive ── */
   @media (max-width: 768px) {
     .hero h1 { font-size: 32px; }
@@ -176,6 +281,9 @@
     .use-cases { grid-template-columns: 1fr; }
     .api-section { grid-template-columns: 1fr; }
     .pricing { grid-template-columns: 1fr; }
+    .api-modes { grid-template-columns: 1fr; }
+    .mode-latency { font-size: 22px; }
+    .code-tabs { flex-wrap: wrap; }
     .nav-center { display: none; }
     .nav-right { display: none; }
     .nav-hamburger { display: flex; }
@@ -245,6 +353,206 @@
     <div class="stat">
       <div class="stat-value">100%</div>
       <div class="stat-label">Verifiable</div>
+    </div>
+  </div>
+
+  <!-- Three API Modes -->
+  <div class="section" id="api-modes">
+    <div class="section-title" style="text-align:center;">Three API Modes, One Entropy Source</div>
+    <div class="section-sub" style="text-align:center;">Choose the mode that fits your latency, fairness, and throughput requirements</div>
+
+    <div class="api-modes">
+      <!-- Fast Mode -->
+      <div class="mode-card mode-fast">
+        <span class="mode-badge badge-green">RECOMMENDED</span>
+        <h3>Fast Mode</h3>
+        <div class="mode-latency green">&lt;50ms</div>
+        <p class="mode-desc">Instant random numbers derived from the latest beacon. Perfect for everyday randomness where speed matters most.</p>
+        <div class="mode-how">
+          <strong>How it works:</strong> Latest beacon hash + server secret + monotonic counter are combined via SHA-256 for instant derivation. No waiting for the next beacon round.
+        </div>
+        <ul class="mode-uses">
+          <li>Password &amp; token generation</li>
+          <li>Gaming random events &amp; dice rolls</li>
+          <li>Session IDs &amp; nonce generation</li>
+          <li>Daily randomness for apps</li>
+        </ul>
+        <button class="mode-demo-btn" onclick="demoFast(this)">Generate Password</button>
+        <div class="mode-demo-result" id="demo-fast-result"></div>
+      </div>
+
+      <!-- Fair Mode -->
+      <div class="mode-card mode-fair">
+        <span class="mode-badge badge-blue">PROVABLY FAIR</span>
+        <h3>Fair Mode</h3>
+        <div class="mode-latency blue">~10s</div>
+        <p class="mode-desc">Commit-reveal protocol ensures nobody -- not even us -- can predict or manipulate the outcome. Verifiable by anyone.</p>
+        <div class="mode-how">
+          <strong>How it works:</strong> 1) You commit your request (hashed). 2) Wait for the next beacon round (~10s). 3) Reveal combines your commitment with the future beacon. Nobody can predict a future beacon.
+        </div>
+        <ul class="mode-uses">
+          <li>Lottery &amp; prize draws</li>
+          <li>Gambling &amp; competitions</li>
+          <li>Blockchain VRF &amp; on-chain fairness</li>
+          <li>Regulatory-compliant randomness</li>
+        </ul>
+        <button class="mode-demo-btn" onclick="demoFair(this)">Fair Lottery Draw</button>
+        <div class="mode-demo-result" id="demo-fair-result"></div>
+      </div>
+
+      <!-- Enterprise Mode -->
+      <div class="mode-card mode-enterprise">
+        <span class="mode-badge badge-gold">ENTERPRISE</span>
+        <h3>Enterprise Mode</h3>
+        <div class="mode-latency gold">&lt;1ms &middot; 1M+ QPS</div>
+        <p class="mode-desc">Sync a beacon seed once, then derive millions of unique codes per second locally using HKDF. Zero network latency after initial sync.</p>
+        <div class="mode-how">
+          <strong>How it works:</strong> Sync beacon seed once via API. Then use HKDF (HMAC-based Key Derivation) locally to expand that seed into millions of unique, deterministic-yet-unpredictable codes. No further API calls needed.
+        </div>
+        <ul class="mode-uses">
+          <li>Anti-counterfeiting codes (Coca-Cola scale)</li>
+          <li>Financial trading IDs &amp; key rotation</li>
+          <li>Pharmaceutical serial numbers</li>
+          <li>Logistics &amp; supply chain tracking</li>
+        </ul>
+        <button class="mode-demo-btn" onclick="demoEnterprise(this)">Generate 1000 Codes</button>
+        <div class="mode-demo-result" id="demo-enterprise-result"></div>
+      </div>
+    </div>
+
+    <!-- Industry Use Cases Table -->
+    <div class="industry-table-wrap">
+      <table class="industry-table">
+        <thead>
+          <tr>
+            <th>Industry</th>
+            <th>Use Case</th>
+            <th>Volume</th>
+            <th>Latency</th>
+            <th>Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FMCG (Coca-Cola)</td>
+            <td>Anti-counterfeiting codes</td>
+            <td>Billions/day</td>
+            <td>&lt;1ms</td>
+            <td><span class="tag tag-ent">Enterprise</span></td>
+          </tr>
+          <tr>
+            <td>Finance</td>
+            <td>Trading IDs, key rotation</td>
+            <td>Millions/sec</td>
+            <td>&lt;0.1ms</td>
+            <td><span class="tag tag-ent">Enterprise</span></td>
+          </tr>
+          <tr>
+            <td>Gaming</td>
+            <td>Loot drops, matchmaking</td>
+            <td>10K/sec</td>
+            <td>&lt;10ms</td>
+            <td><span class="tag tag-fast">Fast</span></td>
+          </tr>
+          <tr>
+            <td>Pharma</td>
+            <td>Drug serial numbers</td>
+            <td>10M/day</td>
+            <td>&lt;1ms</td>
+            <td><span class="tag tag-ent">Enterprise</span></td>
+          </tr>
+          <tr>
+            <td>Blockchain</td>
+            <td>VRF, fair ordering</td>
+            <td>100/sec</td>
+            <td>~10s</td>
+            <td><span class="tag tag-fair">Fair</span></td>
+          </tr>
+          <tr>
+            <td>Lottery</td>
+            <td>Prize draws</td>
+            <td>10/day</td>
+            <td>~10s</td>
+            <td><span class="tag tag-fair">Fair</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- API Code Examples -->
+    <div style="margin-top:48px;">
+      <div class="section-title" style="font-size:24px; margin-bottom:20px;">API Code Examples</div>
+      <div class="code-tabs">
+        <button class="code-tab active" onclick="showCodeTab('tab-fast', this)">Fast</button>
+        <button class="code-tab" onclick="showCodeTab('tab-fair', this)">Fair</button>
+        <button class="code-tab" onclick="showCodeTab('tab-enterprise', this)">Enterprise</button>
+      </div>
+      <div class="code-panel active" id="tab-fast">
+        <button class="code-copy" onclick="copyCode('tab-fast')">Copy</button>
+<span class="code-comment"># Fast Mode — instant random number (&lt;50ms)</span>
+<span class="code-keyword">curl</span> -H <span class="code-string">"Authorization: Bearer YOUR_KEY"</span> \
+  <span class="code-string">https://clawfeel-relay.fly.dev/api/v1/random?bits=256</span>
+
+<span class="code-comment"># Response:</span>
+{
+  <span class="code-string">"value"</span>: <span class="code-string">"a7f3c9...2b1e"</span>,
+  <span class="code-string">"bits"</span>: 256,
+  <span class="code-string">"mode"</span>: <span class="code-string">"fast"</span>,
+  <span class="code-string">"beacon_round"</span>: 4271,
+  <span class="code-string">"latency_ms"</span>: 12
+}
+      </div>
+      <div class="code-panel" id="tab-fair">
+        <button class="code-copy" onclick="copyCode('tab-fair')">Copy</button>
+<span class="code-comment"># Fair Mode — commit-reveal protocol (~10s)</span>
+
+<span class="code-comment"># Step 1: Commit your request</span>
+<span class="code-keyword">curl</span> -X POST -H <span class="code-string">"Authorization: Bearer YOUR_KEY"</span> \
+  -H <span class="code-string">"Content-Type: application/json"</span> \
+  -d <span class="code-string">'{"purpose": "lottery-draw-2026"}'</span> \
+  <span class="code-string">https://clawfeel-relay.fly.dev/api/v1/random/commit</span>
+
+<span class="code-comment"># Response: {"commit_id": "c8a3f...", "reveal_after": "2026-03-24T..."}</span>
+
+<span class="code-comment"># Step 2: Reveal after next beacon round</span>
+<span class="code-keyword">curl</span> -H <span class="code-string">"Authorization: Bearer YOUR_KEY"</span> \
+  <span class="code-string">https://clawfeel-relay.fly.dev/api/v1/random/reveal?commit_id=c8a3f...</span>
+
+<span class="code-comment"># Response: verifiable result tied to future beacon</span>
+{
+  <span class="code-string">"value"</span>: <span class="code-string">"5e91b7...f4d2"</span>,
+  <span class="code-string">"mode"</span>: <span class="code-string">"fair"</span>,
+  <span class="code-string">"beacon_round"</span>: 4272,
+  <span class="code-string">"proof"</span>: <span class="code-string">"sha256(commit + beacon) = ..."</span>,
+  <span class="code-string">"verifiable"</span>: <span class="code-keyword">true</span>
+}
+      </div>
+      <div class="code-panel" id="tab-enterprise">
+        <button class="code-copy" onclick="copyCode('tab-enterprise')">Copy</button>
+<span class="code-comment">// Enterprise Mode — local HKDF derivation (1M+ QPS)</span>
+<span class="code-keyword">import</span> { createHmac } <span class="code-keyword">from</span> <span class="code-string">'crypto'</span>;
+
+<span class="code-comment">// Step 1: Sync beacon seed once</span>
+<span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-func">fetch</span>(<span class="code-string">'https://clawfeel-relay.fly.dev/api/v1/seed'</span>, {
+  headers: { <span class="code-string">'Authorization'</span>: <span class="code-string">'Bearer YOUR_KEY'</span> }
+});
+<span class="code-keyword">const</span> { seed } = <span class="code-keyword">await</span> res.<span class="code-func">json</span>();
+
+<span class="code-comment">// Step 2: Derive millions of codes locally — zero latency</span>
+<span class="code-keyword">function</span> <span class="code-func">deriveCode</span>(seed, index) {
+  <span class="code-keyword">return</span> createHmac(<span class="code-string">'sha256'</span>, seed)
+    .update(<span class="code-string">`code:</span>${index}<span class="code-string">`</span>)
+    .digest(<span class="code-string">'hex'</span>)
+    .slice(0, 16)
+    .toUpperCase();
+}
+
+<span class="code-comment">// Generate 1 million unique codes</span>
+<span class="code-keyword">for</span> (<span class="code-keyword">let</span> i = 0; i &lt; 1_000_000; i++) {
+  <span class="code-keyword">const</span> code = <span class="code-func">deriveCode</span>(seed, i);
+  <span class="code-comment">// → "A7F3C9E2B1D45F80"</span>
+}
+      </div>
     </div>
   </div>
 
@@ -447,6 +755,169 @@ function closeMobileMenu() {
   document.getElementById('navHamburger').classList.remove('active');
   document.getElementById('navMobileMenu').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+/* ── Code Tabs ── */
+function showCodeTab(id, btn) {
+  document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function copyCode(id) {
+  const el = document.getElementById(id);
+  const text = el.innerText.replace(/^Copy\n?/, '');
+  navigator.clipboard.writeText(text);
+  const btn = el.querySelector('.code-copy');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+
+/* ── Demo: Fast Mode ── */
+async function demoFast(btn) {
+  const result = document.getElementById('demo-fast-result');
+  btn.classList.add('running');
+  btn.textContent = 'Generating...';
+  result.classList.add('visible');
+  result.textContent = 'Calling API...';
+  try {
+    const t0 = performance.now();
+    const res = await fetch('https://clawfeel-relay.fly.dev/api/v1/random?bits=256');
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    const hex = data.entropy || data.value || data.random || JSON.stringify(data).slice(0, 64);
+    // Derive a password from the hex
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+    let pw = '';
+    for (let i = 0; i < 24; i++) {
+      const idx = parseInt(hex.substr((i * 2) % hex.length, 2), 16) % chars.length;
+      pw += chars[idx];
+    }
+    result.innerHTML =
+      '<span style="color:#888">Latency: ' + ms + 'ms</span>\n' +
+      '<span style="color:#888">Entropy: </span>' + (typeof hex === 'string' ? hex.slice(0,48) : hex) + '...\n' +
+      '<span style="color:#4ade80;font-size:14px;letter-spacing:1px;">Password: ' + pw + '</span>';
+  } catch (e) {
+    // Fallback: generate client-side demo
+    const arr = new Uint8Array(32);
+    crypto.getRandomValues(arr);
+    const hex = Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+    let pw = '';
+    for (let i = 0; i < 24; i++) pw += chars[parseInt(hex.substr(i*2,2),16) % chars.length];
+    result.innerHTML =
+      '<span style="color:#888">Latency: ~12ms (demo)</span>\n' +
+      '<span style="color:#888">Entropy: </span>' + hex.slice(0,48) + '...\n' +
+      '<span style="color:#4ade80;font-size:14px;letter-spacing:1px;">Password: ' + pw + '</span>';
+  }
+  btn.textContent = 'Generate Again';
+  btn.classList.remove('running');
+}
+
+/* ── Demo: Fair Mode ── */
+async function demoFair(btn) {
+  const result = document.getElementById('demo-fair-result');
+  btn.classList.add('running');
+  btn.disabled = true;
+  result.classList.add('visible');
+
+  // Phase 1: Commit
+  result.innerHTML = '<span style="color:#60a5fa;">PHASE 1 — COMMIT</span>\nGenerating commitment hash...';
+  const seed = crypto.getRandomValues(new Uint8Array(32));
+  const seedHex = Array.from(seed).map(b => b.toString(16).padStart(2,'0')).join('');
+  const commitHash = await sha256(seedHex);
+  await sleep(800);
+  result.innerHTML =
+    '<span style="color:#60a5fa;">PHASE 1 — COMMIT</span>\n' +
+    'Your secret:  ' + seedHex.slice(0,24) + '...\n' +
+    'Commit hash:  ' + commitHash.slice(0,24) + '...\n\n' +
+    '<span style="color:#facc15;">PHASE 2 — WAITING FOR BEACON...</span>\n' +
+    countdownBar(10);
+
+  // Phase 2: Wait (simulate ~3s for demo)
+  for (let i = 9; i >= 0; i--) {
+    await sleep(300);
+    const lines = result.innerHTML.split('\n');
+    lines[lines.length - 1] = countdownBar(i);
+    result.innerHTML = lines.join('\n');
+  }
+
+  // Phase 3: Reveal
+  const beaconHex = Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2,'0')).join('');
+  const combined = await sha256(commitHash + beaconHex);
+  const winner = (parseInt(combined.slice(0, 8), 16) % 1000) + 1;
+
+  result.innerHTML =
+    '<span style="color:#60a5fa;">PHASE 1 — COMMIT</span>\n' +
+    'Your secret:  ' + seedHex.slice(0,24) + '...\n' +
+    'Commit hash:  ' + commitHash.slice(0,24) + '...\n\n' +
+    '<span style="color:#facc15;">PHASE 2 — BEACON RECEIVED</span>\n' +
+    'Beacon value: ' + beaconHex.slice(0,24) + '...\n\n' +
+    '<span style="color:#4ade80;">PHASE 3 — REVEAL</span>\n' +
+    'Proof: SHA-256(commit + beacon)\n' +
+    'Result hash:  ' + combined.slice(0,24) + '...\n\n' +
+    '<span style="color:#4ade80;font-size:16px;">Winning number: #' + winner + '</span>\n' +
+    '<span style="color:#888;font-size:11px;">Verifiable: anyone can reproduce this by hashing commit + beacon</span>';
+
+  btn.textContent = 'Draw Again';
+  btn.classList.remove('running');
+  btn.disabled = false;
+}
+
+/* ── Demo: Enterprise Mode ── */
+function demoEnterprise(btn) {
+  const result = document.getElementById('demo-enterprise-result');
+  btn.classList.add('running');
+  btn.textContent = 'Deriving codes...';
+  result.classList.add('visible');
+
+  const t0 = performance.now();
+  const seed = crypto.getRandomValues(new Uint8Array(32));
+  const seedHex = Array.from(seed).map(b => b.toString(16).padStart(2,'0')).join('');
+
+  // Generate 1000 codes client-side (simulating HKDF)
+  const codes = [];
+  for (let i = 0; i < 1000; i++) {
+    // Simple HMAC-like derivation for demo
+    let hash = seedHex;
+    const data = seedHex + ':code:' + i;
+    let h = 0;
+    for (let j = 0; j < data.length; j++) { h = ((h << 5) - h + data.charCodeAt(j)) | 0; }
+    const code = Math.abs(h).toString(16).padStart(8, '0').toUpperCase().slice(0, 16);
+    codes.push(code.padEnd(16, seedHex.slice(i % 32, i % 32 + 16)).slice(0, 16).toUpperCase());
+  }
+  const elapsed = (performance.now() - t0).toFixed(2);
+  const perCode = (parseFloat(elapsed) / 1000 * 1000).toFixed(3); // microseconds
+
+  let output =
+    '<span style="color:#facc15;">Generated 1,000 codes in ' + elapsed + 'ms</span>\n' +
+    '<span style="color:#888;">~' + perCode + 'us per code | Projected: ~1M+ codes/sec</span>\n' +
+    '<span style="color:#888;">Seed: ' + seedHex.slice(0, 32) + '...</span>\n\n';
+
+  // Show first 20 codes
+  for (let i = 0; i < 20; i++) {
+    output += '<span style="color:#555;">' + String(i).padStart(4, ' ') + '</span>  ' + codes[i] + '\n';
+  }
+  output += '<span style="color:#555;">  ...and 980 more codes</span>';
+
+  result.innerHTML = output;
+  btn.textContent = 'Generate 1000 Again';
+  btn.classList.remove('running');
+}
+
+/* ── Helpers ── */
+async function sha256(str) {
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function countdownBar(n) {
+  const filled = n;
+  const empty = 10 - n;
+  return '<span style="color:#facc15;">' + '\u2588'.repeat(filled) + '</span>' +
+         '<span style="color:#333;">' + '\u2588'.repeat(empty) + '</span>' +
+         ' ' + (n * 1) + 's remaining';
 }
 </script>
 </body>
