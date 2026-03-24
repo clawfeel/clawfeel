@@ -385,6 +385,13 @@
     <a class="sidebar-link" href="#v1-verify"><span class="method-badge method-get">GET</span> /api/v1/random/verify</a>
     <a class="sidebar-link" href="#v1-status"><span class="method-badge method-get">GET</span> /api/v1/status</a>
   </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">AI Agent</div>
+    <a class="sidebar-link" href="#ai-agent">Overview</a>
+    <a class="sidebar-link" href="#ai-agent-methods">Methods</a>
+    <a class="sidebar-link" href="#ai-agent-tools">LangChain / OpenAI</a>
+    <a class="sidebar-link" href="#ai-agent-cli">CLI Usage</a>
+  </div>
 </aside>
 
 <!-- ── Main ── -->
@@ -1189,6 +1196,130 @@ es.onmessage = (e) => {
   <span class="json-key">"resetAt"</span>: <span class="json-string">"2026-03-23T13:00:00.000Z"</span>,
   <span class="json-key">"totalRequests"</span>: <span class="json-number">156</span>,
   <span class="json-key">"createdAt"</span>: <span class="json-string">"2026-03-20T08:00:00.000Z"</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!--  AI Agent SDK                                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="endpoint" id="ai-agent">
+    <div class="endpoint-header">
+      <span class="method-badge method-get" style="font-size:11px;padding:3px 10px;background:rgba(0,255,136,0.15);color:var(--green-bright);">SDK</span>
+      <span class="endpoint-title">AI Agent SDK</span>
+    </div>
+    <p class="endpoint-desc">Let AI Agents make verifiable random decisions using hardware entropy. Works with LangChain, OpenAI function calling, AutoGPT, and any AI framework.</p>
+
+    <div class="params-title">Installation</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">JavaScript / TypeScript</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <div class="code-body"><span class="json-key">import</span> { ClawAgent } <span class="json-key">from</span> <span class="json-string">'clawfeel/agent'</span>
+
+<span class="json-key">const</span> agent = <span class="json-key">new</span> ClawAgent({ mode: <span class="json-string">'fast'</span> })</div>
+    </div>
+  </div>
+
+  <div class="endpoint" id="ai-agent-methods">
+    <div class="endpoint-header">
+      <span class="endpoint-title">Methods</span>
+    </div>
+    <p class="endpoint-desc">All methods return a result with a cryptographic proof object for audit trails.</p>
+
+    <table class="params-table">
+      <tr><th>Method</th><th>Description</th><th>Example</th></tr>
+      <tr>
+        <td><span class="param-name">decide(options)</span></td>
+        <td>Pick one randomly from array</td>
+        <td><code style="color:var(--green-mid);font-size:11px;">agent.decide(['left', 'right'])</code></td>
+      </tr>
+      <tr>
+        <td><span class="param-name">weighted(options, weights)</span></td>
+        <td>Weighted random selection</td>
+        <td><code style="color:var(--green-mid);font-size:11px;">agent.weighted(['common', 'rare'], [80, 20])</code></td>
+      </tr>
+      <tr>
+        <td><span class="param-name">shuffle(array)</span></td>
+        <td>Cryptographic Fisher-Yates shuffle</td>
+        <td><code style="color:var(--green-mid);font-size:11px;">agent.shuffle([1,2,3,4,5])</code></td>
+      </tr>
+      <tr>
+        <td><span class="param-name">sample(array, n)</span></td>
+        <td>Pick n unique items</td>
+        <td><code style="color:var(--green-mid);font-size:11px;">agent.sample(players, 5)</code></td>
+      </tr>
+      <tr>
+        <td><span class="param-name">probability(p)</span></td>
+        <td>True with probability p</td>
+        <td><code style="color:var(--green-mid);font-size:11px;">agent.probability(0.3)</code></td>
+      </tr>
+      <tr>
+        <td><span class="param-name">gaussian(mean, std)</span></td>
+        <td>Normal distribution</td>
+        <td><code style="color:var(--green-mid);font-size:11px;">agent.gaussian(100, 15)</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="endpoint" id="ai-agent-tools">
+    <div class="endpoint-header">
+      <span class="endpoint-title">LangChain / OpenAI Tool</span>
+    </div>
+    <p class="endpoint-desc">Use ClawFeel as a native tool in LangChain, OpenAI function calling, or any framework that supports tool definitions.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">OpenAI Function Calling</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <div class="code-body"><span class="json-key">import</span> { clawfeelTool } <span class="json-key">from</span> <span class="json-string">'clawfeel/agent'</span>
+
+<span style="color:var(--text-dim);">// Use as OpenAI function calling tool</span>
+<span class="json-key">const</span> tools = [clawfeelTool]
+
+<span style="color:var(--text-dim);">// The tool auto-registers these functions:</span>
+<span style="color:var(--text-dim);">// - clawfeel_decide: Pick from options with hardware entropy</span>
+<span style="color:var(--text-dim);">// - clawfeel_shuffle: Cryptographic shuffle</span>
+<span style="color:var(--text-dim);">// - clawfeel_sample: Random sampling</span>
+<span style="color:var(--text-dim);">// - clawfeel_probability: Coin flip with custom probability</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" id="ai-agent-cli">
+    <div class="endpoint-header">
+      <span class="endpoint-title">CLI Usage</span>
+    </div>
+    <p class="endpoint-desc">Make agent decisions directly from the command line.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <div class="code-body">npx clawfeel --agent-decide "option1,option2,option3"</div>
+    </div>
+
+    <div class="params-title">Proof of Decision</div>
+    <p class="endpoint-desc">Every decision includes a cryptographic proof object for full auditability.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Example Response</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <div class="code-body">{
+  <span class="json-key">"decision"</span>: <span class="json-string">"option2"</span>,
+  <span class="json-key">"index"</span>: <span class="json-number">1</span>,
+  <span class="json-key">"proof"</span>: {
+    <span class="json-key">"entropy"</span>: <span class="json-string">"a3f8c1...256-bit hex"</span>,
+    <span class="json-key">"hash"</span>: <span class="json-string">"sha256:9b2e4f..."</span>,
+    <span class="json-key">"timestamp"</span>: <span class="json-string">"2026-03-24T12:00:00.000Z"</span>,
+    <span class="json-key">"sensors"</span>: <span class="json-number">7</span>,
+    <span class="json-key">"feel"</span>: <span class="json-number">73</span>,
+    <span class="json-key">"nodeId"</span>: <span class="json-string">"Claw-a1b2c3d4"</span>
+  }
 }</div>
     </div>
   </div>

@@ -1188,6 +1188,52 @@
 
   <div class="divider"></div>
 
+  <!-- ═══ Section: For AI Developers ═══ -->
+  <div class="section" id="ai-developers" style="min-height:auto;">
+    <div class="section-inner">
+      <div class="section-label fade-in">FOR AI DEVELOPERS</div>
+      <div class="section-title fade-in">Verifiable Randomness for AI Agents</div>
+      <div class="section-subtitle fade-in">Every decision your agent makes is backed by hardware entropy — auditable, reproducible, and provably fair.</div>
+
+      <div class="features-grid fade-in">
+        <div class="glass-card feature-card">
+          <div class="feature-icon">🎲</div>
+          <div class="feature-title">Decision Engine</div>
+          <div class="feature-desc">Pick, shuffle, sample, or weight — all crypto-grade random</div>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="feature-icon">🔏</div>
+          <div class="feature-title">Proof of Decision</div>
+          <div class="feature-desc">Every choice includes entropy hash + timestamp for audit trails</div>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="feature-icon">🧩</div>
+          <div class="feature-title">Framework Ready</div>
+          <div class="feature-desc">Native support for LangChain, OpenAI tools, and any AI SDK</div>
+        </div>
+      </div>
+
+      <div class="code-block fade-in" style="max-width:640px;margin:48px auto 0;background:rgba(0,0,0,0.4);border:1px solid var(--bg-panel-border);border-radius:8px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(0,255,136,0.04);border-bottom:1px solid var(--bg-panel-border);">
+          <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);">Quick Start</span>
+        </div>
+        <pre style="padding:14px;font-size:12px;line-height:1.7;overflow-x:auto;margin:0;color:var(--text-body);"><span style="color:var(--blue-eternal);">import</span> { ClawAgent } <span style="color:var(--blue-eternal);">from</span> <span style="color:var(--green-mid);">'clawfeel/agent'</span>
+
+<span style="color:var(--blue-eternal);">const</span> agent = <span style="color:var(--blue-eternal);">new</span> ClawAgent({ mode: <span style="color:var(--green-mid);">'fast'</span> })
+<span style="color:var(--blue-eternal);">const</span> pick  = <span style="color:var(--blue-eternal);">await</span> agent.decide([<span style="color:var(--green-mid);">'left'</span>, <span style="color:var(--green-mid);">'right'</span>, <span style="color:var(--green-mid);">'forward'</span>])
+
+console.log(pick.decision)  <span style="color:var(--text-dim);">// "right"</span>
+console.log(pick.proof.hash) <span style="color:var(--text-dim);">// "sha256:9b2e4f..."</span></pre>
+      </div>
+
+      <div style="text-align:center;margin-top:40px;" class="fade-in">
+        <a href="api-docs.html#ai-agent" class="btn btn-outline" style="font-size:12px;padding:14px 32px;">View AI Agent Docs &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
   <!-- ═══ Section 8: Get Started ═══ -->
   <div class="section" id="get-started">
     <div class="section-inner">
