@@ -1373,8 +1373,16 @@ function setMode(mode) {
     }
     // Restart sim
     if (!simInterval) {
-      onlineQueue = [];
       onlineCount = nodes.filter(n => n.online).length;
+      if (onlineCount === 0) {
+        // Re-queue all nodes for bring-online animation
+        onlineQueue = [...Array(NODE_COUNT).keys()];
+        for (let i = onlineQueue.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [onlineQueue[i], onlineQueue[j]] = [onlineQueue[j], onlineQueue[i]];
+        }
+        setTimeout(bringOnline, 300);
+      }
       simInterval = setInterval(tick, TICK_MS);
     }
   }
@@ -1410,21 +1418,23 @@ function startLiveMode() {
 
 function stopLiveMode() {
   if (sseSource) { sseSource.close(); sseSource = null; }
+  liveNodeEls.clear();
   // Rebuild simulated grid
   $grid.innerHTML = '';
   nodeEls.length = 0;
   for (let i = 0; i < NODE_COUNT; i++) {
+    const n = nodes[i];
     const el = document.createElement('div');
-    el.className = 'node online ' + nodes[i].cls;
+    el.className = n.online ? ('node online ' + n.cls) : 'node';
     el.innerHTML = `
-      <div class="node-id">CLAW-${nodes[i].id}</div>
-      <div class="node-feel">${nodes[i].feel}</div>
-      <div class="node-era">${nodes[i].era}</div>
+      <div class="node-id">CLAW-${n.id}</div>
+      <div class="node-feel">${n.online ? n.feel : '--'}</div>
+      <div class="node-era">${n.online ? n.era : 'Offline'}</div>
       <div class="node-security">
-        <span class="node-auth full">${nodes[i].authenticity}/7</span>
-        <span class="node-quality">Q:${nodes[i].entropyQuality}</span>
+        <span class="node-auth full">${n.authenticity}/7</span>
+        <span class="node-quality">Q:${n.online ? n.entropyQuality : '--'}</span>
       </div>
-      <div class="node-bar" style="width:${nodes[i].feel}%"></div>
+      <div class="node-bar" style="width:${n.online ? n.feel : 0}%"></div>
     `;
     $grid.appendChild(el);
     nodeEls.push(el);
@@ -1592,10 +1602,10 @@ requestAnimationFrame(drawWave);
 // Default to Live mode — fall back to simulated if relay offline
 setMode('live');
 setTimeout(() => {
-  // If live mode didn't connect after 5s, fall back to simulated
-  if (currentMode === 'live' && !document.querySelector('.node-card')) {
-    setTimeout(bringOnline, 500);
-    simInterval = setInterval(tick, TICK_MS);
+  // If live mode didn't get any nodes after 6s, fall back to simulated
+  if (currentMode === 'live' && liveNodeEls.size === 0) {
+    console.log('[ClawFeel] No live nodes detected, falling back to simulated mode');
+    setMode('simulated');
   }
 }, 6000);
 

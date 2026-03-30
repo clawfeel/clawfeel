@@ -44,7 +44,10 @@ const ID_BITS = 160;         // SHA-1 produces 160 bits
 const RPC_TIMEOUT = 5000;    // 5s timeout for RPCs
 const REFRESH_INTERVAL = 60_000; // refresh stale buckets every 60s
 const DEFAULT_PORT = 31416;
-const DEFAULT_BOOTSTRAP = ["api.clawfeel.ai:31416"];
+const DEFAULT_BOOTSTRAP = [
+  "api.clawfeel.ai:31416",
+  "clawfeel-relay.fly.dev:31416",
+];
 const MAX_STORE_ENTRIES = 10_000;  // max key-value pairs
 const MAX_VALUE_SIZE = 65536;      // 64KB max per value
 const NETWORK_KEY = "clawfeel-dht-v1"; // shared network key for HMAC

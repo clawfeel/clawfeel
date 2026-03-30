@@ -1643,7 +1643,7 @@ async function main() {
       clawId: getClawId(),
       host: "0.0.0.0",
       port: DHT_PORT,
-      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "api.clawfeel.ai:31416"] : ["api.clawfeel.ai:31416"],
+      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "api.clawfeel.ai:31416", "clawfeel-relay.fly.dev:31416"] : ["api.clawfeel.ai:31416", "clawfeel-relay.fly.dev:31416"],
       dataDir: DATA_DIR,
     });
     await dht.start();
@@ -1712,7 +1712,7 @@ async function main() {
       clawId,
       host: "0.0.0.0",
       port: DHT_PORT,
-      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "api.clawfeel.ai:31416"] : ["api.clawfeel.ai:31416"],
+      bootstrapNodes: BOOTSTRAP ? [BOOTSTRAP, "api.clawfeel.ai:31416", "clawfeel-relay.fly.dev:31416"] : ["api.clawfeel.ai:31416", "clawfeel-relay.fly.dev:31416"],
       dataDir: DATA_DIR,
     });
     await dht.start();
